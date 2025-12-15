@@ -1,0 +1,7 @@
+{
+  "name": "ma3an-kol-youm",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
