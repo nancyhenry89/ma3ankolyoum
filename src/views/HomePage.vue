@@ -7,6 +7,12 @@
       <div class="wrap">
         <!-- Header -->
         <div class="header">
+          <!-- زر الإعدادات -->
+          <ion-button class="settingsBtn" fill="clear" size="small" @click="showSettings = true">
+            <ion-icon :icon="settingsOutline" />
+          </ion-button>
+
+
           <div class="brand">
             معًا كل يوم <span class="accent">مع</span> القمص يوحنا باقي
           </div>
@@ -16,15 +22,18 @@
             {{ gregorianDate }} – {{ copticDate }}
           </div>
 
+           <!-- السنكسار -->
+          <div class="saint">
+            {{ saint }}
+          </div>
+
           <div class="title">
             {{ title }}
           </div>
 
-          <!-- زر الإعدادات -->
-          <ion-button class="settingsBtn" fill="clear" size="small" @click="showSettings = true">
-            <ion-icon :icon="settingsOutline" />
-          </ion-button>
         </div>
+
+
 
         <!-- القصة -->
         <div class="card">
@@ -218,6 +227,7 @@ const showSettings = ref(false)
 // ====== Data state ======
 const gregorianDate = ref('')
 const copticDate = ref('')
+const saint = ref('')
 const title = ref('')
 const story = ref('')
 const verseText = ref('')
@@ -292,20 +302,28 @@ async function fetchRows() {
   return rows
 }
 
-async function loadChapter() {
+async function loadChapterPreview(bookKey: string, chapter: number) {
   try {
-    const slug = bookSlugMap[bookKey.value] || bookKey.value.toLowerCase()
-    const url = `${CONTENT_BASE}/bible/${slug}/${chapterNum.value}.json`
+    const slug = String(bookKey || 'Matthew').toLowerCase()
+    const url = `${CONTENT_BASE}/bible/${slug}/${chapter}.json`
 
     const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) {
-      console.error('Chapter JSON not found:', url)
+      console.warn('Preview JSON not found:', url)
+      chapterPreview.value = null
       return
     }
 
-    data.value = await res.json()
+    const json = await res.json()
+    chapterPreview.value = {
+      bookName: String(json.bookName || ''),
+      chapter: Number(json.chapter || chapter),
+      chapterTitle: String(json.chapterTitle || ''),
+      sections: (json.sections || []).map((s: any) => ({ title: String(s.title || '') }))
+    }
   } catch (e) {
-    console.error('Failed to load chapter', e)
+    console.error('Failed to load chapter preview', e)
+    chapterPreview.value = null
   }
 }
 
@@ -315,6 +333,7 @@ function applyRow(rowRaw: any) {
 
   gregorianDate.value = pick(row, 'gregorian', 'gregorian_date')
   copticDate.value = pick(row, 'coptic', 'coptic_date')
+  saint.value = pick(row, 'saint')
   title.value = pick(row, 'title')
   story.value = pick(row, 'story')
   verseText.value = pick(row, 'verse_text', 'verse')
@@ -451,7 +470,14 @@ onMounted(() => {
   font-weight: 900;
   color: var(--mk-text);
 }
-
+.saint {
+    background: var(--mk-accent);
+    color: #fff;
+    border-radius: 16px;
+    padding: 10px;
+    font-size: 20px;
+    margin:10px 0;
+}
 /* الكروت */
 .card {
   background: var(--mk-card);
@@ -512,7 +538,11 @@ onMounted(() => {
   width: 100%;
   cursor: pointer;
 }
-
+.mini-card.mini-click{
+  display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
 .mini-head {
   background: var(--mk-dark);
   color: #ffffff;
