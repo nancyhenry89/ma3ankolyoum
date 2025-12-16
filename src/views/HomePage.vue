@@ -388,30 +388,62 @@ onMounted(() => {
 <style scoped>
 /* ================== Theme variables ================== */
 .home.theme-light {
-  --mk-bg1: #eef4f8;
+  --mk-bg1: #f4f7fb;
   --mk-bg2: #ffffff;
-  --mk-text: #0b2b40;
+
+  --mk-text: #0b1f33;
   --mk-card: #ffffff;
-  --mk-accent: #1fb6aa;
-  --mk-dark: #0b2b40;
-  --mk-danger: #e23b3b;
+
+  --mk-accent: #20b2aa;   /* teal */
+  --mk-dark: #182a44;     /* indigo/navy */
+  --mk-danger: #d64545;
+
+  --mk-border: rgba(24,42,68,0.10);
+  --mk-shadow: 0 8px 18px rgba(10,20,30,0.07);
+  --mk-shadow-strong: 0 14px 28px rgba(10,20,30,0.10);
+
+  --mk-soft: rgba(32,178,170,0.12);
+  --mk-soft-border: rgba(32,178,170,0.28);
 }
 
 .home.theme-dark {
-  --mk-bg1: #0b1620;
-  --mk-bg2: #0a0f14;
-  --mk-text: #ffffff;
-  --mk-card: rgba(255, 255, 255, 0.07);
-  --mk-accent: #1fb6aa;
-  --mk-dark: #0b2b40;
-  --mk-danger: #ff6b6b; /* أحمر أوضح في الدارك */
+  --mk-bg1: #060b12;
+  --mk-bg2: #0b1220;
+
+  --mk-text: #f5f7fa;            /* ✅ نص فاتح */
+  --mk-card: rgba(255,255,255,0.08);
+
+  --mk-accent: #28d6cc;
+  --mk-dark: #0f1b2f;
+  --mk-danger: #ff7a7a;
+
+  --mk-border: rgba(255,255,255,0.14);
+  --mk-shadow: 0 14px 28px rgba(0,0,0,0.45);
+  --mk-shadow-strong: 0 18px 34px rgba(0,0,0,0.60);
+
+  --mk-soft: rgba(40,214,204,0.20);
+  --mk-soft-border: rgba(40,214,204,0.35);
 }
 
+/* ================== Base ================== */
 .home {
-  font-family: "Noto Naskh Arabic", "Noto Kufi Arabic", system-ui, sans-serif;
+  font-family: "Noto Naskh Arabic", system-ui, sans-serif;
+  letter-spacing: 0;
 }
 
 .content {
+  color: var(--mk-text);
+}
+
+/* اجبار لون النص في الدارك على العناصر المهمة */
+.home.theme-dark,
+.home.theme-dark .content,
+.home.theme-dark .text,
+.home.theme-dark .mini-body,
+.home.theme-dark .mini-list,
+.home.theme-dark .mini-sub,
+.home.theme-dark .brand,
+.home.theme-dark .title {
   color: var(--mk-text);
 }
 
@@ -419,7 +451,10 @@ onMounted(() => {
 .bg {
   position: fixed;
   inset: 0;
-  background: linear-gradient(to bottom, var(--mk-bg1), var(--mk-bg2));
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(32,178,170,0.22), transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, rgba(24,42,68,0.18), transparent 55%),
+    linear-gradient(to bottom, var(--mk-bg1), var(--mk-bg2));
   z-index: 0;
 }
 
@@ -433,6 +468,7 @@ onMounted(() => {
   transform-origin: top center;
 }
 
+/* ================== Header ================== */
 .header {
   text-align: center;
   margin-bottom: 14px;
@@ -444,80 +480,137 @@ onMounted(() => {
   top: -4px;
   left: 0;
   color: var(--mk-text);
+  background: rgba(255,255,255,0.60);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.home.theme-dark .settingsBtn {
+  background: rgba(0,0,0,0.30);
+}
+
+.brand,
+.title,
+.mini-head {
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif; /* ✅ بدون Cairo */
 }
 
 .brand {
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 900;
   color: var(--mk-text);
 }
+
 .brand .accent {
   color: var(--mk-accent);
 }
 
 .dates {
   margin-top: 6px;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--mk-text);
+  font-size: 16px;
+  font-weight: 800;
   cursor: pointer;
-  text-decoration:underline;
+  text-decoration: underline;
+  opacity: 0.9;
+  color: var(--mk-text);
+}
+
+.saint {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 900;
+  background: var(--mk-soft);
+  border: 1px solid var(--mk-soft-border);
+  color: var(--mk-text);
+}
+
+.home.theme-dark .saint {
+  background: rgba(40,214,204,0.22);
+  color: #eafefe;
+  border: 1px solid rgba(40,214,204,0.35);
 }
 
 .title {
   margin-top: 10px;
-  font-size: 40px;
+  font-size: 38px;
+  line-height: 1.2;
   font-weight: 900;
   color: var(--mk-text);
 }
-.saint {
-    background: var(--mk-accent);
-    color: #fff;
-    border-radius: 16px;
-    padding: 10px;
-    font-size: 20px;
-    margin:10px 0;
-}
-/* الكروت */
-.card {
+
+/* ================== Cards ================== */
+.card,
+.mini-card {
   background: var(--mk-card);
   border-radius: 18px;
-  padding: 18px 16px;
+  border: 1px solid var(--mk-border);
+  box-shadow: var(--mk-shadow);
+}
+
+.home.theme-dark .card,
+.home.theme-dark .mini-card {
+  background: rgba(255,255,255,0.06);
+}
+
+.card {
+  padding: 20px 18px;
   margin: 12px 0;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.10);
 }
 
 .text {
-  font-size: 22px;
-  line-height: 1.9;
+  font-size: 21px;
+  line-height: 2;
   color: var(--mk-text);
 }
+
 .alignRight {
   text-align: right;
 }
 
-/* الآية */
+/* ================== Verse (Amiri only here) ================== */
 .verse {
-  background: var(--mk-dark);
+  background:
+    radial-gradient(600px 200px at 20% 0%, rgba(32,178,170,0.35), transparent 60%),
+    linear-gradient(135deg, var(--mk-dark), rgba(16,27,47,0.90));
   border-radius: 16px;
   padding: 14px;
   text-align: center;
   margin: 12px 0;
-}
-.verse-text {
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.8;
-  color: #ffffff;
-}
-.verse-ref {
-  margin-top: 6px;
-  font-size: 18px;
-  color: var(--mk-accent);
-  font-weight: 800;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--mk-shadow-strong);
 }
 
-/* صف الأجبية + الكتاب المقدس */
+.verse::before {
+  content: "“";
+  position: absolute;
+  top: -18px;
+  right: 14px;
+  font-size: 90px;
+  opacity: 0.14;
+  color: #fff;
+  font-family: "Amiri", serif;
+}
+
+.verse-text {
+  font-family: "Amiri", "Noto Naskh Arabic", serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 2;
+  color: #ffffff; /* ✅ forced white for contrast */
+}
+
+.verse-ref {
+  margin-top: 6px;
+  font-family: "Amiri", "Noto Naskh Arabic", serif;
+  font-size: 16px;
+  color: var(--mk-accent);
+  font-weight: 700;
+}
+
+/* ================== Row cards ================== */
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -526,61 +619,67 @@ onMounted(() => {
 }
 
 .mini-card {
-  background: var(--mk-card);
-  border-radius: 18px;
   padding: 14px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.10);
   text-align: center;
-  border: 0;
 }
 
 .mini-click {
   width: 100%;
   cursor: pointer;
 }
-.mini-card.mini-click{
+
+.mini-card.mini-click {
   display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+  flex-direction: column;
+  justify-content: space-between;
 }
+
 .mini-head {
   background: var(--mk-dark);
   color: #ffffff;
   border-radius: 12px;
   padding: 10px;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 900;
-  display: inline-block;
-  min-width: 70%;
-  width:100%
+  width: 100%;
 }
 
 .mini-sub {
   margin-top: 10px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 900;
+  text-decoration: underline;
+  opacity: 0.95;
   color: var(--mk-text);
-  text-decoration:underline
 }
 
 .mini-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 900;
   color: var(--mk-danger);
+  margin-top: 6px;
 }
 
 .mini-list {
-  margin: 8px 0 0;
-  padding: 0 16px;
+  list-style: disc;
+  list-style-position: inside;
+  padding: 0 10px;
+  margin: 10px 0 0;
   text-align: right;
-  font-size: 16px;
-  line-height: 1.8;
+  font-size: 15px;
+  line-height: 1.9;
   color: var(--mk-text);
+  opacity: 0.95;
+}
+
+.mini-list li {
+  margin: 4px 0;
+  display: list-item;
 }
 
 .mini-body {
-  font-size: 20px;
-  line-height: 1.9;
+  font-size: 19px;
+  line-height: 2;
   margin-top: 10px;
   color: var(--mk-text);
 }
@@ -591,29 +690,32 @@ onMounted(() => {
   color: var(--mk-danger);
 }
 
-/* التدريب */
+/* ================== Training ================== */
 .training {
-  background: var(--mk-dark);
+  background:
+    radial-gradient(700px 240px at 15% 0%, rgba(32,178,170,0.30), transparent 65%),
+    linear-gradient(135deg, var(--mk-dark), rgba(16,27,47,0.92));
   border-radius: 16px;
   padding: 14px;
   margin-top: 14px;
   text-align: center;
+  box-shadow: var(--mk-shadow-strong);
 }
 
 .training-pill {
   background: var(--mk-accent);
-  color: #0b2b40;
+  color: #081a25;
   font-weight: 900;
   border-radius: 12px;
   padding: 8px 14px;
-  font-size: 22px;
+  font-size: 20px;
   display: inline-block;
   margin-bottom: 8px;
 }
 
 .training-text {
-  font-size: 20px;
-  line-height: 1.9;
+  font-size: 19px;
+  line-height: 2;
   font-weight: 800;
   color: #ffffff;
 }
@@ -629,18 +731,18 @@ onMounted(() => {
   text-align: center;
 }
 
+/* ================== Settings modal ================== */
 .settingsRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 .home.theme-dark .settingsRow {
-  border-bottom-color: rgba(255, 255, 255, 0.12);
+  border-bottom-color: rgba(255,255,255,0.12);
 }
-
 .settingsLabel {
   font-weight: 800;
 }
@@ -657,9 +759,10 @@ onMounted(() => {
   text-align: left;
 }
 
-/* موبايل */
+/* ================== Mobile ================== */
 @media (max-width: 420px) {
   .title { font-size: 34px; }
   .row { grid-template-columns: 1fr; }
 }
+
 </style>
