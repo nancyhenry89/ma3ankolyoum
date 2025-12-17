@@ -13,99 +13,158 @@
         <div class="bg"></div>
   
         <div class="wrap">
-          <div class="pageTitle">{{ saintName }}</div>
-  
-          <div class="card bigCard" v-if="saintStory">
-            <p class="text alignRight">{{ saintStory }}</p>
-          </div>
-  
-          <div class="hint" v-else>
-            لا توجد قصة متاحة لهذا اليوم.
-          </div>
-  
-          <div class="space"></div>
-        </div>
+  <div class="pageTitle">{{ saintName }}</div>
+
+  <!-- Loading -->
+  <div class="card bigCard" v-if="isLoading">
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line short"></div>
+  </div>
+
+  <!-- Story -->
+  <div class="card bigCard" v-else-if="saintStory">
+    <p class="text alignRight">{{ saintStory }}</p>
+  </div>
+
+  <!-- Error or No data -->
+  <div class="hint" v-else>
+    {{ errorMsg || 'لا توجد قصة متاحة لهذا اليوم.' }}
+  </div>
+
+  <div class="space"></div>
+</div>
+
       </ion-content>
     </ion-page>
   </template>
-  
   <script setup lang="ts">
-  import {
-    IonContent,
-    IonPage,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonBackButton
-  } from '@ionic/vue'
-  import { onMounted, ref, computed } from 'vue'
-  import { useRoute } from 'vue-router'
-  import Papa from 'papaparse'
-  
-  const route = useRoute()
-  
-  const SHEET_CSV_URL =
-    'https://docs.google.com/spreadsheets/d/e/2PACX-1vRzBoz5JKy5BfRIXlo_rOSIYsce_9oXsLG9R07CvC3-MztLmg3vv7EYoNLFdt9YmL21tv8XYevOxedh/pub?gid=0&single=true&output=csv'
-  
-  // ====== Theme + Font scale (persist) ======
-  type ThemeMode = 'light' | 'dark'
-  const theme = ref<ThemeMode>((localStorage.getItem('mk_theme') as ThemeMode) || 'light')
-  const fontScale = ref<number>(Number(localStorage.getItem('mk_fontScale') || '1'))
-  const themeClass = computed(() => (theme.value === 'dark' ? 'theme-dark' : 'theme-light'))
-  
-  function applyPrefs() {
-    document.documentElement.style.setProperty('--mk-fontScale', String(fontScale.value))
-    document.documentElement.setAttribute('data-mk-theme', theme.value)
-  }
-  
-  // ====== helpers (same as Home) ======
-  function normalizeKeys(row: any) {
-    const out: Record<string, any> = {}
-    Object.keys(row || {}).forEach(k => {
-      const nk = String(k).trim().toLowerCase().replace(/\s+/g, '_')
-      out[nk] = row[k]
-    })
-    return out
-  }
-  function pick(row: any, ...keys: string[]) {
-    for (const k of keys) {
-      const kk = k.trim().toLowerCase().replace(/\s+/g, '_')
-      if (row[kk] !== undefined && row[kk] !== null && String(row[kk]).trim() !== '') {
-        return row[kk]
+    import {
+      IonContent,
+      IonPage,
+      IonHeader,
+      IonToolbar,
+      IonTitle,
+      IonButtons,
+      IonBackButton
+    } from '@ionic/vue'
+    import { onMounted, ref, computed } from 'vue'
+    import { useRoute } from 'vue-router'
+    import Papa from 'papaparse'
+    import { readDayCache, writeDayCache } from '@/utils/dayCache'
+    
+    const route = useRoute()
+    
+    const SHEET_CSV_URL =
+      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRzBoz5JKy5BfRIXlo_rOSIYsce_9oXsLG9R07CvC3-MztLmg3vv7EYoNLFdt9YmL21tv8XYevOxedh/pub?gid=0&single=true&output=csv'
+    
+    // ===== Theme + Font scale =====
+    type ThemeMode = 'light' | 'dark'
+    const theme = ref<ThemeMode>((localStorage.getItem('mk_theme') as ThemeMode) || 'light')
+    const fontScale = ref<number>(Number(localStorage.getItem('mk_fontScale') || '1'))
+    const themeClass = computed(() => (theme.value === 'dark' ? 'theme-dark' : 'theme-light'))
+    
+    function applyPrefs() {
+      document.documentElement.style.setProperty('--mk-fontScale', String(fontScale.value))
+      document.documentElement.setAttribute('data-mk-theme', theme.value)
+    }
+    
+    // ===== state =====
+    const saintName = ref('')
+    const saintStory = ref('')
+    const isLoading = ref(true)
+    const errorMsg = ref('')
+    
+    // ===== helpers =====
+    function normalizeKeys(row: any) {
+      const out: Record<string, any> = {}
+      Object.keys(row || {}).forEach(k => {
+        const nk = String(k).trim().toLowerCase().replace(/\s+/g, '_')
+        out[nk] = row[k]
+      })
+      return out
+    }
+    function pick(row: any, ...keys: string[]) {
+      for (const k of keys) {
+        const kk = k.trim().toLowerCase().replace(/\s+/g, '_')
+        if (row[kk] !== undefined && row[kk] !== null && String(row[kk]).trim() !== '') {
+          return row[kk]
+        }
+      }
+      return ''
+    }
+    
+    async function fetchRows() {
+      const res = await fetch(SHEET_CSV_URL, { cache: 'no-store' })
+      const csv = await res.text()
+      const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true })
+      return (parsed.data as any[]).map(r => normalizeKeys(r)).filter(r => r.date_iso)
+    }
+    
+    // ===== network refresh =====
+    async function refreshSaintFromNetwork(targetISO: string) {
+      const rows = await fetchRows()
+      const found = rows.find(r => String(r.date_iso || '').trim().substring(0, 10) === targetISO) || null
+      if (!found) return
+    
+      const name = pick(found, 'saint')
+      const story = pick(found, 'saint_story', 'saintstory', 'synaxarium', 'synaxarion')
+    
+      saintName.value = name
+      saintStory.value = story
+    
+      // ✅ update cache (نفس key بتاع اليوم)
+      writeDayCache(targetISO, {
+        dateISO: targetISO,
+        saint: name,
+        saintStory: story
+      })
+    }
+    
+    // ===== main loader (cache-first) =====
+    async function loadSaintByDate(dateISO: string) {
+      const targetISO = String(dateISO || '').trim().substring(0, 10)
+      if (!targetISO) {
+        isLoading.value = false
+        return
+      }
+    
+      errorMsg.value = ''
+    
+      // ✅ 1) Cache first
+      const cached = readDayCache(targetISO)
+      if (cached?.saint || cached?.saintStory) {
+        saintName.value = cached.saint || ''
+        saintStory.value = cached.saintStory || ''
+        isLoading.value = false
+    
+        // ✅ 2) Background refresh
+        refreshSaintFromNetwork(targetISO).catch(console.error)
+        return
+      }
+    
+      // ✅ 3) No cache => show loader and fetch
+      isLoading.value = true
+      saintName.value = ''
+      saintStory.value = ''
+    
+      try {
+        await refreshSaintFromNetwork(targetISO)
+      } catch (e) {
+        console.error(e)
+        errorMsg.value = 'حصلت مشكلة في تحميل السنكسار. تأكدي من الإنترنت.'
+      } finally {
+        isLoading.value = false
       }
     }
-    return ''
-  }
-  
-  // ====== state ======
-  const saintName = ref('')
-  const saintStory = ref('')
-  
-  async function fetchRows() {
-    const res = await fetch(SHEET_CSV_URL, { cache: 'no-store' })
-    const csv = await res.text()
-    const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true })
-    return (parsed.data as any[]).map(r => normalizeKeys(r)).filter(r => r.date_iso)
-  }
-  
-  async function loadSaintByDate(dateISO: string) {
-    const rows = await fetchRows()
-    const found = rows.find(r => String(r.date_iso).trim() === dateISO)
-  
-    if (!found) return
-  
-    saintName.value = pick(found, 'saint')
-    saintStory.value = pick(found, 'saint_story', 'saintstory', 'synaxarium', 'synaxarion')
-  }
-  
-  onMounted(() => {
-    applyPrefs()
-    const dateISO = String(route.params.dateISO || '')
-    if (dateISO) loadSaintByDate(dateISO).catch(console.error)
-  })
-  </script>
-  
+    
+    onMounted(() => {
+      applyPrefs()
+      const dateISO = String(route.params.dateISO || '').substring(0, 10)
+      loadSaintByDate(dateISO).catch(console.error)
+    })
+    </script>
+    
   <style scoped>
   /* نفس variables بتاعة Home */
   .saintPage.theme-light{
@@ -184,5 +243,23 @@
     text-align: center;
   }
   .space{ height: 24px; }
+  .skeleton-line{
+  height: 14px;
+  border-radius: 10px;
+  margin: 10px 0;
+  animation: sk 1.2s infinite;
+  background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.22), rgba(255,255,255,0.08));
+}
+.saintPage.theme-light .skeleton-line{
+  background: linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.10), rgba(0,0,0,0.06));
+}
+.skeleton-line.short{ width: 60%; }
+
+@keyframes sk{
+  0%{ filter: brightness(1); }
+  50%{ filter: brightness(1.25); }
+  100%{ filter: brightness(1); }
+}
+
   </style>
   

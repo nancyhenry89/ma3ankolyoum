@@ -215,6 +215,7 @@ import { useRouter } from 'vue-router'
 import Papa from 'papaparse'
 import { settingsOutline } from 'ionicons/icons'
 import { shareOutline } from 'ionicons/icons'
+import { readDayCache, writeDayCache } from '@/utils/dayCache'
 
 const showShareSheet = ref(false)
 const wrapRef = ref<HTMLElement | null>(null)
@@ -349,6 +350,10 @@ async function shareAsText() {
   }
 }
 
+import { Share } from '@capacitor/share'
+import { Filesystem, Directory } from '@capacitor/filesystem'
+import { Capacitor } from '@capacitor/core'
+
 async function shareAsImage() {
   if (noData.value || isLoading.value) return
   const el = wrapRef.value
@@ -356,34 +361,49 @@ async function shareAsImage() {
 
   const canvas = await html2canvas(el, {
     scale: 2,
-    backgroundColor: null, // يحافظ على الخلفية حسب التصميم
+    backgroundColor: null,
     useCORS: true
   })
 
-  const blob: Blob | null = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1))
-  if (!blob) return
+  // base64 png بدون prefix
+  const dataUrl = canvas.toDataURL('image/png')
+  const base64 = dataUrl.split(',')[1]
 
-  const file = new File([blob], 'ma3an-kol-youm.png', { type: 'image/png' })
+  // احفظيها في cache (أفضل للمشاركة)
+  const fileName = `ma3an-kol-youm-${Date.now()}.png`
+  const saved = await Filesystem.writeFile({
+    path: fileName,
+    data: base64,
+    directory: Directory.Cache
+  })
 
-  // Web Share (لو بيدعم مشاركة ملفات)
-  const canShareFiles = !!(navigator.canShare && navigator.canShare({ files: [file] }))
-
-  if (navigator.share && canShareFiles) {
-    await navigator.share({
+  // ✅ على Android/iOS استخدمي Share plugin
+  if (Capacitor.isNativePlatform()) {
+    await Share.share({
       title: 'معًا كل يوم',
-      files: [file]
+      text: 'مشاركة من تطبيق معًا كل يوم',
+      url: saved.uri
     })
     return
   }
 
-  // fallback: download
-  const url = URL.createObjectURL(blob)
+  // ✅ على الويب (fallback)
+  if (navigator.share) {
+    const blob: Blob | null = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1))
+    if (!blob) return
+    const file = new File([blob], fileName, { type: 'image/png' })
+    const canShareFiles = !!(navigator.canShare && navigator.canShare({ files: [file] }))
+    if (canShareFiles) {
+      await navigator.share({ title: 'معًا كل يوم', files: [file] })
+      return
+    }
+  }
+
+  // آخر fallback: download (ويب فقط)
   const a = document.createElement('a')
-  a.href = url
-  a.download = 'ma3an-kol-youm.png'
+  a.href = dataUrl
+  a.download = fileName
   a.click()
-  URL.revokeObjectURL(url)
-  alert('المتصفح لا يدعم مشاركة صورة مباشرة — تم تنزيل الصورة ✅')
 }
 
 // ====== Settings modal ======
@@ -410,9 +430,46 @@ const agbia = ref('')
 const agbia_author = ref('')
 const training = ref('')
 const chapterPreview = ref<ChapterPreview | null>(null)
-  const isLoading = ref(true)
+  const isLoading = ref(false)
 const noData = ref(false)
 const noDataMsg = ref('')
+function applyCachedDay(c: any) {
+  gregorianDate.value = c.gregorianDate || ''
+  copticDate.value = c.copticDate || ''
+  saint.value = c.saint || ''
+  saintStory.value = c.saintStory || ''
+
+  title.value = c.title || ''
+  story.value = c.story || ''
+  verseText.value = c.verseText || ''
+  verseRef.value = c.verseRef || ''
+  reflection.value = c.reflection || ''
+
+  agbia.value = c.agbia || ''
+  agbia_author.value = c.agbia_author || ''
+  training.value = c.training || ''
+
+  bibleBookKey.value = c.bibleBookKey || 'Matthew'
+  bibleChapter.value = Number(c.bibleChapter || 1)
+  bibleTitle.value = c.bibleTitle || ''
+  bibleItems.value = Array.isArray(c.bibleItems) ? c.bibleItems : []
+
+  // preview (لو موجود)
+  loadChapterPreview(bibleBookKey.value, bibleChapter.value)
+}
+// ✅ hydrate from cache before first render
+const initialISO = String(selectedDateISO.value).substring(0, 10)
+const cachedInit = readDayCache(initialISO)
+
+if (cachedInit) {
+  applyCachedDay(cachedInit)
+  noData.value = false
+  noDataMsg.value = ''
+  isLoading.value = false
+} else {
+  // مفيش كاش: ساعتها بس نظهر loading
+  isLoading.value = true
+}
 
 function clearData() {
   gregorianDate.value = ''
@@ -550,30 +607,78 @@ function applyRow(rowRaw: any) {
 loadChapterPreview(bibleBookKey.value || 'Matthew', bibleChapter.value || 1)
 
 }
+async function refreshHomeFromNetwork(targetISO: string) {
+  const rows = await fetchRows()
+
+  const d = new Date()
+  const todayLocalISO = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const toTime = (iso: string) => new Date(`${iso}T00:00:00`).getTime()
+  const maxTime = toTime(todayLocalISO)
+
+  const allowed = rows.filter(r => {
+    const iso = String(r.date_iso || '').trim().substring(0, 10)
+    return iso && toTime(iso) <= maxTime
+  })
+
+  const found =
+    allowed.find(r => String(r.date_iso).trim().substring(0, 10) === targetISO) ||
+    allowed[allowed.length - 1] ||
+    null
+
+  if (!found) {
+    clearData()
+    noData.value = true
+    noDataMsg.value = 'لا توجد بيانات متاحة لهذا اليوم.'
+    return
+  }
+
+  applyRow(found)
+
+  // ✅ خزني في الكاش (زي ما انتي عاملة)
+  writeDayCache(targetISO, {
+    dateISO: targetISO,
+    gregorianDate: gregorianDate.value,
+    copticDate: copticDate.value,
+    saint: saint.value,
+    saintStory: saintStory.value,
+    title: title.value,
+    story: story.value,
+    verseText: verseText.value,
+    verseRef: verseRef.value,
+    reflection: reflection.value,
+    agbia: agbia.value,
+    agbia_author: agbia_author.value,
+    training: training.value,
+    bibleBookKey: bibleBookKey.value,
+    bibleChapter: bibleChapter.value,
+    bibleTitle: bibleTitle.value,
+    bibleItems: bibleItems.value
+  })
+}
 
 async function loadByDate(dateISO: string) {
+  const targetISO = String(dateISO).trim().substring(0, 10)
+
+  // ✅ 1) cache-first (يعرض فوراً)
+  const cached = readDayCache(targetISO)
+  if (cached) {
+    isLoading.value = false
+    noData.value = false
+    noDataMsg.value = ''
+    applyCachedDay(cached)
+
+    // ✅ 2) refresh من النت في الخلفية (من غير ما يوقف UI)
+    refreshHomeFromNetwork(targetISO).catch(console.error)
+    return
+  }
+
+  // ✅ لو مفيش كاش: حمّلي عادي
   isLoading.value = true
   noData.value = false
   noDataMsg.value = ''
 
   try {
-    const rows = await fetchRows()
-    const maxISO = todayISO()
-    const allowed = rows.filter(r => String(r.date_iso).trim() <= maxISO)
-
-    const found =
-      allowed.find(r => String(r.date_iso).trim() === dateISO) ||
-      allowed[allowed.length - 1] ||
-      null
-
-    if (!found) {
-      clearData()
-      noData.value = true
-      noDataMsg.value = 'لا توجد بيانات متاحة لهذا اليوم.'
-      return
-    }
-
-    applyRow(found)
+    await refreshHomeFromNetwork(targetISO)
   } catch (e) {
     console.error(e)
     clearData()
@@ -584,7 +689,6 @@ async function loadByDate(dateISO: string) {
   }
 }
 
-
 function openChapter() {
   const bookKey = bibleBookKey.value || 'Matthew'
   const ch = bibleChapter.value || 1
@@ -594,11 +698,35 @@ function openSaint() {
   // نستخدم التاريخ الحالي المختار في الهوم علشان الصفحة الجديدة تقرأ نفس الصف من الشيت
   router.push(`/saint/${selectedDateISO.value}`)
 }
+function isoToTime(iso: string) {
+  // يضمن parsing ثابت
+  return new Date(`${iso}T00:00:00`).getTime()
+}
+
+function safeTodayISO() {
+  // خليها local (على Android ده أوثق من timeZone ICU)
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
 
 onMounted(() => {
   applyPrefs()
-  loadByDate(selectedDateISO.value).catch(console.error)
+
+  const iso = String(selectedDateISO.value).substring(0, 10)
+  const cached = readDayCache(iso)
+
+  if (cached) {
+    // ✅ عندك كاش: اعملي تحديث من النت في الخلفية
+    refreshHomeFromNetwork(iso).catch(console.error)
+  } else {
+    // ✅ مفيش كاش: ساعتها حمّلي طبيعي
+    loadByDate(iso).catch(console.error)
+  }
 })
+
 </script>
 
 <style scoped>
