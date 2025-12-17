@@ -22,10 +22,11 @@
             {{ gregorianDate }} – {{ copticDate }}
           </div>
 
-           <!-- السنكسار -->
-          <div class="saint">
-            {{ saint }}
-          </div>
+<!-- السنكسار -->
+<div class="saint" @click="openSaint()">
+  {{ saint }}
+</div>
+
 
           <div class="title">
             {{ title }}
@@ -56,7 +57,7 @@
           <!-- الكتاب المقدس (ضغط يفتح الإصحاح) -->
           <button class="mini-card mini-click" type="button" @click="openChapter()">
             <div class="mini-head">الكتاب المقدس</div>
-            <div class="mini-sub">{{ previewLabel }}</div>
+            <div class="mini-sub bible-pill">{{ previewLabel }}</div>
 <div class="mini-title">{{ previewTitle }}</div>
 <ul class="mini-list">
   <li v-for="(item, i) in previewSections" :key="i">
@@ -228,6 +229,8 @@ const showSettings = ref(false)
 const gregorianDate = ref('')
 const copticDate = ref('')
 const saint = ref('')
+const saintStory = ref('')
+
 const title = ref('')
 const story = ref('')
 const verseText = ref('')
@@ -334,6 +337,8 @@ function applyRow(rowRaw: any) {
   gregorianDate.value = pick(row, 'gregorian', 'gregorian_date')
   copticDate.value = pick(row, 'coptic', 'coptic_date')
   saint.value = pick(row, 'saint')
+  saintStory.value = pick(row, 'saint_story', 'saintstory', 'synaxarium', 'synaxarion')
+
   title.value = pick(row, 'title')
   story.value = pick(row, 'story')
   verseText.value = pick(row, 'verse_text', 'verse')
@@ -377,6 +382,10 @@ function openChapter() {
   const bookKey = bibleBookKey.value || 'Matthew'
   const ch = bibleChapter.value || 1
   router.push(`/chapter/${bookKey}/${ch}`)
+}
+function openSaint() {
+  // نستخدم التاريخ الحالي المختار في الهوم علشان الصفحة الجديدة تقرأ نفس الصف من الشيت
+  router.push(`/saint/${selectedDateISO.value}`)
 }
 
 onMounted(() => {
@@ -596,7 +605,7 @@ onMounted(() => {
 
 .verse-text {
   font-family: "Amiri", "Noto Naskh Arabic", serif;
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 400;
   line-height: 2;
   color: #ffffff; /* ✅ forced white for contrast */
@@ -702,22 +711,14 @@ onMounted(() => {
   box-shadow: var(--mk-shadow-strong);
 }
 
-.training-pill {
-  background: var(--mk-accent);
-  color: #081a25;
-  font-weight: 900;
-  border-radius: 12px;
-  padding: 8px 14px;
-  font-size: 20px;
-  display: inline-block;
-  margin-bottom: 8px;
-}
+
 
 .training-text {
   font-size: 19px;
   line-height: 2;
   font-weight: 800;
   color: #ffffff;
+  font-family: "Amiri", serif;
 }
 
 .space {
@@ -758,11 +759,177 @@ onMounted(() => {
   min-width: 48px;
   text-align: left;
 }
+/* ===== Bible card: make it cleaner & same level as Agbia ===== */
+
+/* خلي الكارت أقل "ضخم" + متوازن */
+.mini-card{
+  padding: 14px 14px 16px;
+}
+
+/* الهيدر: أصغر + أنعم + shadow أخف */
+.mini-head{
+  border-radius: 14px;
+  padding: 12px 12px;
+  font-size: 20px;
+  line-height: 1.2;
+  box-shadow: 0 10px 18px rgba(0,0,0,0.08);
+}
+
+/* البوكس اللي بيتضغط: خلي داخله top/bottom spacing واضح */
+.mini-card.mini-click{
+  gap: 10px;
+}
+
+/* “متى 2” */
+.mini-sub{
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: none;          /* كانت بتدي شكل “لينك” زيادة */
+  opacity: 0.9;
+}
+
+/* عنوان الإصحاح الأحمر: أصغر شوية + line-height أحسن */
+.mini-title{
+  margin-top: 2px;
+  font-size: 18px;
+  line-height: 1.35;
+  font-weight: 900;
+}
+
+/* البُلِتس: خليها أشيك + محاذاة RTL صح */
+.mini-list{
+  margin-top: 8px;
+  padding: 0;
+  list-style: none;               /* هنرسم bullet ourselves */
+  text-align: right;
+  font-size: 15px;
+  line-height: 1.85;
+}
+
+.mini-list li{
+  position: relative;
+  padding-right: 18px;
+  margin: 6px 0;
+  opacity: 0.95;
+}
+
+.mini-list li::before{
+  content: "•";
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-weight: 900;
+  opacity: 0.85;
+}
+/* ===== Training – Same Gradient as Verse ===== */
+
+.training{
+  margin-top: 16px;
+  padding: 18px 16px 22px;
+  border-radius: 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+
+  /* نفس روح الآية */
+  background: linear-gradient(
+    135deg,
+    var(--mk-dark),
+    rgba(11,43,64,0.88)
+  );
+
+  box-shadow: 0 18px 34px rgba(0,0,0,0.35);
+}
+
+/* subtle decorative quote like verse */
+.training::before{
+  content: "✦";
+  position: absolute;
+  top: -10px;
+  left: 14px;
+  font-size: 48px;
+  opacity: 0.12;
+  color: #ffffff;
+}
+
+/* pill */
+.training-pill{
+  color:  var(--mk-accent);
+  font-weight: 900;
+  border-radius: 14px;
+  padding: 8px 18px;
+  font-size: 20px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+.bible-pill{
+  background: linear-gradient(
+    135deg,
+    #20b2aa,
+    #0f2238
+  );
+  color:#fff;
+  font-weight: 900;
+  border-radius: 14px;
+  padding: 10px 18px;
+  font-size: 20px;
+  display: inline-block;
+  margin-bottom: 12px;
+  width:50%;
+  margin:auto;
+}
+/* النص */
+.training-text{
+  font-size: 20px;
+  line-height: 2;
+  font-weight: 800;
+  color: #ffffff;
+  text-align:center
+}
+
+/* Dark mode: أعمق شوية */
+.home.theme-dark .training{
+  background: linear-gradient(
+    135deg,
+    #0a1624,
+    #0f2238
+  );
+  box-shadow: 0 22px 40px rgba(0,0,0,0.6);
+}
+
+/* ===== Bible card – final polish ===== */
+
+/* عنوان الإصحاح: نفس لون accent */
+.mini-title{
+  color: var(--mk-accent);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.35;
+  margin-top: 2px;
+}
+
+/* Dark mode: accent أوضح */
+.home.theme-dark .mini-title{
+  color: var(--mk-accent);
+}
+
+/* نخلي الهيدر والباقي متناسق */
+.mini-head{
+  background: var(--mk-dark);
+}
+
+/* bullets هادية */
+.mini-list li::before{
+  color: var(--mk-accent);
+  opacity: 0.9;
+}
 
 /* ================== Mobile ================== */
 @media (max-width: 420px) {
   .title { font-size: 34px; }
   .row { grid-template-columns: 1fr; }
 }
+
 
 </style>

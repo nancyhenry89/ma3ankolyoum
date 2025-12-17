@@ -22,6 +22,11 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/chapter/:bookKey/:chapter',
     component: () => import('../views/ChapterPage.vue')
+  },
+  {
+    path: '/saint/:dateISO',
+    name: 'Saint',
+    component: () => import('@/views/SaintPage.vue')
   }
   
   

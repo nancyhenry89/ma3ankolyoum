@@ -204,109 +204,77 @@
   </script>
   
   <style scoped>
-  .chapter{
-    font-family:"Noto Naskh Arabic","Noto Kufi Arabic",system-ui,sans-serif;
-  }
-  .wrap{
-    padding:16px;
-    padding-top: calc(env(safe-area-inset-top) + 10px);
-    max-width:760px;
-    margin:0 auto;
-  }
-  .chapterTitle{
-    font-size:22px;
-    font-weight:900;
-    color:#0b2b40;
-    text-align:center;
-    margin-bottom:10px;
-  }
-  
-  .verses{
-    background:#fff;
-    border-radius:18px;
-    padding:10px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.06);
-  }
-  
-  .verseBlock{ border-bottom:1px solid rgba(0,0,0,0.06); }
-  .verseBlock:last-child{ border-bottom:0; }
-  
-  .sectionInline{
-    margin: 10px 8px 0;
-    padding: 8px 12px;
-    background: #0b2b40;
-    color: #fff;
-    border-radius: 12px;
-    font-weight: 900;
-    text-align: center;
-  }
-  
-  .verseRow{
-    width:100%;
-    display:grid;
-    grid-template-columns:42px 1fr 18px;
-    gap:10px;
-    padding:12px 8px;
-    background:transparent;
-    border:0;
-    text-align:right;
-    cursor:pointer;
-  }
-  
-  .num{
-    background:#eef4f8;
-    color:#0b2b40;
-    border-radius:10px;
-    text-align:center;
-    font-weight:900;
-    padding:6px 0;
-    height:fit-content;
-  }
-  .txt{
-    font-size:18px;
-    line-height:1.9;
-    color:#0b2b40;
-    white-space:pre-wrap;
-    font-weight:bold
-  }
-  .chev{
-    color:#0b2b40;
-    font-weight:900;
-    padding-top:6px;
-  }
-  
-  .tafsirBox{
-    margin:0 8px 12px;
-    padding:12px;
-    border-radius:14px;
-    background:#eef4f8;
-  }
-  .tafsirText{
-    font-size:16px;
-    line-height:1.9;
-    color:#0b2b40;
-    text-align:right;
-    white-space:pre-wrap;
-  }
-  .tafsirHint{
-    font-size:14px;
-    color: rgba(11,43,64,0.7);
-    text-align:center;
-  }
-  .space{ height: 20px; }
+  /* ================== Theme variables for Chapter (same as Home B) ================== */
+.chapter{
+  --mk-bg1: #eef4f8;
+  --mk-bg2: #ffffff;
+  --mk-text: #0b2b40;
+  --mk-card: #ffffff;
+  --mk-accent: #1fb6aa;
+  --mk-dark: #0b2b40;
+  --mk-danger: #e23b3b;
 
-  .introBox{
+  --mk-border: rgba(11,43,64,0.08);
+  --mk-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  --mk-shadow-strong: 0 16px 34px rgba(0,0,0,0.10);
+
+  font-family:"Noto Naskh Arabic","Noto Kufi Arabic",system-ui,sans-serif;
+  color: var(--mk-text);
+}
+
+/* Dark mode based on your applyPrefs(): data-mk-theme="dark" */
+:global(html[data-mk-theme="dark"]) .chapter{
+  --mk-bg1: #0b1620;
+  --mk-bg2: #0a0f14;
+  --mk-text: #ffffff;
+  --mk-card: rgba(255, 255, 255, 0.07);
+  --mk-accent: #1fb6aa;
+  --mk-dark: #0b2b40;
+  --mk-danger: #ff6b6b;
+
+  --mk-border: rgba(255,255,255,0.12);
+  --mk-shadow: 0 16px 30px rgba(0,0,0,0.35);
+  --mk-shadow-strong: 0 22px 40px rgba(0,0,0,0.55);
+}
+
+/* ================== Page background like Home ================== */
+:global(ion-content){
+  --background: transparent;
+}
+
+.wrap{
+  padding:16px;
+  padding-top: calc(env(safe-area-inset-top) + 10px);
+  max-width:760px;
+  margin:0 auto;
+}
+
+/* خلفية نفس إحساس Home */
+:global(body) .chapter{
+  background: transparent;
+}
+.chapter::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to bottom, var(--mk-bg1), var(--mk-bg2));
+}
+
+/* ================== Intro box ================== */
+.introBox{
   margin-bottom:16px;
-  background:#ffffff;
+  background: var(--mk-card);
   border-radius:18px;
   padding:12px;
-  box-shadow:0 8px 20px rgba(0,0,0,0.06);
+  border: 1px solid var(--mk-border);
+  box-shadow: var(--mk-shadow);
 }
 
 .introTitle{
   font-size:18px;
   font-weight:900;
-  color:#0b2b40;
+  color: var(--mk-text);
   text-align:center;
   margin-bottom:10px;
 }
@@ -317,6 +285,7 @@
   padding-top:56.25%; /* 16:9 */
   border-radius:14px;
   overflow:hidden;
+  border: 1px solid var(--mk-border);
 }
 
 .videoWrap iframe{
@@ -327,6 +296,110 @@
   height:100%;
   border:0;
 }
+
+/* ================== Chapter title ================== */
+.chapterTitle{
+  font-size:22px;
+  font-weight:900;
+  color: var(--mk-text);
+  text-align:center;
+  margin: 6px 0 10px;
+}
+
+/* ================== Verses container ================== */
+.verses{
+  background: var(--mk-card);
+  border-radius:18px;
+  padding:10px;
+  border: 1px solid var(--mk-border);
+  box-shadow: var(--mk-shadow);
+}
+
+.verseBlock{ border-bottom:1px solid var(--mk-border); }
+.verseBlock:last-child{ border-bottom:0; }
+
+/* Section pill نفس روح Home */
+.sectionInline{
+  margin: 10px 8px 0;
+  padding: 9px 12px;
+  background: var(--mk-dark);
+  color: #fff;
+  border-radius: 14px;
+  font-weight: 900;
+  text-align: center;
+  box-shadow: 0 10px 18px rgba(0,0,0,0.08);
+}
+
+/* Verse row */
+.verseRow{
+  width:100%;
+  display:grid;
+  grid-template-columns:42px 1fr 18px;
+  gap:10px;
+  padding:12px 8px;
+  background:transparent;
+  border:0;
+  text-align:right;
+  cursor:pointer;
+}
+
+/* رقم الآية */
+.num{
+  background: rgba(31,182,170,0.12);
+  color: var(--mk-text);
+  border: 1px solid rgba(31,182,170,0.20);
+  border-radius:12px;
+  text-align:center;
+  font-weight:900;
+  padding:6px 0;
+  height:fit-content;
+}
+
+/* نص الآية */
+.txt{
+  font-size:18px;
+  line-height:1.95;
+  color: var(--mk-text);
+  white-space:pre-wrap;
+  font-weight:800;
+}
+
+.chev{
+  color: var(--mk-text);
+  font-weight:900;
+  padding-top:6px;
+  opacity: 0.9;
+}
+
+/* ================== Tafsir ================== */
+.tafsirBox{
+  margin:0 8px 12px;
+  padding:12px;
+  border-radius:14px;
+  background: rgba(31,182,170,0.10);
+  border: 1px solid rgba(31,182,170,0.18);
+}
+
+.tafsirText{
+  font-size:16px;
+  line-height:1.95;
+  color: var(--mk-text);
+  text-align:right;
+  white-space:pre-wrap;
+  opacity: 0.95;
+}
+
+.tafsirHint{
+  font-size:14px;
+  color: rgba(11,43,64,0.70);
+  text-align:center;
+}
+
+:global(html[data-mk-theme="dark"]) .tafsirHint{
+  color: rgba(255,255,255,0.75);
+}
+
+.space{ height: 20px; }
 
   </style>
   
