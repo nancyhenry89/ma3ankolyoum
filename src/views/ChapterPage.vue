@@ -121,21 +121,37 @@
   const sections = computed(() => data.value?.sections || [])
   
 
-  async function loadChapter() {
-  try {
-    const slug = bookSlugMap[bookKey.value] || bookKey.value.toLowerCase()
-    const url = `${CONTENT_BASE}/bible/${slug}/${chapterNum.value}.json`
+  import { readChapterCache, writeChapterCache, readTafsirCache, writeTafsirCache } from '@/utils/chapterCache'
 
-    const res = await fetch(url, { cache: 'no-store' })
-    if (!res.ok) {
-      console.error('Chapter JSON not found:', url)
-      return
-    }
+async function loadChapter() {
+  const b = bookKey.value
+  const ch = chapterNum.value
 
-    data.value = await res.json()
-  } catch (e) {
-    console.error('Failed to load chapter', e)
+  // ✅ 1) cache first
+  const cached = readChapterCache(b, ch)
+  if (cached) {
+    data.value = cached
+    // تحديث من النت في الخلفية
+    refreshChapterFromNetwork(b, ch).catch(console.error)
+    return
   }
+
+  // ✅ 2) مفيش كاش
+  await refreshChapterFromNetwork(b, ch)
+}
+
+async function refreshChapterFromNetwork(bookKey: string, chapter: number) {
+  const slug = bookSlugMap[bookKey] || bookKey.toLowerCase()
+  const url = `${CONTENT_BASE}/bible/${slug}/${chapter}.json`
+
+  const res = await fetch(url, { cache: 'no-store' })
+  if (!res.ok) return
+
+  const json = await res.json()
+  data.value = json
+
+  // خزني
+  writeChapterCache(bookKey, chapter, json)
 }
 
   // ===== Sections inline title =====
@@ -152,55 +168,83 @@
   function isOpen(n: number) {
     return openVerse.value === n
   }
-  
   async function loadTafsirOnce() {
-    if (tafsirRows.value.length) return
-  
-    tafsirLoading.value = true
-    try {
-      const res = await fetch(TAFSIR_CSV_URL, { cache: 'no-store' })
-      const csv = await res.text()
-  
-      const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true })
-      const rows = (parsed.data as any[])
-        .filter(r => r.bookKey && r.chapter && r.fromVerse && r.toVerse)
-        .map(r => ({
-          bookKey: String(r.bookKey).trim(),
-          chapter: Number(r.chapter),
-          fromVerse: Number(r.fromVerse),
-          toVerse: Number(r.toVerse),
-          tafsir: String(r.tafsir || '').trim()
-        }))
-  
-      tafsirRows.value = rows
-    } finally {
-      tafsirLoading.value = false
-    }
+  const b = String(bookKey.value).trim()
+  const ch = Number(chapterNum.value)
+
+  // ✅ كاش per chapter
+  const cached = readTafsirCache(b, ch)
+  if (cached && cached.length) {
+    tafsirRows.value = cached
+    return
   }
-  
-  async function toggleVerse(n: number) {
-    if (openVerse.value === n) {
-      openVerse.value = null
-      return
-    }
-    openVerse.value = n
+
+  tafsirLoading.value = true
+  try {
+    const res = await fetch(TAFSIR_CSV_URL, { cache: 'no-store' })
+    const csv = await res.text()
+
+    const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true })
+
+    const all = (parsed.data as any[])
+      .filter(r => r.bookKey && r.chapter && r.fromVerse && r.toVerse)
+      .map(r => ({
+        bookKey: String(r.bookKey).trim(),
+        chapter: Number(r.chapter),
+        fromVerse: Number(r.fromVerse),
+        toVerse: Number(r.toVerse),
+        tafsir: String(r.tafsir || '').trim()
+      }))
+
+    // ✅ خدي بس اللي يخص الصفحة الحالية
+    const filtered = all.filter(r =>
+      String(r.bookKey).trim().toLowerCase() === b.toLowerCase() &&
+      Number(r.chapter) === ch
+    )
+
+    tafsirRows.value = filtered
+    writeTafsirCache(b, ch, filtered)
+  } catch (e) {
+    console.error('Tafsir load failed', e)
+  } finally {
+    tafsirLoading.value = false
+  }
+}
+
+async function toggleVerse(n: number) {
+  if (openVerse.value === n) {
+    openVerse.value = null
+    return
+  }
+
+  openVerse.value = n
+
+  if (!tafsirRows.value.length) {
     await loadTafsirOnce()
   }
-  
+}
+
   // تفسير للآية حتى لو التفسير عامل Range (2-3)
   function getTafsirForVerse(n: number): string | null {
-    const b = bookKey.value
-    const ch = chapterNum.value
-  
-    const row = tafsirRows.value.find(r => {
-      return r.bookKey === b && r.chapter === ch && n >= r.fromVerse && n <= r.toVerse
-    })
-    return row?.tafsir || null
-  }
-  
-  onMounted(async () => {
-    await loadChapter()
+  const b = String(bookKey.value || '').trim().toLowerCase()
+  const ch = Number(chapterNum.value || 1)
+
+  const row = tafsirRows.value.find(r => {
+    return (
+      String(r.bookKey || '').trim().toLowerCase() === b &&
+      Number(r.chapter) === ch &&
+      n >= Number(r.fromVerse) &&
+      n <= Number(r.toVerse)
+    )
   })
+
+  return row?.tafsir || null
+}
+
+  onMounted(() => {
+  loadChapter().catch(console.error)
+})
+
   </script>
   
   <style scoped>
