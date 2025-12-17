@@ -4,87 +4,131 @@
       <!-- خلفية -->
       <div class="bg"></div>
 
-      <div class="wrap">
-        <!-- Header -->
-        <div class="header">
-          <!-- زر الإعدادات -->
-          <ion-button class="settingsBtn" fill="clear" size="small" @click="showSettings = true">
-            <ion-icon :icon="settingsOutline" />
-          </ion-button>
+      <div class="wrap" ref="wrapRef">
+  <!-- Header: Data -->
+  <div class="header" v-if="!isLoading && !noData">
+    <ion-button class="settingsBtn" fill="clear" size="small" @click="showSettings = true">
+      <ion-icon :icon="settingsOutline" />
+    </ion-button>
+    <ion-button class="shareBtn" fill="clear" size="small" @click="showShareSheet = true">
+  <ion-icon :icon="shareOutline" />
+</ion-button>
 
+<ion-action-sheet
+  :is-open="showShareSheet"
+  header="مشاركة"
+  :cssClass="['share-sheet']"
+  :buttons="shareButtons"
+  @didDismiss="showShareSheet = false"
+/>
 
-          <div class="brand">
-            معًا كل يوم <span class="accent">مع</span> القمص يوحنا باقي
-          </div>
+    <div class="brand">
+      معًا كل يوم <span class="accent">مع</span> القمص يوحنا باقي
+    </div>
 
-          <!-- التاريخ (ضغط = Date picker) -->
-          <div class="dates" @click="showDatePicker = true">
-            {{ gregorianDate }} – {{ copticDate }}
-          </div>
+    <div class="dates" @click="showDatePicker = true">
+      {{ gregorianDate }} – {{ copticDate }}
+    </div>
 
-<!-- السنكسار -->
-<div class="saint" @click="openSaint()">
-  {{ saint }}
+    <div class="saint" @click="openSaint()">
+      {{ saint }}
+    </div>
+
+    <div class="title">
+      {{ title }}
+    </div>
+  </div>
+
+  <!-- Header: Loading -->
+  <div class="header" v-else-if="isLoading">
+    <div class="brand skeleton"></div>
+    <div class="dates skeleton"></div>
+    <div class="saint skeleton"></div>
+    <div class="title skeleton titleSk"></div>
+  </div>
+
+  <!-- Header: No data -->
+  <div class="header" v-else>
+    <div class="brand">معًا كل يوم</div>
+    <div class="card" style="margin-top:12px">
+      <p class="text alignRight">{{ noDataMsg || 'لا توجد بيانات متاحة لهذا اليوم.' }}</p>
+    </div>
+  </div>
+
+  <!-- القصة -->
+  <div class="card" v-if="!isLoading && !noData">
+    <p class="text alignRight">{{ story }}</p>
+  </div>
+  <div class="card" v-else-if="isLoading">
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line short"></div>
+  </div>
+  <!-- لو noData: مفيش داعي نكرر رسالة تاني لأن الهيدر already بيعرضها -->
+
+  <!-- الآية -->
+  <div class="verse" v-if="!isLoading && !noData">
+    <div class="verse-text">"{{ verseText }}"</div>
+    <div class="verse-ref">{{ verseRef }}</div>
+  </div>
+  <div class="card" v-else-if="isLoading">
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line short"></div>
+  </div>
+
+  <!-- التأمل -->
+  <div class="card" v-if="!isLoading && !noData">
+    <p class="text alignRight">{{ reflection }}</p>
+  </div>
+  <div class="card" v-else-if="isLoading">
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line short"></div>
+  </div>
+
+  <!-- الأجبية + الكتاب المقدس -->
+  <div class="row" v-if="!isLoading && !noData">
+    <button class="mini-card mini-click" type="button" @click="openChapter()">
+      <div class="mini-head">الكتاب المقدس</div>
+      <div class="mini-sub bible-pill">{{ previewLabel }}</div>
+      <div class="mini-title">{{ previewTitle }}</div>
+      <ul class="mini-list">
+        <li v-for="(item, i) in previewSections" :key="i">{{ item }}</li>
+      </ul>
+    </button>
+
+    <div class="mini-card">
+      <div class="mini-head">الأجبية</div>
+      <p class="mini-body alignRight">{{ agbia }}</p>
+      <div class="mini-author" v-if="agbia_author">{{ agbia_author }}</div>
+    </div>
+  </div>
+  <div class="row" v-else-if="isLoading">
+    <div class="mini-card">
+      <div class="mini-head skeleton" style="height:44px;width:100%"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line short"></div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-head skeleton" style="height:44px;width:100%"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line short"></div>
+    </div>
+  </div>
+
+  <!-- التدريب -->
+  <div class="training" v-if="!isLoading && !noData">
+    <div class="training-pill">التدريب</div>
+    <div class="training-text alignRight">{{ training }}</div>
+  </div>
+  <div class="card" v-else-if="isLoading">
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line short"></div>
+  </div>
+
+  <div class="space"></div>
 </div>
 
-
-          <div class="title">
-            {{ title }}
-          </div>
-
-        </div>
-
-
-
-        <!-- القصة -->
-        <div class="card">
-          <p class="text alignRight">{{ story }}</p>
-        </div>
-
-        <!-- الآية -->
-        <div class="verse">
-          <div class="verse-text">"{{ verseText }}"</div>
-          <div class="verse-ref">{{ verseRef }}</div>
-        </div>
-
-        <!-- التأمل -->
-        <div class="card">
-          <p class="text alignRight">{{ reflection }}</p>
-        </div>
-
-        <!-- الأجبية + الكتاب المقدس -->
-        <div class="row">
-          <!-- الكتاب المقدس (ضغط يفتح الإصحاح) -->
-          <button class="mini-card mini-click" type="button" @click="openChapter()">
-            <div class="mini-head">الكتاب المقدس</div>
-            <div class="mini-sub bible-pill">{{ previewLabel }}</div>
-<div class="mini-title">{{ previewTitle }}</div>
-<ul class="mini-list">
-  <li v-for="(item, i) in previewSections" :key="i">
-    {{ item }}
-  </li>
-</ul>
-
-          </button>
-
-          <!-- الأجبية -->
-          <div class="mini-card">
-            <div class="mini-head">الأجبية</div>
-            <p class="mini-body alignRight">{{ agbia }}</p>
-            <div class="mini-author" v-if="agbia_author">{{ agbia_author }}</div>
-          </div>
-        </div>
-
-        <!-- التدريب -->
-        <div class="training">
-          <div class="training-pill">التدريب</div>
-          <div class="training-text alignRight">{{ training }}</div>
-        </div>
-
-        <div class="space"></div>
-      </div>
-
-      <!-- Date Picker Modal -->
       <ion-modal :is-open="showDatePicker" @didDismiss="showDatePicker = false">
         <ion-header>
           <ion-toolbar>
@@ -164,9 +208,31 @@ import {
   IonRange
 } from '@ionic/vue'
 import { onMounted, ref, computed } from 'vue'
+import { IonActionSheet } from '@ionic/vue'
+import html2canvas from 'html2canvas'
+
 import { useRouter } from 'vue-router'
 import Papa from 'papaparse'
 import { settingsOutline } from 'ionicons/icons'
+import { shareOutline } from 'ionicons/icons'
+
+const showShareSheet = ref(false)
+const wrapRef = ref<HTMLElement | null>(null)
+
+const shareButtons = computed(() => ([
+  {
+    text: 'مشاركة كنص',
+    handler: () => shareAsText()
+  },
+  {
+    text: 'مشاركة كصورة',
+    handler: () => shareAsImage()
+  },
+  {
+    text: 'إلغاء',
+    role: 'cancel'
+  }
+]))
 
 type ChapterPreview = {
   bookName: string
@@ -221,6 +287,104 @@ function onDateChange(ev: any) {
   showDatePicker.value = false
   loadByDate(iso)
 }
+async function shareAsText() {
+  if (noData.value || isLoading.value) return
+
+  const lines: string[] = []
+
+  // عنوان واحد بس
+  lines.push(`${gregorianDate.value} – ${copticDate.value}`)
+
+  if (saint.value) lines.push(`\nالسنكسار: ${saint.value}`)
+  if (title.value) lines.push(`العنوان: ${title.value}`)
+
+  if (story.value) {
+    lines.push('\nالقصة:')
+    lines.push(story.value)
+  }
+
+  if (verseText.value) {
+    lines.push('\nالآية:')
+    lines.push(`"${verseText.value}" ${verseRef.value || ''}`.trim())
+  }
+
+  if (reflection.value) {
+    lines.push('\nالتأمل:')
+    lines.push(reflection.value)
+  }
+
+  // ✅ الإنجيل/الكتاب المقدس (بيستخدم الـ preview computed)
+  const bibleHead = previewLabel.value || bibleLabel.value
+  const bibleTitleLine = previewTitle.value
+  const sections = previewSections.value || []
+
+  if (bibleHead || bibleTitleLine || sections.length) {
+    lines.push('\nالكتاب المقدس:')
+    if (bibleHead) lines.push(bibleHead)
+    if (bibleTitleLine) lines.push(bibleTitleLine)
+    if (sections.length) {
+      lines.push(sections.map(s => `• ${s}`).join('\n'))
+    }
+  }
+
+  // ✅ الأجبية
+  if (agbia.value) {
+    lines.push('\nالأجبية:')
+    lines.push(agbia.value)
+    if (agbia_author.value) lines.push(`(${agbia_author.value})`)
+  }
+
+  if (training.value) {
+    lines.push('\nالتدريب:')
+    lines.push(training.value)
+  }
+
+  const text = lines.join('\n')
+
+  if (navigator.share) {
+    await navigator.share({ title: 'معًا كل يوم', text })
+  } else {
+    await navigator.clipboard?.writeText(text)
+    alert('تم نسخ النص للمشاركة ✅')
+  }
+}
+
+async function shareAsImage() {
+  if (noData.value || isLoading.value) return
+  const el = wrapRef.value
+  if (!el) return
+
+  const canvas = await html2canvas(el, {
+    scale: 2,
+    backgroundColor: null, // يحافظ على الخلفية حسب التصميم
+    useCORS: true
+  })
+
+  const blob: Blob | null = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1))
+  if (!blob) return
+
+  const file = new File([blob], 'ma3an-kol-youm.png', { type: 'image/png' })
+
+  // Web Share (لو بيدعم مشاركة ملفات)
+  const canShareFiles = !!(navigator.canShare && navigator.canShare({ files: [file] }))
+
+  if (navigator.share && canShareFiles) {
+    await navigator.share({
+      title: 'معًا كل يوم',
+      files: [file]
+    })
+    return
+  }
+
+  // fallback: download
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'ma3an-kol-youm.png'
+  a.click()
+  URL.revokeObjectURL(url)
+  alert('المتصفح لا يدعم مشاركة صورة مباشرة — تم تنزيل الصورة ✅')
+}
 
 // ====== Settings modal ======
 const showSettings = ref(false)
@@ -246,6 +410,29 @@ const agbia = ref('')
 const agbia_author = ref('')
 const training = ref('')
 const chapterPreview = ref<ChapterPreview | null>(null)
+  const isLoading = ref(true)
+const noData = ref(false)
+const noDataMsg = ref('')
+
+function clearData() {
+  gregorianDate.value = ''
+  copticDate.value = ''
+  saint.value = ''
+  saintStory.value = ''
+  title.value = ''
+  story.value = ''
+  verseText.value = ''
+  verseRef.value = ''
+  reflection.value = ''
+  agbia.value = ''
+  agbia_author.value = ''
+  training.value = ''
+  bibleBookKey.value = 'Matthew'
+  bibleChapter.value = 1
+  bibleTitle.value = ''
+  bibleItems.value = []
+  chapterPreview.value = null
+}
 
 // عرض "متى ١"
 const bookNameMap: Record<string, string> = {
@@ -365,18 +552,38 @@ loadChapterPreview(bibleBookKey.value || 'Matthew', bibleChapter.value || 1)
 }
 
 async function loadByDate(dateISO: string) {
-  const rows = await fetchRows()
-  const maxISO = todayISO()
-  const allowed = rows.filter(r => String(r.date_iso).trim() <= maxISO)
+  isLoading.value = true
+  noData.value = false
+  noDataMsg.value = ''
 
-  const found =
-    allowed.find(r => String(r.date_iso).trim() === dateISO) ||
-    allowed[allowed.length - 1] ||
-    null
+  try {
+    const rows = await fetchRows()
+    const maxISO = todayISO()
+    const allowed = rows.filter(r => String(r.date_iso).trim() <= maxISO)
 
-  if (!found) return
-  applyRow(found)
+    const found =
+      allowed.find(r => String(r.date_iso).trim() === dateISO) ||
+      allowed[allowed.length - 1] ||
+      null
+
+    if (!found) {
+      clearData()
+      noData.value = true
+      noDataMsg.value = 'لا توجد بيانات متاحة لهذا اليوم.'
+      return
+    }
+
+    applyRow(found)
+  } catch (e) {
+    console.error(e)
+    clearData()
+    noData.value = true
+    noDataMsg.value = 'حصلت مشكلة في تحميل البيانات. تأكدي من الإنترنت.'
+  } finally {
+    isLoading.value = false
+  }
 }
+
 
 function openChapter() {
   const bookKey = bibleBookKey.value || 'Matthew'
@@ -923,6 +1130,75 @@ onMounted(() => {
 .mini-list li::before{
   color: var(--mk-accent);
   opacity: 0.9;
+}
+.skeleton{
+  background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.22), rgba(255,255,255,0.08));
+  border-radius: 14px;
+  height: 18px;
+  margin: 10px auto;
+  width: 70%;
+  animation: sk 1.2s infinite;
+}
+.home.theme-light .skeleton{
+  background: linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.10), rgba(0,0,0,0.06));
+}
+
+.titleSk{ height: 44px; width: 90%; border-radius: 18px; }
+
+.skeleton-line{
+  height: 14px;
+  border-radius: 10px;
+  margin: 10px 0;
+  animation: sk 1.2s infinite;
+  background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.22), rgba(255,255,255,0.08));
+}
+.home.theme-light .skeleton-line{
+  background: linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.10), rgba(0,0,0,0.06));
+}
+.skeleton-line.short{ width: 60%; }
+
+@keyframes sk{
+  0%{ filter: brightness(1); }
+  50%{ filter: brightness(1.25); }
+  100%{ filter: brightness(1); }
+}
+.shareBtn{
+  position: absolute;
+  top: -4px;
+  right: 0;
+  color: var(--mk-text);
+  background: rgba(255,255,255,0.60);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+.home.theme-dark .shareBtn{
+  background: rgba(0,0,0,0.30);
+}
+/* ===== Force center ActionSheet (works across Ionic versions) ===== */
+
+/* خلي كل محتوى الشيت centered */
+:deep(ion-action-sheet.share-sheet .action-sheet-wrapper),
+:deep(.share-sheet .action-sheet-wrapper),
+:deep(.share-sheet .action-sheet-container),
+:deep(.share-sheet .action-sheet-group),
+:deep(.share-sheet .action-sheet-button) {
+  text-align: center !important;
+}
+
+/* توسيط محتوى الزر نفسه */
+:deep(.share-sheet .action-sheet-button) {
+  justify-content: center !important;
+}
+
+:deep(.share-sheet .action-sheet-button .action-sheet-button-inner),
+:deep(.share-sheet .action-sheet-button-inner) {
+  justify-content: center !important;
+}
+
+/* توسيط العنوان */
+:deep(.share-sheet .action-sheet-title),
+:deep(.share-sheet .action-sheet-header) {
+  text-align: center !important;
 }
 
 /* ================== Mobile ================== */
