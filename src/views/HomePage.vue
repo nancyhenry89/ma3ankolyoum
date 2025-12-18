@@ -1,10 +1,12 @@
 <template>
   <ion-page :class="['home', themeClass]" dir="rtl">
     <ion-content :fullscreen="true" class="content">
-      <!-- خلفية -->
-      <div class="bg"></div>
+      <div class="capture home" :class="themeClass" ref="captureRef">
+        <!-- خلفية -->
+    <div class="bg"></div>
 
-      <div class="wrap" ref="wrapRef">
+    <div class="wrap">
+
   <!-- Header: Data -->
   <div class="header" v-if="!isLoading && !noData">
     <ion-button class="settingsBtn" fill="clear" size="small" @click="showSettings = true">
@@ -127,7 +129,9 @@
   </div>
 
   <div class="space"></div>
-</div>
+    </div> <!-- end .wrap -->
+  </div>   <!-- end .capture -->
+
 
       <ion-modal :is-open="showDatePicker" @didDismiss="showDatePicker = false">
         <ion-header>
@@ -218,7 +222,8 @@ import { shareOutline } from 'ionicons/icons'
 import { readDayCache, writeDayCache } from '@/utils/dayCache'
 
 const showShareSheet = ref(false)
-const wrapRef = ref<HTMLElement | null>(null)
+const captureRef = ref<HTMLElement | null>(null)
+
 
 const shareButtons = computed(() => ([
   {
@@ -354,57 +359,69 @@ import { Share } from '@capacitor/share'
 import { Filesystem, Directory } from '@capacitor/filesystem'
 import { Capacitor } from '@capacitor/core'
 
+function downloadDataUrl(dataUrl: string, fileName: string) {
+  const a = document.createElement('a')
+  a.href = dataUrl
+  a.download = fileName
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+}
+
 async function shareAsImage() {
   if (noData.value || isLoading.value) return
-  const el = wrapRef.value
+
+  // اقفلي ActionSheet
+  showShareSheet.value = false
+  await new Promise(r => setTimeout(r, 80))
+
+  const el = captureRef.value
   if (!el) return
 
+  // الغي scale مؤقتًا
+  const wrap = el.querySelector('.wrap') as HTMLElement | null
+  const prevTransform = wrap?.style.transform
+  if (wrap) wrap.style.transform = 'none'
+
+  await new Promise(requestAnimationFrame)
+
   const canvas = await html2canvas(el, {
-    scale: 2,
     backgroundColor: null,
-    useCORS: true
+    useCORS: true,
+    scale: Math.max(2, window.devicePixelRatio || 1)
   })
 
-  // base64 png بدون prefix
-  const dataUrl = canvas.toDataURL('image/png')
-  const base64 = dataUrl.split(',')[1]
+  if (wrap) wrap.style.transform = prevTransform || ''
 
-  // احفظيها في cache (أفضل للمشاركة)
   const fileName = `ma3an-kol-youm-${Date.now()}.png`
+  const dataUrl = canvas.toDataURL('image/png')
+
+  // 🌍 Web → download مباشر
+  if (!Capacitor.isNativePlatform()) {
+    const a = document.createElement('a')
+    a.href = dataUrl
+    a.download = fileName
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    return
+  }
+
+  // 📱 Android / iOS
+  const base64 = dataUrl.split(',')[1]
   const saved = await Filesystem.writeFile({
     path: fileName,
     data: base64,
     directory: Directory.Cache
   })
 
-  // ✅ على Android/iOS استخدمي Share plugin
-  if (Capacitor.isNativePlatform()) {
-    await Share.share({
-      title: 'معًا كل يوم',
-      text: 'مشاركة من تطبيق معًا كل يوم',
-      url: saved.uri
-    })
-    return
-  }
-
-  // ✅ على الويب (fallback)
-  if (navigator.share) {
-    const blob: Blob | null = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1))
-    if (!blob) return
-    const file = new File([blob], fileName, { type: 'image/png' })
-    const canShareFiles = !!(navigator.canShare && navigator.canShare({ files: [file] }))
-    if (canShareFiles) {
-      await navigator.share({ title: 'معًا كل يوم', files: [file] })
-      return
-    }
-  }
-
-  // آخر fallback: download (ويب فقط)
-  const a = document.createElement('a')
-  a.href = dataUrl
-  a.download = fileName
-  a.click()
+  await Share.share({
+    title: 'معًا كل يوم',
+    url: saved.uri
+  })
 }
+
+
 
 // ====== Settings modal ======
 const showSettings = ref(false)
@@ -810,6 +827,10 @@ onMounted(() => {
   margin: 0 auto;
   transform: scale(var(--mk-fontScale, 1));
   transform-origin: top center;
+}
+.capture {
+  width: fit-content;
+  margin: 0 auto;
 }
 
 /* ================== Header ================== */
@@ -1291,6 +1312,7 @@ onMounted(() => {
   100%{ filter: brightness(1); }
 }
 .shareBtn{
+  opacity:0;
   position: absolute;
   top: -4px;
   right: 0;
@@ -1327,6 +1349,13 @@ onMounted(() => {
 :deep(.share-sheet .action-sheet-title),
 :deep(.share-sheet .action-sheet-header) {
   text-align: center !important;
+}
+.capture-clone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* ================== Mobile ================== */
