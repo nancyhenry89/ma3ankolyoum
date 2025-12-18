@@ -27,7 +27,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/saint/:dateISO',
     name: 'Saint',
     component: () => import('@/views/SaintPage.vue')
+  },
+  {
+    path: '/agbia-audio/:date',
+    component: () => import('@/views/AgbiaAudioPage.vue')
   }
+  
   
   
 ]

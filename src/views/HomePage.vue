@@ -100,7 +100,21 @@
     </button>
 
     <div class="mini-card">
-      <div class="mini-head">الأجبية</div>
+      <div class="mini-head mini-head-row">
+  <span>الأجبية</span>
+
+  <ion-button
+    class="audioBtn"
+    fill="clear"
+    size="small"
+    :disabled="!agbia_audio"
+    @click="openAgbiaAudio()"
+    aria-label="تشغيل صوت الأجبية"
+  >
+    <ion-icon :icon="volumeHighOutline" />
+  </ion-button>
+</div>
+
       <p class="mini-body alignRight">{{ agbia }}</p>
       <div class="mini-author" v-if="agbia_author">{{ agbia_author }}</div>
     </div>
@@ -218,6 +232,8 @@ import html2canvas from 'html2canvas'
 import { useRouter } from 'vue-router'
 import Papa from 'papaparse'
 import { settingsOutline } from 'ionicons/icons'
+import { volumeHighOutline } from 'ionicons/icons'
+
 import { shareOutline } from 'ionicons/icons'
 import { readDayCache, writeDayCache } from '@/utils/dayCache'
 
@@ -248,6 +264,8 @@ type ChapterPreview = {
 }
 const CONTENT_BASE =
   'https://nancyhenry89.github.io/ma3ankolyoum/src/content'
+
+  const AGBIA_AUDIO_BASE = `${CONTENT_BASE}/audio/agbia`
 
 const router = useRouter()
 
@@ -445,6 +463,8 @@ const bibleItems = ref<string[]>([])
 
 const agbia = ref('')
 const agbia_author = ref('')
+const agbia_audio = ref('')  // اسم ملف mp3 أو URL
+
 const training = ref('')
 const chapterPreview = ref<ChapterPreview | null>(null)
   const isLoading = ref(false)
@@ -464,6 +484,8 @@ function applyCachedDay(c: any) {
 
   agbia.value = c.agbia || ''
   agbia_author.value = c.agbia_author || ''
+  agbia_audio.value = c.agbia_audio || ''
+
   training.value = c.training || ''
 
   bibleBookKey.value = c.bibleBookKey || 'Matthew'
@@ -500,6 +522,8 @@ function clearData() {
   reflection.value = ''
   agbia.value = ''
   agbia_author.value = ''
+  agbia_audio.value = ''
+
   training.value = ''
   bibleBookKey.value = 'Matthew'
   bibleChapter.value = 1
@@ -619,6 +643,8 @@ function applyRow(rowRaw: any) {
 
   agbia.value = pick(row, 'agbia')
   agbia_author.value = pick(row, 'agbia_author', 'agbiaauthor', 'agbia_author_name', 'agbia_author_ar')
+  agbia_audio.value = pick(row, 'agbia_audio')
+
   training.value = pick(row, 'training')
 
 loadChapterPreview(bibleBookKey.value || 'Matthew', bibleChapter.value || 1)
@@ -665,6 +691,8 @@ async function refreshHomeFromNetwork(targetISO: string) {
     reflection: reflection.value,
     agbia: agbia.value,
     agbia_author: agbia_author.value,
+    agbia_audio: agbia_audio.value,
+
     training: training.value,
     bibleBookKey: bibleBookKey.value,
     bibleChapter: bibleChapter.value,
@@ -715,6 +743,25 @@ function openSaint() {
   // نستخدم التاريخ الحالي المختار في الهوم علشان الصفحة الجديدة تقرأ نفس الصف من الشيت
   router.push(`/saint/${selectedDateISO.value}`)
 }
+function resolveAgbiaAudioUrl(fileOrUrl: string) {
+  const v = String(fileOrUrl || '').trim()
+  if (!v) return ''
+  // لو لينك كامل
+  if (/^https?:\/\//i.test(v)) return v
+  // لو اسم ملف فقط
+  return `${AGBIA_AUDIO_BASE}/${encodeURIComponent(v)}`
+}
+
+function openAgbiaAudio() {
+  const iso = String(selectedDateISO.value).substring(0, 10)
+  const url = resolveAgbiaAudioUrl(agbia_audio.value)
+  if (!url) return
+  router.push({
+    path: `/agbia-audio/${iso}`,
+    query: { src: url }
+  })
+}
+
 function isoToTime(iso: string) {
   // يضمن parsing ثابت
   return new Date(`${iso}T00:00:00`).getTime()
@@ -912,6 +959,25 @@ onMounted(() => {
   border-radius: 18px;
   border: 1px solid var(--mk-border);
   box-shadow: var(--mk-shadow);
+}
+.mini-head-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.audioBtn{
+  margin:0;
+  padding:0;
+  min-width:auto;
+  height:auto;
+  color:#fff;
+  opacity: 0.95;
+}
+
+.audioBtn[disabled]{
+  opacity:0.35;
 }
 
 .home.theme-dark .card,
