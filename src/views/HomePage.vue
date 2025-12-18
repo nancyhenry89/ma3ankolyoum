@@ -743,14 +743,12 @@ function openSaint() {
   // نستخدم التاريخ الحالي المختار في الهوم علشان الصفحة الجديدة تقرأ نفس الصف من الشيت
   router.push(`/saint/${selectedDateISO.value}`)
 }
-function resolveAgbiaAudioUrl(fileOrUrl: string) {
-  const v = String(fileOrUrl || '').trim()
+function resolveAgbiaAudioUrl(v: string) {
   if (!v) return ''
-  // لو لينك كامل
   if (/^https?:\/\//i.test(v)) return v
-  // لو اسم ملف فقط
-  return `${AGBIA_AUDIO_BASE}/${encodeURIComponent(v)}`
+  return `${CONTENT_BASE}/audio/${encodeURIComponent(v)}`
 }
+
 
 function openAgbiaAudio() {
   const iso = String(selectedDateISO.value).substring(0, 10)
