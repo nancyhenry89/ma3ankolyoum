@@ -104,8 +104,6 @@
       class="audioBtn"
       fill="clear"
       size="small"
-      :disabled="!agbia_audio"
-      @click="openAgbiaAudio()"
       aria-label="تشغيل صوت الأجبية"
     >
       <ion-icon :icon="bookOutline" />
@@ -121,17 +119,16 @@
       <div class="mini-card">
         <div class="mini-head mini-head-row">
     <span>الأجبية</span>
-  
     <ion-button
-      class="audioBtn"
-      fill="clear"
-      size="small"
-      :disabled="!agbia_audio"
-      @click="openAgbiaAudio()"
-      aria-label="تشغيل صوت الأجبية"
-    >
-      <ion-icon :icon="volumeHighOutline" />
-    </ion-button>
+  class="audioBtn"
+  fill="clear"
+  size="small"
+  @click.stop="openAgbiaAudio()"
+  aria-label="صوت الأجبية"
+>
+  <ion-icon :icon="volumeHighOutline" :class="{ dimIcon: !hasAnyAgbiaAudio }" />
+</ion-button>
+
   </div>
   
         <p class="mini-body alignRight">{{ agbia }}</p>
@@ -552,7 +549,23 @@ const bibleItems = ref<string[]>([])
 
 const agbia = ref('')
 const agbia_author = ref('')
-const agbia_audio = ref('')  // اسم ملف mp3 أو URL
+const agbia_baker = ref('')
+const agbia_third = ref('')
+const agbia_sixth = ref('')
+const agbia_ninth = ref('')
+const agbia_sunset = ref('')
+const agbia_sleep = ref('')
+
+const hasAnyAgbiaAudio = computed(() => {
+  return !!(
+    String(agbia_baker.value).trim() ||
+    String(agbia_third.value).trim() ||
+    String(agbia_sixth.value).trim() ||
+    String(agbia_ninth.value).trim() ||
+    String(agbia_sunset.value).trim() ||
+    String(agbia_sleep.value).trim()
+  )
+})
 
 const training = ref('')
 const chapterPreview = ref<ChapterPreview | null>(null)
@@ -573,7 +586,13 @@ function applyCachedDay(c: any) {
 
   agbia.value = c.agbia || ''
   agbia_author.value = c.agbia_author || ''
-  agbia_audio.value = c.agbia_audio || ''
+  agbia_baker.value = c.agbia_baker || ''
+agbia_third.value = c.agbia_third || ''
+agbia_sixth.value = c.agbia_sixth || ''
+agbia_ninth.value = c.agbia_ninth || ''
+agbia_sunset.value = c.agbia_sunset || ''
+agbia_sleep.value = c.agbia_sleep || ''
+
 
   training.value = c.training || ''
 
@@ -611,7 +630,6 @@ function clearData() {
   reflection.value = ''
   agbia.value = ''
   agbia_author.value = ''
-  agbia_audio.value = ''
 
   training.value = ''
   bibleBookKey.value = 'Matthew'
@@ -732,30 +750,33 @@ function applyRow(rowRaw: any) {
 
   agbia.value = pick(row, 'agbia')
   agbia_author.value = pick(row, 'agbia_author', 'agbiaauthor', 'agbia_author_name', 'agbia_author_ar')
-  agbia_audio.value = pick(row, 'agbia_audio')
+  agbia_baker.value  = pick(row, 'baker', 'agbia_baker')
+agbia_third.value  = pick(row, 'third', 'agbia_third')
+agbia_sixth.value  = pick(row, 'sixth', 'agbia_sixth')
+agbia_ninth.value  = pick(row, 'ninth', 'agbia_ninth')
+agbia_sunset.value = pick(row, 'sunset', 'agbia_sunset', 'ghoroub')
+agbia_sleep.value  = pick(row, 'sleep', 'agbia_sleep', 'noum')
 
   training.value = pick(row, 'training')
-
+  
 loadChapterPreview(bibleBookKey.value || 'Matthew', bibleChapter.value || 1)
 
 }
 async function refreshHomeFromNetwork(targetISO: string) {
   const rows = await fetchRows()
 
-  const d = new Date()
-  const todayLocalISO = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  const toTime = (iso: string) => new Date(`${iso}T00:00:00`).getTime()
-  const maxTime = toTime(todayLocalISO)
+  const toISO = (r: any) => String(r.date_iso || '').trim().substring(0, 10)
 
-  const allowed = rows.filter(r => {
-    const iso = String(r.date_iso || '').trim().substring(0, 10)
-    return iso && toTime(iso) <= maxTime
-  })
+  // 1) دور على اليوم المطلوب مباشرة (بدون فلترة "مستقبل")
+  let found = rows.find(r => toISO(r) === targetISO) || null
 
-  const found =
-    allowed.find(r => String(r.date_iso).trim().substring(0, 10) === targetISO) ||
-    allowed[allowed.length - 1] ||
-    null
+  // 2) لو مش موجود، هات آخر يوم متاح (أحدث date_iso)
+  if (!found) {
+    const sorted = [...rows]
+      .filter(r => toISO(r))
+      .sort((a, b) => toISO(a).localeCompare(toISO(b)))
+    found = sorted[sorted.length - 1] || null
+  }
 
   if (!found) {
     clearData()
@@ -766,7 +787,6 @@ async function refreshHomeFromNetwork(targetISO: string) {
 
   applyRow(found)
 
-  // ✅ خزني في الكاش (زي ما انتي عاملة)
   writeDayCache(targetISO, {
     dateISO: targetISO,
     gregorianDate: gregorianDate.value,
@@ -780,13 +800,19 @@ async function refreshHomeFromNetwork(targetISO: string) {
     reflection: reflection.value,
     agbia: agbia.value,
     agbia_author: agbia_author.value,
-    agbia_audio: agbia_audio.value,
-
     training: training.value,
     bibleBookKey: bibleBookKey.value,
     bibleChapter: bibleChapter.value,
     bibleTitle: bibleTitle.value,
-    bibleItems: bibleItems.value
+    bibleItems: bibleItems.value,
+
+    // ✅ لو بدأتي تخزني أعمدة الأجبية الجديدة
+    baker: pick(normalizeKeys(found), 'baker') || '',
+    third: pick(normalizeKeys(found), 'third') || '',
+    sixth: pick(normalizeKeys(found), 'sixth') || '',
+    ninth: pick(normalizeKeys(found), 'ninth') || '',
+    sunset: pick(normalizeKeys(found), 'sunset') || '',
+    sleep: pick(normalizeKeys(found), 'sleep') || '',
   })
 }
 
@@ -841,13 +867,10 @@ function resolveAgbiaAudioUrl(v: string) {
 
 function openAgbiaAudio() {
   const iso = String(selectedDateISO.value).substring(0, 10)
-  const url = resolveAgbiaAudioUrl(agbia_audio.value)
-  if (!url) return
-  router.push({
-    path: `/agbia-audio/${iso}`,
-    query: { src: url }
-  })
+  router.push({ path: `/agbia-audio/${iso}` })
 }
+
+
 
 function isoToTime(iso: string) {
   // يضمن parsing ثابت
