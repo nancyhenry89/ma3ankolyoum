@@ -16,14 +16,27 @@
   <div class="introTitle">{{ intro.title }}</div>
 
   <div class="videoWrap">
-    <iframe
-      :src="`https://www.youtube.com/embed/${intro.youtubeId}`"
-      :title="intro.title"
-      frameborder="0"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowfullscreen
-    ></iframe>
-  </div>
+  <!-- ✅ iPhone/iOS Native: افتحي SafariViewController -->
+  <button
+    v-if="isIOSNative"
+    class="iosVideoBtn"
+    type="button"
+    @click="openIntroVideo"
+  >
+    ▶ تشغيل الفيديو
+  </button>
+
+  <!-- ✅ Android + Web: iframe زي ما هو -->
+  <iframe
+    v-else
+    :src="`https://www.youtube.com/embed/${intro.youtubeId}`"
+    :title="intro.title"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen
+  ></iframe>
+</div>
+
 
 
 </div>
@@ -86,6 +99,16 @@
   chevronForward,
   bulbOutline
 } from 'ionicons/icons'
+import { Capacitor } from '@capacitor/core'
+import { Browser } from '@capacitor/browser'
+
+const isIOSNative = computed(() => Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios')
+
+async function openIntroVideo() {
+  const id = intro.value?.youtubeId
+  if (!id) return
+  await Browser.open({ url: `https://www.youtube.com/watch?v=${id}` })
+}
 
   type ChapterJSON = {
   bookKey: string
@@ -479,6 +502,18 @@ async function toggleVerse(n: number) {
   font-weight:800;
   color: var(--mk-text);
   text-align:center;
+}
+.iosVideoBtn{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:0;
+  background: rgba(0,0,0,0.10);
+  color: var(--mk-text);
+  font-size:18px;
+  font-weight:900;
+  cursor:pointer;
 }
 
   </style>
