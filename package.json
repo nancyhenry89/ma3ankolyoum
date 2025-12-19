@@ -14,6 +14,7 @@
   "dependencies": {
     "@capacitor/android": "^8.0.0",
     "@capacitor/app": "8.0.0",
+    "@capacitor/browser": "^8.0.0",
     "@capacitor/core": "^8.0.0",
     "@capacitor/filesystem": "^8.0.0",
     "@capacitor/haptics": "8.0.0",
@@ -21,7 +22,6 @@
     "@capacitor/keyboard": "8.0.0",
     "@capacitor/share": "^8.0.0",
     "@capacitor/status-bar": "8.0.0",
-    "@capgo/capacitor-youtube-player": "^8.1.1",
     "@ionic/vue": "^8.0.0",
     "@ionic/vue-router": "^8.0.0",
     "html2canvas": "^1.4.1",
