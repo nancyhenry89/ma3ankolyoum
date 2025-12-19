@@ -1,227 +1,274 @@
 <template>
+
+  
+  
   <ion-page :class="['home', themeClass]" dir="rtl">
-    <ion-content :fullscreen="true" class="content">
-      <div class="capture home" :class="themeClass" ref="captureRef">
-        <!-- خلفية -->
-    <div class="bg"></div>
 
-    <div class="wrap">
+  
+      <ion-content :fullscreen="true" class="content">
+        <div class="capture home" :class="themeClass" ref="captureRef">
+          <!-- خلفية -->
+      <div class="bg"></div>
+  
+      <div class="wrap">
+  
+    <!-- Header: Data -->
+    <div class="header" v-if="!isLoading && !noData">
+  
+      <ion-menu-button class="burgerBtn" :auto-hide="false" />
 
-  <!-- Header: Data -->
-  <div class="header" v-if="!isLoading && !noData">
-    <ion-button class="settingsBtn" fill="clear" size="small" @click="showSettings = true">
-      <ion-icon :icon="settingsOutline" />
-    </ion-button>
-    <ion-button class="shareBtn" fill="clear" size="small" @click="showShareSheet = true">
-  <ion-icon :icon="shareOutline" />
-</ion-button>
 
-<ion-action-sheet
-  :is-open="showShareSheet"
-  header="مشاركة"
-  :cssClass="['share-sheet']"
-  :buttons="shareButtons"
-  @didDismiss="showShareSheet = false"
-/>
-
-    <div class="brand">
-      <div class="brand_name">معًا كل يوم </div><div class="accent">مع</div><div class="abouna"> القمص يوحنا باقي
-      </div> </div>
-
-    <div class="dates" @click="showDatePicker = true">
-      {{ gregorianDate }} – {{ copticDate }}
-    </div>
-
-    <div class="saint" @click="openSaint()">
-      {{ saint }}
-    </div>
-
-    <div class="title">
-      {{ title }}
-    </div>
-  </div>
-
-  <!-- Header: Loading -->
-  <div class="header" v-else-if="isLoading">
-    <div class="brand skeleton"></div>
-    <div class="dates skeleton"></div>
-    <div class="saint skeleton"></div>
-    <div class="title skeleton titleSk"></div>
-  </div>
-
-  <!-- Header: No data -->
-  <div class="header" v-else>
-    <div class="brand">معًا كل يوم</div>
-    <div class="card" style="margin-top:12px">
-      <p class="text alignRight">{{ noDataMsg || 'لا توجد بيانات متاحة لهذا اليوم.' }}</p>
-    </div>
-  </div>
-
-  <!-- القصة -->
-  <div class="card" v-if="!isLoading && !noData">
-    <p class="text alignRight">{{ story }}</p>
-  </div>
-  <div class="card" v-else-if="isLoading">
-    <div class="skeleton-line"></div>
-    <div class="skeleton-line"></div>
-    <div class="skeleton-line short"></div>
-  </div>
-  <!-- لو noData: مفيش داعي نكرر رسالة تاني لأن الهيدر already بيعرضها -->
-
-  <!-- الآية -->
-  <div class="verse" v-if="!isLoading && !noData">
-    <div class="verse-text">"{{ verseText }}"</div>
-    <div class="verse-ref">{{ verseRef }}</div>
-  </div>
-  <div class="card" v-else-if="isLoading">
-    <div class="skeleton-line"></div>
-    <div class="skeleton-line short"></div>
-  </div>
-
-  <!-- التأمل -->
-  <div class="card" v-if="!isLoading && !noData">
-    <p class="text alignRight">{{ reflection }}</p>
-  </div>
-  <div class="card" v-else-if="isLoading">
-    <div class="skeleton-line"></div>
-    <div class="skeleton-line"></div>
-    <div class="skeleton-line short"></div>
-  </div>
-
-  <!-- الأجبية + الكتاب المقدس -->
-  <div class="row" v-if="!isLoading && !noData">
-    <button class="mini-card mini-click" type="button" @click="openChapter()">
-      <div class="mini-head mini-head-row"><span>
-        الكتاب المقدس
-      </span> <ion-button
-    class="audioBtn"
-    fill="clear"
-    size="small"
-    :disabled="!agbia_audio"
-    @click="openAgbiaAudio()"
-    aria-label="تشغيل صوت الأجبية"
-  >
-    <ion-icon :icon="bookOutline" />
+  
+      <ion-button class="shareBtn" fill="clear" size="small" @click="showShareSheet = true">
+    <ion-icon :icon="shareOutline" />
   </ion-button>
+  
+  <ion-action-sheet
+    :is-open="showShareSheet"
+    header="مشاركة"
+    :cssClass="['share-sheet']"
+    :buttons="shareButtons"
+    @didDismiss="showShareSheet = false"
+  />
+  
+      <div class="brand">
+        <div class="brand_name">معًا كل يوم </div><div class="accent">مع</div><div class="abouna"> القمص يوحنا باقي
+        </div> </div>
+  
+      <div class="dates" @click="showDatePicker = true">
+        {{ gregorianDate }} – {{ copticDate }}
       </div>
-      <div class="mini-sub bible-pill">{{ previewLabel }}</div>
-      <div class="mini-title">{{ previewTitle }}</div>
-      <ul class="mini-list">
-        <li v-for="(item, i) in previewSections" :key="i">{{ item }}</li>
-      </ul>
-    </button>
-
-    <div class="mini-card">
-      <div class="mini-head mini-head-row">
-  <span>الأجبية</span>
-
-  <ion-button
-    class="audioBtn"
-    fill="clear"
-    size="small"
-    :disabled="!agbia_audio"
-    @click="openAgbiaAudio()"
-    aria-label="تشغيل صوت الأجبية"
-  >
-    <ion-icon :icon="volumeHighOutline" />
-  </ion-button>
-</div>
-
-      <p class="mini-body alignRight">{{ agbia }}</p>
-      <div class="mini-author" v-if="agbia_author">{{ agbia_author }}</div>
+  
+      <div class="saint" @click="openSaint()">
+        {{ saint }}
+      </div>
+  
+      <div class="title">
+        {{ title }}
+      </div>
     </div>
-  </div>
-  <div class="row" v-else-if="isLoading">
-    <div class="mini-card">
-      <div class="mini-head skeleton" style="height:44px;width:100%"></div>
+  
+    <!-- Header: Loading -->
+    <div class="header" v-else-if="isLoading">
+      <div class="brand skeleton"></div>
+      <div class="dates skeleton"></div>
+      <div class="saint skeleton"></div>
+      <div class="title skeleton titleSk"></div>
+    </div>
+  
+    <!-- Header: No data -->
+    <div class="header" v-else>
+      <div class="brand">معًا كل يوم</div>
+      <div class="card" style="margin-top:12px">
+        <p class="text alignRight">{{ noDataMsg || 'لا توجد بيانات متاحة لهذا اليوم.' }}</p>
+      </div>
+    </div>
+  
+    <!-- القصة -->
+    <div class="card" v-if="!isLoading && !noData">
+      <p class="text alignRight">{{ story }}</p>
+    </div>
+    <div class="card" v-else-if="isLoading">
+      <div class="skeleton-line"></div>
       <div class="skeleton-line"></div>
       <div class="skeleton-line short"></div>
     </div>
-    <div class="mini-card">
-      <div class="mini-head skeleton" style="height:44px;width:100%"></div>
+    <!-- لو noData: مفيش داعي نكرر رسالة تاني لأن الهيدر already بيعرضها -->
+  
+    <!-- الآية -->
+    <div class="verse" v-if="!isLoading && !noData">
+      <div class="verse-text">"{{ verseText }}"</div>
+      <div class="verse-ref">{{ verseRef }}</div>
+    </div>
+    <div class="card" v-else-if="isLoading">
       <div class="skeleton-line"></div>
       <div class="skeleton-line short"></div>
     </div>
+  
+    <!-- التأمل -->
+    <div class="card" v-if="!isLoading && !noData">
+      <p class="text alignRight">{{ reflection }}</p>
+    </div>
+    <div class="card" v-else-if="isLoading">
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line short"></div>
+    </div>
+  
+    <!-- الأجبية + الكتاب المقدس -->
+    <div class="row" v-if="!isLoading && !noData">
+      <button class="mini-card mini-click" type="button" @click="openChapter()">
+        <div class="mini-head mini-head-row"><span>
+          الكتاب المقدس
+        </span> <ion-button
+      class="audioBtn"
+      fill="clear"
+      size="small"
+      :disabled="!agbia_audio"
+      @click="openAgbiaAudio()"
+      aria-label="تشغيل صوت الأجبية"
+    >
+      <ion-icon :icon="bookOutline" />
+    </ion-button>
+        </div>
+        <div class="mini-sub bible-pill">{{ previewLabel }}</div>
+        <div class="mini-title">{{ previewTitle }}</div>
+        <ul class="mini-list">
+          <li v-for="(item, i) in previewSections" :key="i">{{ item }}</li>
+        </ul>
+      </button>
+  
+      <div class="mini-card">
+        <div class="mini-head mini-head-row">
+    <span>الأجبية</span>
+  
+    <ion-button
+      class="audioBtn"
+      fill="clear"
+      size="small"
+      :disabled="!agbia_audio"
+      @click="openAgbiaAudio()"
+      aria-label="تشغيل صوت الأجبية"
+    >
+      <ion-icon :icon="volumeHighOutline" />
+    </ion-button>
   </div>
-
-  <!-- التدريب -->
-  <div class="training" v-if="!isLoading && !noData">
-    <div class="training-pill">التدريب</div>
-    <div class="training-text alignRight">{{ training }}</div>
-  </div>
-  <div class="card" v-else-if="isLoading">
-    <div class="skeleton-line"></div>
-    <div class="skeleton-line short"></div>
-  </div>
-
-  <div class="space"></div>
-    </div> <!-- end .wrap -->
-  </div>   <!-- end .capture -->
-
-
-      <ion-modal :is-open="showDatePicker" @didDismiss="showDatePicker = false">
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>اختر يوم</ion-title>
-            <ion-buttons slot="end">
-              <ion-button @click="showDatePicker = false">إغلاق</ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-
-        <ion-content class="ion-padding">
-          <ion-datetime
-            presentation="date"
-            :value="selectedDateISO"
-            :max="todayISO()"
-            @ionChange="onDateChange"
-          />
-          <div class="hint">
-            لا يمكن اختيار أيام بعد تاريخ اليوم.
-          </div>
-        </ion-content>
-      </ion-modal>
-
-      <!-- Settings Modal -->
-      <ion-modal :is-open="showSettings" @didDismiss="showSettings = false">
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>الإعدادات</ion-title>
-            <ion-buttons slot="end">
-              <ion-button @click="showSettings = false">إغلاق</ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-
-        <ion-content class="ion-padding">
-          <div class="settingsRow">
-            <div class="settingsLabel">الوضع الليلي</div>
-            <ion-toggle :checked="theme === 'dark'" @ionChange="toggleTheme" />
-          </div>
-
-          <div class="settingsRow">
-            <div class="settingsLabel">حجم الخط</div>
-            <div class="rangeWrap">
-              <ion-range
-                :min="0.85"
-                :max="1.2"
-                :step="0.05"
-                :value="fontScale"
-                @ionChange="onFontScale"
-              />
-              <div class="rangeValue">{{ fontScale.toFixed(2) }}x</div>
+  
+        <p class="mini-body alignRight">{{ agbia }}</p>
+        <div class="mini-author" v-if="agbia_author">{{ agbia_author }}</div>
+      </div>
+    </div>
+    <div class="row" v-else-if="isLoading">
+      <div class="mini-card">
+        <div class="mini-head skeleton" style="height:44px;width:100%"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line short"></div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-head skeleton" style="height:44px;width:100%"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line short"></div>
+      </div>
+    </div>
+  
+    <!-- التدريب -->
+    <div class="training" v-if="!isLoading && !noData">
+      <div class="training-pill">التدريب</div>
+      <div class="training-text alignRight">{{ training }}</div>
+    </div>
+    <div class="card" v-else-if="isLoading">
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line short"></div>
+    </div>
+  
+    <div class="space"></div>
+      </div> <!-- end .wrap -->
+    </div>   <!-- end .capture -->
+  
+  
+        <ion-modal :is-open="showDatePicker" @didDismiss="showDatePicker = false">
+          <ion-header>
+            <ion-toolbar>
+              <ion-title>اختر يوم</ion-title>
+              <ion-buttons slot="end">
+                <ion-button @click="showDatePicker = false">إغلاق</ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+  
+          <ion-content class="ion-padding">
+            <ion-datetime
+              presentation="date"
+              :value="selectedDateISO"
+              :max="todayISO()"
+              @ionChange="onDateChange"
+            />
+            <div class="hint">
+              لا يمكن اختيار أيام بعد تاريخ اليوم.
             </div>
-          </div>
+          </ion-content>
+        </ion-modal>
+  
+        <!-- Settings Modal -->
+        <ion-modal :is-open="showSettings" @didDismiss="showSettings = false">
+          <ion-header>
+            <ion-toolbar>
+              <ion-title>الإعدادات</ion-title>
+              <ion-buttons slot="end">
+                <ion-buttons slot="end">
+  <ion-button @click="closeSettings()">إغلاق</ion-button>
+</ion-buttons>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+  
+          <ion-content class="ion-padding">
+            <div class="settingsRow">
+              <div class="settingsLabel">الوضع الليلي</div>
+              <ion-toggle :checked="theme === 'dark'" @ionChange="toggleTheme" />
+            </div>
+  
+            <div class="settingsRow">
+              <div class="settingsLabel">حجم الخط</div>
+              <div class="rangeWrap">
+                <ion-range
+                  :min="0.85"
+                  :max="1.2"
+                  :step="0.05"
+                  :value="fontScale"
+                  @ionChange="onFontScale"
+                />
+                <div class="rangeValue">{{ fontScale.toFixed(2) }}x</div>
+              </div>
+            </div>
+  
+            <div class="hint">
+              الإعدادات بتتخزن تلقائيًا على الجهاز.
+            </div>
+          </ion-content>
+        </ion-modal>
+        <!-- About Modal -->
+  <ion-modal :is-open="showAbout" @didDismiss="showAbout = false">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>عن التطبيق</ion-title>
+        <ion-buttons slot="end">
+          <ion-buttons slot="end">
+  <ion-button @click="closeAbout()">إغلاق</ion-button>
+</ion-buttons>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+  
+    <ion-content class="ion-padding">
+      <section class="about-app" dir="rtl" lang="ar">
+  <h2>عن التطبيق</h2>
 
-          <div class="hint">
-            الإعدادات بتتخزن تلقائيًا على الجهاز.
-          </div>
-        </ion-content>
-      </ion-modal>
+  <p>
+    <strong>معًا كل يوم</strong> هو تطبيق روحي كنسي يهدف إلى مساندة الحياة الروحية اليومية
+    من خلال قراءات وتأملات وتدريبات منتظمة تساعد على النمو الروحي والالتصاق بكلمة الله.
+  </p>
+
+  <h3>المصادر والاعتمادات</h3>
+  <ul>
+    <li><strong>إعداد المحتوى:</strong> القمص يوحنا باقي</li>
+    <li><strong>الكتاب المقدس:</strong> الترجمة العربية فان دايك، بإذن من دار الكتاب المقدس</li>
+    <li><strong>السنكسار:</strong> بحسب سنكسار دير السريان</li>
+    <li><strong>التفسير:</strong> موسوعة كنيسة مارمرقس</li>
+  </ul>
+
+  <h3>الجهة التابعة</h3>
+  <p>
+    يُقدَّم هذا التطبيق في إطار الخدمة الروحية، وهو تابع لـ <strong>كنيسة مارمرقس بمصر الجديدة</strong>.
+  </p>
+</section>
     </ion-content>
-  </ion-page>
-</template>
-
+  </ion-modal>
+  
+      </ion-content>
+    </ion-page>
+  </template>
+  
 <script setup lang="ts">
 import {
   IonContent,
@@ -235,15 +282,23 @@ import {
   IonButton,
   IonIcon,
   IonToggle,
-  IonRange
+  IonRange,
+  IonMenu,
+  IonMenuToggle,
+  IonMenuButton,
+  IonList,
+  IonItem,
+  IonLabel
 } from '@ionic/vue'
+import { menuOutline } from 'ionicons/icons'
+
 import { onMounted, ref, computed } from 'vue'
 import { IonActionSheet } from '@ionic/vue'
 import html2canvas from 'html2canvas'
 
 import { useRouter } from 'vue-router'
 import Papa from 'papaparse'
-import { settingsOutline } from 'ionicons/icons'
+
 import { volumeHighOutline,bookOutline } from 'ionicons/icons'
 
 import { shareOutline } from 'ionicons/icons'
@@ -252,6 +307,28 @@ import { readDayCache, writeDayCache } from '@/utils/dayCache'
 const showShareSheet = ref(false)
 const captureRef = ref<HTMLElement | null>(null)
 
+  import { useRoute } from 'vue-router'
+import { watch } from 'vue'
+
+const route = useRoute()
+
+watch(
+  () => route.query.modal,
+  (v) => {
+    if (v === 'settings') showSettings.value = true
+    if (v === 'about') showAbout.value = true
+  },
+  { immediate: true }
+)
+
+function closeSettings() {
+  showSettings.value = false
+  router.replace({ query: {} })
+}
+function closeAbout() {
+  showAbout.value = false
+  router.replace({ query: {} })
+}
 
 const shareButtons = computed(() => ([
   {
@@ -455,7 +532,7 @@ async function shareAsImage() {
 
 // ====== Settings modal ======
 const showSettings = ref(false)
-
+const showAbout = ref(false)
 // ====== Data state ======
 const gregorianDate = ref('')
 const copticDate = ref('')
@@ -1181,6 +1258,21 @@ onMounted(() => {
   padding: 12px 0;
   border-bottom: 1px solid rgba(0,0,0,0.08);
 }
+.burgerBtn{
+  position: absolute;
+  top: -4px;
+  left: 0;
+  color: #fff;
+  background:#0f1b2f;
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  padding: 6px;
+}
+
+.home.theme-dark .burgerBtn{
+  background: rgba(0,0,0,0.30);
+}
+
 .home.theme-dark .settingsRow {
   border-bottom-color: rgba(255,255,255,0.12);
 }
