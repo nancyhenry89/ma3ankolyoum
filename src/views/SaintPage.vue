@@ -210,7 +210,7 @@
   .pageTitle{
     text-align:center;
     font-family:"Noto Kufi Arabic", system-ui, sans-serif;
-    font-size: 30px;
+    font-size: 15px;
     font-weight: 900;
     margin: 10px 0 14px;
     color: var(--mk-text);

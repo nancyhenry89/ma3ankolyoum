@@ -25,8 +25,8 @@
 />
 
     <div class="brand">
-      معًا كل يوم <span class="accent">مع</span> القمص يوحنا باقي
-    </div>
+      <div class="brand_name">معًا كل يوم </div><div class="accent">مع</div><div class="abouna"> القمص يوحنا باقي
+      </div> </div>
 
     <div class="dates" @click="showDatePicker = true">
       {{ gregorianDate }} – {{ copticDate }}
@@ -91,7 +91,19 @@
   <!-- الأجبية + الكتاب المقدس -->
   <div class="row" v-if="!isLoading && !noData">
     <button class="mini-card mini-click" type="button" @click="openChapter()">
-      <div class="mini-head">الكتاب المقدس</div>
+      <div class="mini-head mini-head-row"><span>
+        الكتاب المقدس
+      </span> <ion-button
+    class="audioBtn"
+    fill="clear"
+    size="small"
+    :disabled="!agbia_audio"
+    @click="openAgbiaAudio()"
+    aria-label="تشغيل صوت الأجبية"
+  >
+    <ion-icon :icon="bookOutline" />
+  </ion-button>
+      </div>
       <div class="mini-sub bible-pill">{{ previewLabel }}</div>
       <div class="mini-title">{{ previewTitle }}</div>
       <ul class="mini-list">
@@ -150,7 +162,7 @@
       <ion-modal :is-open="showDatePicker" @didDismiss="showDatePicker = false">
         <ion-header>
           <ion-toolbar>
-            <ion-title>اختاري يوم</ion-title>
+            <ion-title>اختر يوم</ion-title>
             <ion-buttons slot="end">
               <ion-button @click="showDatePicker = false">إغلاق</ion-button>
             </ion-buttons>
@@ -232,7 +244,7 @@ import html2canvas from 'html2canvas'
 import { useRouter } from 'vue-router'
 import Papa from 'papaparse'
 import { settingsOutline } from 'ionicons/icons'
-import { volumeHighOutline } from 'ionicons/icons'
+import { volumeHighOutline,bookOutline } from 'ionicons/icons'
 
 import { shareOutline } from 'ionicons/icons'
 import { readDayCache, writeDayCache } from '@/utils/dayCache'
@@ -889,8 +901,8 @@ onMounted(() => {
   position: absolute;
   top: -4px;
   left: 0;
-  color: var(--mk-text);
-  background: rgba(255,255,255,0.60);
+  color: #fff;
+  background:#0f1b2f;
   border-radius: 12px;
   backdrop-filter: blur(8px);
 }
@@ -910,7 +922,15 @@ onMounted(() => {
   font-weight: 900;
   color: var(--mk-text);
 }
-
+.brand .accent{
+  font-size:14px
+}
+.brand_name{
+  font-size:16px
+}
+.abouna{
+  font-size:15px
+}
 .brand .accent {
   color: var(--mk-accent);
 }
@@ -1344,13 +1364,24 @@ onMounted(() => {
   color: var(--mk-accent);
   opacity: 0.9;
 }
+/* بدل ما يكون في النص */
 .skeleton{
-  background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.22), rgba(255,255,255,0.08));
-  border-radius: 14px;
-  height: 18px;
-  margin: 10px auto;
-  width: 70%;
-  animation: sk 1.2s infinite;
+  /* كانت: margin: 10px auto; width: 70%; */
+  margin: 10px 0;           /* ✅ مش auto */
+  width: 100%;              /* ✅ ياخد عرض الكارت */
+}
+
+/* خلي اللي عايزة يكون أقصر يبقى من اليمين مش من النص */
+.skeleton-line.short{
+  width: 60%;
+  margin-right: 0;          /* ✅ يمين */
+  margin-left: auto;        /* ✅ يفضل يمين في RTL */
+}
+
+/* لو عايزة كل الـ skeleton lines تبقى RTL-friendly */
+.skeleton-line{
+  margin-right: 0;
+  margin-left: auto;
 }
 .home.theme-light .skeleton{
   background: linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.10), rgba(0,0,0,0.06));
@@ -1358,17 +1389,10 @@ onMounted(() => {
 
 .titleSk{ height: 44px; width: 90%; border-radius: 18px; }
 
-.skeleton-line{
-  height: 14px;
-  border-radius: 10px;
-  margin: 10px 0;
-  animation: sk 1.2s infinite;
-  background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.22), rgba(255,255,255,0.08));
-}
+
 .home.theme-light .skeleton-line{
   background: linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.10), rgba(0,0,0,0.06));
 }
-.skeleton-line.short{ width: 60%; }
 
 @keyframes sk{
   0%{ filter: brightness(1); }

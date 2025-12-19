@@ -15,7 +15,7 @@
   
           <div v-if="src" class="playerWrap">
             <audio controls preload="none" :src="src" style="width:100%"></audio>
-            <div class="hint">{{ fileName }}</div>
+            
           </div>
   
           <div v-else class="hint">

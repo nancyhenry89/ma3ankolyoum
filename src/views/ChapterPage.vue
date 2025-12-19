@@ -24,8 +24,12 @@
       allowfullscreen
     ></iframe>
   </div>
-</div>
 
+
+</div>
+<div class="videoNote">
+  💡 اضغط على الآية لعرض التفسير
+</div>
 
           <div class="chapterTitle">{{ chapterTitle }}</div>
   
@@ -39,7 +43,13 @@
               <button class="verseRow" type="button" @click="toggleVerse(v.n)">
                 <div class="num">{{ v.n }}</div>
                 <div class="txt">{{ v.t }}</div>
-                <div class="chev">{{ isOpen(v.n) ? '▾' : '▸' }}</div>
+                <div class="chev">
+  <ion-icon
+    :icon="chevronForwardOutline"
+    :class="{ open: isOpen(v.n) }"
+  />
+</div>
+
               </button>
   
               <!-- Tafsir -->
@@ -69,7 +79,14 @@
   import { computed, onMounted, ref } from 'vue'
   import { useRoute } from 'vue-router'
   import Papa from 'papaparse'
-  
+  import {
+  chevronDownOutline,
+  chevronForwardOutline,
+  chevronDown,
+  chevronForward,
+  bulbOutline
+} from 'ionicons/icons'
+
   type ChapterJSON = {
   bookKey: string
   bookName: string
@@ -444,6 +461,25 @@ async function toggleVerse(n: number) {
 }
 
 .space{ height: 20px; }
+.chev ion-icon {
+  font-size: 18px;
+  transition: transform 0.2s ease;
+}
+
+.chev ion-icon.open {
+  transform: rotate(90deg);
+}
+.videoNote{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:14px;
+  background: rgb(182 31 31 / 12%);
+  border: 1px dashed rgb(174 19 19);
+  font-size:14px;
+  font-weight:800;
+  color: var(--mk-text);
+  text-align:center;
+}
 
   </style>
   
