@@ -404,14 +404,14 @@ async function toggleVerse(n: number) {
 
 /* Section pill نفس روح Home */
 .sectionInline{
-  margin: 10px 8px 0;
-  padding: 9px 12px;
-  background: var(--mk-dark);
-  color: #fff;
-  border-radius: 14px;
-  font-weight: 900;
-  text-align: center;
-  box-shadow: 0 10px 18px rgba(0,0,0,0.08);
+    margin: 10px 8px 0;
+    padding: 9px 12px;
+    background: radial-gradient(700px 240px at 15% 0%, rgba(40, 214, 204, 0.38), rgba(255, 255, 255, 0) 62%), linear-gradient(135deg, #28d6cc30, #f0f0f0);
+    color: #0b2b40;
+    border-radius: 14px;
+    font-weight: 900;
+    text-align: center;
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
 }
 
 /* Verse row */

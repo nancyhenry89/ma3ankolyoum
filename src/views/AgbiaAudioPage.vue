@@ -21,7 +21,14 @@
               <div class="title">{{ p.title }}</div>
   
               <div v-if="p.src" class="playerWrap">
-                <audio controls preload="none" :src="p.src" style="width:100%"></audio>
+                <audio
+  controls
+  preload="none"
+  :src="p.src"
+  style="width:100%"
+  @play="onAudioPlay"
+/>
+
                 <div class="file" v-if="p.fileName">{{ p.fileName }}</div>
               </div>
   
@@ -72,6 +79,16 @@ function toAudioUrl(cell: any): string {
   if (!v) return ''
   if (/^https?:\/\//i.test(v)) return v
   return audioMap[v] || ''
+}
+function onAudioPlay(e: Event) {
+  const current = e.target as HTMLAudioElement
+  const audios = document.querySelectorAll('audio')
+
+  audios.forEach(a => {
+    if (a !== current) {
+      a.pause()
+    }
+  })
 }
 
 
