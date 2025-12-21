@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">معاً كل يوم</string>
-    <string name="title_activity_main">ma3an-kol-youm</string>
+    <string name="title_activity_main">معاً كل يوم</string>
     <string name="package_name">com.nancyhenry.ma3ankolyoum</string>
     <string name="custom_url_scheme">com.nancyhenry.ma3ankolyoum</string>
 </resources>
