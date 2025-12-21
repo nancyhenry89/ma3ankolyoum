@@ -1,35 +1,57 @@
 <template>
-    <section v-if="!isLoading && items.length" class="coptic">
-        
-  
-      <div v-show="isOpen" class="coptic-body">
-        <div class="coptic-title">لغتنا القبطية</div>
-  
-        <div class="coptic-list">
-          <button
-            v-for="(it, idx) in items"
-            :key="idx"
-            type="button"
-            class="coptic-item"
-            @click="play(it)"
-          >
-            <div class="coptic-row">
-              <span class="coptic-word">{{ it.coptic }}</span>
-              <span class="eq">=</span>
-              <span class="arabic-word">{{ it.arabic }}</span>
-            </div>
+  <section class="coptic" v-if="!isLoading">
+    <!-- Empty message -->
+    <div v-if="!items.length" class="coptic-empty">
+      لا توجد كلمات قبطية لهذا اليوم.
+    </div>
 
-          </button>
-        </div>
-  
-        <audio ref="audioRef" preload="none" />
+    <!-- List -->
+    <div v-else v-show="isOpen" class="coptic-body">
+      <div class="coptic-title">لغتنا القبطية</div>
+
+      <div class="coptic-list">
+        <button
+          v-for="(it, idx) in items"
+          :key="idx"
+          type="button"
+          class="coptic-item"
+          :disabled="!it.audioUrl"
+          @click="it.audioUrl && play(it)"
+          :class="{ noAudio: !it.audioUrl }"
+          :aria-disabled="!it.audioUrl"
+        >
+          <div class="coptic-row">
+            <ion-icon
+              :icon="volumeHighOutline"
+              class="volume-icon"
+              :class="{ dimIcon: !it.audioUrl }"
+            />
+
+            <span class="coptic-word">{{ it.coptic }}</span>
+            <span class="eq">=</span>
+            <span class="arabic-word">{{ it.arabic }}</span>
+          </div>
+
+
+        </button>
       </div>
-    </section>
-  </template>
-  
+    </div>
+  </section>
+
+  <!-- Loading skeleton (اختياري لو تحبي) -->
+  <section v-else class="coptic">
+    <div class="coptic-body">
+      <div class="coptic-title skeleton-box"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line short"></div>
+    </div>
+  </section>
+</template>
+
   <script setup lang="ts">
   import { ref, watch } from 'vue'
-  
+  import { volumeHighOutline } from 'ionicons/icons'
+
   type CopticItem = {
     coptic: string
     arabic: string
@@ -50,11 +72,54 @@
   
   const isLoading = ref(false)
   const items = ref<CopticItem[]>([])
+    import { onBeforeUnmount } from 'vue'
+
+const audioEl = new Audio()
+audioEl.preload = 'none'
+
+const currentSrc = ref('')
+const isPlaying = ref(false)
+
+audioEl.addEventListener('ended', () => {
+  isPlaying.value = false
+})
+
+audioEl.addEventListener('pause', () => {
+  isPlaying.value = false
+})
+
+audioEl.addEventListener('play', () => {
+  isPlaying.value = true
+})
+
+async function play(it: CopticItem) {
+  if (!it.audioUrl) return
+
+  try {
+    if (currentSrc.value !== it.audioUrl) {
+      audioEl.pause()
+      audioEl.currentTime = 0
+      audioEl.src = it.audioUrl
+      currentSrc.value = it.audioUrl
+    } else {
+      // نفس الصوت → نعيده من الأول
+      audioEl.currentTime = 0
+    }
+
+    await audioEl.play()
+  } catch (e) {
+    isPlaying.value = false
+    console.warn('Audio play failed', e)
+  }
+}
+
+onBeforeUnmount(() => {
+  audioEl.pause()
+  audioEl.src = ''
+})
+
   const isOpen = ref(true)
-  
-  const audioRef = ref<HTMLAudioElement | null>(null)
-  const currentSrc = ref('')
-  const isPlaying = ref(false)
+
   
   function toggleOpen() {
     isOpen.value = !isOpen.value
@@ -146,31 +211,6 @@
     }
   }
   
-  async function play(it: CopticItem) {
-    if (!it.audioUrl) return
-  
-    const a = audioRef.value
-    if (!a) return
-  
-    // لو نفس الصوت شغال: restart
-    if (currentSrc.value !== it.audioUrl) {
-      a.pause()
-      a.currentTime = 0
-      a.src = it.audioUrl
-      currentSrc.value = it.audioUrl
-    } else {
-      a.currentTime = 0
-    }
-  
-    try {
-      isPlaying.value = true
-      await a.play()
-      a.onended = () => { isPlaying.value = false }
-      a.onpause = () => { isPlaying.value = false }
-    } catch {
-      isPlaying.value = false
-    }
-  }
   
   watch(
     () => props.dateISO,
@@ -220,7 +260,9 @@ width:100%}
   .coptic{
     margin-top: 14px;
   }
-  
+  .volume-icon {
+    font-size: 24px;
+}
   .coptic-body{
     margin-top: 10px;
     background: radial-gradient(600px 200px at 20% 0%, rgba(32,178,170,0.35), transparent 60%),
@@ -229,6 +271,7 @@ width:100%}
     border: 1px solid var(--mk-border);
     box-shadow: var(--mk-shadow);
     padding: 14px;
+    position:relative
   }
   
   .home.theme-dark .coptic-body{
@@ -252,13 +295,10 @@ width:100%}
     text-align: center;
     border-radius: 16px;
     background: transparent;
-    padding: 12px 12px;
     cursor: pointer;
   }
   
-  .home.theme-dark .coptic-item{
-    background: rgba(40,214,204,0.14);
-  }
+
   
   .coptic-row{
     display:flex;
@@ -268,7 +308,16 @@ width:100%}
     flex-wrap: wrap;
     color:#fff
   }
-  
+  .coptic-body:before {
+    content: "ⲁ";
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 90px;
+    opacity: 0.10;
+    color: rgb(255 255 255 / 85%);
+    font-family: "Amiri", serif;
+}
   .coptic-word{
     font-size: 22px;
     font-weight: 900;
@@ -289,5 +338,42 @@ width:100%}
     font-weight: 900;
     color: var(--mk-danger);
   }
+  .coptic-empty{
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px dashed var(--mk-border);
+  text-align: center;
+  font-weight: 900;
+  opacity: 0.75;
+  background: rgba(255,255,255,0.35);
+}
+
+.home.theme-dark .coptic-empty{
+  background: rgba(255,255,255,0.06);
+}
+
+.dimIcon{
+  opacity: 0.35;
+}
+
+.coptic-item.noAudio{
+  cursor: default;
+  opacity: 0.75;
+}
+
+.coptic-item:disabled{
+  pointer-events: none;
+}
+
+/* optional skeleton helpers لو بتستخدميهم */
+.skeleton-box{
+  height: 28px;
+  width: 60%;
+  margin: 0 auto 10px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.10), rgba(0,0,0,0.06));
+}
+
   </style>
   

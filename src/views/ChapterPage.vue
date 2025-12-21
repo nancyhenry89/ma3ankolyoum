@@ -406,7 +406,7 @@ async function toggleVerse(n: number) {
 .sectionInline{
     margin: 10px 8px 0;
     padding: 9px 12px;
-    background: radial-gradient(700px 240px at 15% 0%, rgba(40, 214, 204, 0.38), rgba(255, 255, 255, 0) 62%), linear-gradient(135deg, #28d6cc30, #f0f0f0);
+    background: radial-gradient(700px 240px at 15% 0%, rgb(204 209 208 / 38%), rgba(255, 255, 255, 0) 62%), linear-gradient(135deg, #28d6cc30, #f0f0f0);
     color: #0b2b40;
     border-radius: 14px;
     font-weight: 900;

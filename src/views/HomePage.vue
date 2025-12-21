@@ -39,9 +39,19 @@
         {{ gregorianDate }} – {{ copticDate }}
       </div>
   
-      <div class="saint clickable" @click="openSaint()">
-        {{ saint }}
-      </div>
+      <div
+  class="saint"
+  :class="{ clickable: hasSaint, disabledSaint: !hasSaint }"
+  @click="hasSaint && openSaint()"
+>
+  <span v-if="hasSaint">
+    {{ saint }}
+  </span>
+  <span v-else>
+    لا يوجد سنكسار لهذا اليوم.
+  </span>
+</div>
+
   
       <div class="title">
         {{ title }}
@@ -66,8 +76,14 @@
   
     <!-- القصة -->
     <div class="card" v-if="!isLoading && !noData">
-      <p class="text alignRight">{{ story }}</p>
-    </div>
+  <p v-if="hasStory" class="text alignRight">
+    {{ story }}
+  </p>
+  <p v-else class="text alignRight emptyMsg">
+    لا توجد قصة لهذا اليوم.
+  </p>
+</div>
+
     <div class="card" v-else-if="isLoading">
       <div class="skeleton-line"></div>
       <div class="skeleton-line"></div>
@@ -77,9 +93,15 @@
   
     <!-- الآية -->
     <div class="verse" v-if="!isLoading && !noData">
-      <div class="verse-text">"{{ verseText }}"</div>
-      <div class="verse-ref">{{ verseRef }}</div>
-    </div>
+  <template v-if="hasVerse">
+    <div class="verse-text">"{{ verseText }}"</div>
+    <div class="verse-ref">{{ verseRef }}</div>
+  </template>
+  <div v-else class="verse-empty">
+    لا توجد آية محددة لهذا اليوم.
+  </div>
+</div>
+
     <div class="card" v-else-if="isLoading">
       <div class="skeleton-line"></div>
       <div class="skeleton-line short"></div>
@@ -87,8 +109,14 @@
   
     <!-- التأمل -->
     <div class="card" v-if="!isLoading && !noData">
-      <p class="text alignRight">{{ reflection }}</p>
-    </div>
+  <p v-if="hasReflection" class="text alignRight">
+    {{ reflection }}
+  </p>
+  <p v-else class="text alignRight emptyMsg">
+    لا يوجد تأمل لهذا اليوم.
+  </p>
+</div>
+
     <div class="card" v-else-if="isLoading">
       <div class="skeleton-line"></div>
       <div class="skeleton-line"></div>
@@ -97,25 +125,32 @@
   
     <!-- الأجبية + الكتاب المقدس -->
     <div class="row" v-if="!isLoading && !noData">
-      <button class="mini-card mini-click" type="button" @click="openChapter()">
-        <div class="mini-head mini-head-row"><span>
-          الكتاب المقدس
-        </span> <ion-button
+      <button class="mini-card mini-click" type="button" @click="hasBible && openChapter()">
+  <div class="mini-head mini-head-row">
+    <span>الكتاب المقدس</span>
+    <ion-button
       class="audioBtn"
       fill="clear"
       size="small"
-      aria-label="تشغيل صوت الأجبية"
+      aria-label="عرض الإصحاح"
     >
       <ion-icon :icon="bookOutline" />
     </ion-button>
-        </div>
-        <div class="mini-sub bible-pill">{{ previewLabel }}</div>
-        <div class="mini-title">{{ previewTitle }}</div>
-        <ul class="mini-list">
-          <li v-for="(item, i) in previewSections" :key="i">{{ item }}</li>
-        </ul>
-      </button>
-  
+  </div>
+
+  <template v-if="hasBible">
+    <div class="mini-sub bible-pill">{{ previewLabel }}</div>
+    <div class="mini-title">{{ previewTitle }}</div>
+    <ul class="mini-list">
+      <li v-for="(item, i) in previewSections" :key="i">{{ item }}</li>
+    </ul>
+  </template>
+
+  <p v-else class="mini-body alignRight emptyMsg">
+    لا توجد قراءات كتاب مقدس مسجَّلة لهذا اليوم.
+  </p>
+</button>
+
       <div class="mini-card">
         <div class="mini-head mini-head-row">
     <span>الأجبية</span>
@@ -131,8 +166,15 @@
 
   </div>
   
-        <p class="mini-body alignRight">{{ agbia }}</p>
-        <div class="mini-author" v-if="agbia_author">{{ agbia_author }}</div>
+  <p v-if="hasAgbia" class="mini-body alignRight">
+  {{ agbia }}
+</p>
+<p v-else class="mini-body alignRight emptyMsg">
+  لا توجد قراءة من الأجبية لهذا اليوم.
+</p>
+<div class="mini-author" v-if="agbia_author && hasAgbia">
+  {{ agbia_author }}
+</div>
       </div>
     </div>
     <div class="row" v-else-if="isLoading">
@@ -147,22 +189,28 @@
         <div class="skeleton-line short"></div>
       </div>
     </div>
-  
-    <!-- التدريب -->
-    <div class="training" v-if="!isLoading && !noData">
-      <div class="training-pill">التدريب</div>
-      <div class="training-text alignRight">{{ training }}</div>
-    </div>
-    <div class="card" v-else-if="isLoading">
-      <div class="skeleton-line"></div>
-      <div class="skeleton-line short"></div>
-    </div>
-  <!-- لغتنا القبطية -->
+    <!-- لغتنا القبطية -->
 <CopticSection
   v-if="!isLoading && !noData"
   :dateISO="selectedDateISO"
   :contentBase="CONTENT_BASE"
 />
+    <!-- التدريب -->
+    <div class="training" v-if="!isLoading && !noData">
+  <div class="training-pill">التدريب</div>
+  <div v-if="hasTraining" class="training-text alignRight">
+    {{ training }}
+  </div>
+  <div v-else class="training-text alignRight emptyMsg">
+    لا يوجد تدريب محدد لهذا اليوم.
+  </div>
+</div>
+
+    <div class="card" v-else-if="isLoading">
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line short"></div>
+    </div>
+
 
     <div class="space"></div>
       </div> <!-- end .wrap -->
@@ -257,7 +305,7 @@
     <li><strong>إعداد المحتوى:</strong> القمص يوحنا باقي</li>
     <li><strong>الكتاب المقدس:</strong> الترجمة العربية فان دايك، بإذن من دار الكتاب المقدس</li>
     <li><strong>السنكسار:</strong> بحسب سنكسار دير السريان</li>
-    <li><strong>التفسير:</strong> موسوعة كنيسة مارمرقس</li>
+    <li><strong>التفسير:</strong> موسوعة كنيسة مارمرقس بمصر الجديدة</li>
   </ul>
 
   <h3>الجهة التابعة</h3>
@@ -571,6 +619,19 @@ const hasAnyAgbiaAudio = computed(() => {
     String(agbia_ninth.value).trim() ||
     String(agbia_sunset.value).trim() ||
     String(agbia_sleep.value).trim()
+  )
+})
+const hasStory = computed(() => !!String(story.value).trim())
+const hasSaint = computed(() => !!String(saint.value).trim())
+
+const hasVerse = computed(() => !!String(verseText.value).trim())
+const hasReflection = computed(() => !!String(reflection.value).trim())
+const hasAgbia = computed(() => !!String(agbia.value).trim())
+const hasTraining = computed(() => !!String(training.value).trim())
+const hasBible = computed(() => {
+  return !!(
+    String(bibleBookKey.value).trim() ||
+    (bibleItems.value && bibleItems.value.length > 0)
   )
 })
 
@@ -896,6 +957,17 @@ function safeTodayISO() {
 onMounted(() => {
   applyPrefs()
 
+  // 🔹 DEBUG: force skeleton on web with ?debugSkeleton=1
+  if (!Capacitor.isNativePlatform() && typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('debugSkeleton') === '1') {
+      isLoading.value = true
+      noData.value = false
+      // ما نحملش داتا خالص علشان نشوف الاسكلتون بس
+      return
+    }
+  }
+
   const iso = String(selectedDateISO.value).substring(0, 10)
   const cached = readDayCache(iso)
 
@@ -922,7 +994,7 @@ onMounted(() => {
   
     --mk-accent: #20b2aa;   /* teal */
     --mk-dark: #182a44;     /* indigo/navy */
-    --mk-danger: #d64545;
+    --mk-danger: #ff2a00;
   
     --mk-border: rgba(24,42,68,0.10);
     --mk-shadow: 0 8px 18px rgba(10,20,30,0.07);
@@ -992,7 +1064,7 @@ onMounted(() => {
     transform-origin: top center;
   }
   
-  .capture { width: fit-content; margin: 0 auto; }
+  .capture {  margin: 0 auto; }
   
   /* =========================================================
      Unified gradients (what you asked for)
@@ -1007,8 +1079,7 @@ onMounted(() => {
   /* Verse + Training gradient: 28d6cc -> white */
   .home {
     --mk-soft-grad:
-    radial-gradient(700px 240px at 15% 0%, rgba(40, 214, 204, 0.38), rgba(255, 255, 255, 0) 62%), linear-gradient(135deg, #28d6cc30, #f0f0f0)
-  }
+    radial-gradient(700px 240px at 15% 0%, rgba(40, 214, 204, 0.38), rgba(255, 255, 255, 0) 62%), linear-gradient(135deg, #28d6cc30, #f0f0f0)  }
   
   /* =========================================================
      Header
@@ -1142,7 +1213,7 @@ onMounted(() => {
   ========================================================= */
   .verse {
     border-radius: 18px;
-    padding: 16px 14px;
+    padding: 16px 44px;
     text-align: center;
     margin: 12px 0;
     position: relative;
@@ -1177,13 +1248,11 @@ onMounted(() => {
     font-family: "Amiri", "Noto Naskh Arabic", serif;
     font-size: 16px;
     font-weight: 800;
-    color: #0f1b2f;
+    color: #061018;
   }
   
   /* Dark mode: keep it readable (same grad but text switches) */
-  .home.theme-dark .verse {
-    border: 1px solid rgba(255,255,255,0.16);
-  }
+
   .home.theme-dark .verse-text { color: #061018; }
   .home.theme-dark .verse-ref { color: #061018; }
   .home.theme-dark .verse::before { color: rgba(6,16,24,0.8); }
@@ -1207,7 +1276,20 @@ onMounted(() => {
     width: 100%;
     cursor: pointer;
   }
-  
+  .emptyMsg {
+  opacity: 0.7;
+  font-size: 18px;
+}
+
+.verse-empty {
+  font-size: 18px;
+  font-weight: 700;
+  color: #061018;
+}
+.home.theme-dark .verse-empty {
+  color: #061018;
+}
+
   .mini-card.mini-click{
     display: flex;
     flex-direction: column;
@@ -1302,7 +1384,6 @@ onMounted(() => {
     overflow: hidden;
   
     background: var(--mk-soft-grad);
-    border: 1px solid rgba(24,42,68,0.14);
     box-shadow: var(--mk-shadow-strong);
   }
   
@@ -1316,7 +1397,20 @@ onMounted(() => {
     opacity: 0.10;
     color: rgba(24,42,68,0.85);
   }
-  
+  .disabledSaint {
+  cursor: default;
+  opacity: 0.65;
+  filter: grayscale(0.1);
+}
+
+.saint.clickable {
+  cursor: pointer;
+}
+
+.saint:not(.clickable) {
+  pointer-events: none; /* extra safety */
+}
+
   .training-pill{
     color: #20b2aa;
     font-weight: 900;
@@ -1338,14 +1432,11 @@ onMounted(() => {
   }
   
   /* Dark mode for training */
-  .home.theme-dark .training {
-    border: 1px solid rgba(255,255,255,0.16);
-  }
+
   .home.theme-dark .training-text { color: #061018; }
   .home.theme-dark .training-pill {
     color: #061018;
-    background: rgba(255,255,255,0.58);
-    border-color: rgba(255,255,255,0.18);
+
   }
   .home.theme-dark .training::before { color: rgba(6,16,24,0.8); }
   
@@ -1460,7 +1551,7 @@ onMounted(() => {
     50%{ filter: brightness(1.25); }
     100%{ filter: brightness(1); }
   }
-  .titleSk{ height: 44px; width: 90%; border-radius: 18px; }
+  .titleSk{ height: 44px; width: 100%; border-radius: 18px; }
   
   .capture-clone {
     position: fixed;
@@ -1469,7 +1560,7 @@ onMounted(() => {
     z-index: -1;
     pointer-events: none;
   }
-  
+
   /* =========================================================
      Mobile
   ========================================================= */
