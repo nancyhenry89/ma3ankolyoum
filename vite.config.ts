@@ -3,8 +3,8 @@ import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import { defineConfig } from 'vite'
 
-export default defineConfig({
-  base: '/',
+export default defineConfig(({ mode }) => ({
+  base: mode === 'domain' ? '/' : '/ma3ankolyoum/',
 
   plugins: [vue(), legacy()],
 
@@ -18,4 +18,4 @@ export default defineConfig({
     outDir: 'docs',
     emptyOutDir: true
   }
-})
+}))
