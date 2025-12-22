@@ -131,8 +131,10 @@ async function openIntroVideo() {
     toVerse: number
     tafsir: string
   }
-  const CONTENT_BASE =
-  'https://nancyhenry89.github.io/ma3ankolyoum/src/content'
+  const CONTENT_BASE = Capacitor.isNativePlatform()
+  ? 'https://nancyhenry89.github.io/ma3ankolyoum/src/content'
+  : `${import.meta.env.BASE_URL}content`
+  const AGBIA_AUDIO_BASE = `${CONTENT_BASE}/audio/agbia`
 
   const route = useRoute()
   
