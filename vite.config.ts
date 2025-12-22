@@ -5,8 +5,9 @@ import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import { defineConfig } from 'vite'
 
-// https://vitejs.dev/config/
 export default defineConfig({
+  base: '/ma3ankolyoum/', // ✅ مهم لـ GitHub Pages
+
   plugins: [
     vue(),
     legacy()
