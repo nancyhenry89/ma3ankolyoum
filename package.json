@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "rm -rf public/content && mkdir -p public/content && cp -R src/content/* public/content/",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "test:e2e": "cypress run",
     "test:unit": "vitest",
     "lint": "eslint .",
     "deploy": "npm run build && gh-pages -d dist"
+
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",
@@ -52,6 +54,4 @@
     "vue-tsc": "^2.1.10"
   },
   "description": "An Ionic project"
-  
 }
-
