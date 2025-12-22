@@ -38,7 +38,10 @@
       <div class="dates" @click="showDatePicker = true">
         {{ gregorianDate }} – {{ copticDate }}
       </div>
-  
+      <div v-if="hasAnnouncement" class="announcement-card">
+  {{ announcement }}
+</div>
+
       <div
   class="saint"
   :class="{ clickable: hasSaint, disabledSaint: !hasSaint }"
@@ -125,7 +128,12 @@
   
     <!-- الأجبية + الكتاب المقدس -->
     <div class="row" v-if="!isLoading && !noData">
-      <button class="mini-card mini-click" type="button" @click="hasBible && openChapter()">
+      <button
+  class="mini-card mini-click"
+  :class="{ disabledCard: !hasBible }"
+  type="button"
+  @click="hasBible && openChapter()"
+>
   <div class="mini-head mini-head-row">
     <span>الكتاب المقدس</span>
     <ion-button
@@ -343,6 +351,8 @@ import {
 } from '@ionic/vue'
 import { menuOutline } from 'ionicons/icons'
 import CopticSection from '@/components/CopticSection.vue'
+import { App } from '@capacitor/app'
+import { useIonRouter } from '@ionic/vue'
 
 import { onMounted, ref, computed } from 'vue'
 import { IonActionSheet } from '@ionic/vue'
@@ -361,6 +371,17 @@ const captureRef = ref<HTMLElement | null>(null)
 
   import { useRoute } from 'vue-router'
 import { watch } from 'vue'
+
+const ionRouter = useIonRouter()
+
+onMounted(() => {
+  App.addListener('backButton', ({ canGoBack }) => {
+    if (!ionRouter.canGoBack()) {
+      App.exitApp()
+    }
+  })
+})
+
 
 const route = useRoute()
 
@@ -443,7 +464,8 @@ function onFontScale(ev: any) {
 // ====== Date picker ======
 const showDatePicker = ref(false)
 const selectedDateISO = ref(todayISO())
-
+const bibleFromSheet = ref(false)
+const bibleIsEmptyFromSheet = ref(false)
 function onDateChange(ev: any) {
   const iso = String(ev.detail.value || '').substring(0, 10)
   if (!iso) return
@@ -610,6 +632,8 @@ const agbia_sixth = ref('')
 const agbia_ninth = ref('')
 const agbia_sunset = ref('')
 const agbia_sleep = ref('')
+const announcement = ref('')
+const hasAnnouncement = computed(() => !!String(announcement.value).trim())
 
 const hasAnyAgbiaAudio = computed(() => {
   return !!(
@@ -628,12 +652,7 @@ const hasVerse = computed(() => !!String(verseText.value).trim())
 const hasReflection = computed(() => !!String(reflection.value).trim())
 const hasAgbia = computed(() => !!String(agbia.value).trim())
 const hasTraining = computed(() => !!String(training.value).trim())
-const hasBible = computed(() => {
-  return !!(
-    String(bibleBookKey.value).trim() ||
-    (bibleItems.value && bibleItems.value.length > 0)
-  )
-})
+const hasBible = computed(() => bibleFromSheet.value)
 
 const training = ref('')
 const chapterPreview = ref<ChapterPreview | null>(null)
@@ -645,12 +664,15 @@ function applyCachedDay(c: any) {
   copticDate.value = c.copticDate || ''
   saint.value = c.saint || ''
   saintStory.value = c.saintStory || ''
+  announcement.value = c.announcement || ''
 
   title.value = c.title || ''
   story.value = c.story || ''
   verseText.value = c.verseText || ''
   verseRef.value = c.verseRef || ''
   reflection.value = c.reflection || ''
+  bibleFromSheet.value = !!c.bibleFromSheet
+bibleIsEmptyFromSheet.value = !bibleFromSheet.value
 
   agbia.value = c.agbia || ''
   agbia_author.value = c.agbia_author || ''
@@ -809,8 +831,22 @@ function applyRow(rowRaw: any) {
   bibleBookKey.value = pick(row, 'bible_book', 'book_key') || 'Matthew'
   bibleChapter.value = Number(pick(row, 'bible_chapter', 'chapter') || 1)
   bibleTitle.value = pick(row, 'bible_title', 'chapter_title')
+  announcement.value = pick(row, 'announcement', 'إعلان', 'announcements')
 
   const items = pick(row, 'bible_items', 'items')
+  const sheetBook = String(pick(row, 'bible_book', 'book_key') || '').trim()
+const sheetChapterRaw = String(pick(row, 'bible_chapter', 'chapter') || '').trim()
+const sheetTitle = String(pick(row, 'bible_title', 'chapter_title') || '').trim()
+const sheetItemsRaw = String(pick(row, 'bible_items', 'items') || '').trim()
+
+const sheetHasBible =
+  !!sheetBook ||
+  !!sheetChapterRaw ||
+  !!sheetTitle ||
+  !!sheetItemsRaw
+
+bibleFromSheet.value = sheetHasBible
+bibleIsEmptyFromSheet.value = !sheetHasBible
   bibleItems.value = String(items || '')
     .split('|')
     .map((s: string) => s.trim())
@@ -873,6 +909,8 @@ async function refreshHomeFromNetwork(targetISO: string) {
     bibleChapter: bibleChapter.value,
     bibleTitle: bibleTitle.value,
     bibleItems: bibleItems.value,
+    bibleFromSheet: bibleFromSheet.value,
+    announcement: announcement.value,
 
     // ✅ لو بدأتي تخزني أعمدة الأجبية الجديدة
     baker: pick(normalizeKeys(found), 'baker') || '',
@@ -1172,13 +1210,29 @@ onMounted(() => {
      Title
   ========================================================= */
   .title {
-    margin-top: 10px;
+    margin-top: 17px;
     font-size: 38px;
     line-height: 1.2;
     font-weight: 900;
     color: var(--mk-text);
   }
-  
+  .announcement-card {
+  margin: 10px 0 6px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+
+  background: linear-gradient(135deg, #ffd166, #fff1c1);
+  color: #3a2c00;
+  box-shadow: var(--mk-shadow);
+}
+.home.theme-dark .announcement-card {
+  background: linear-gradient(135deg, #ffd166, #bfa14a);
+  color: #1a1400;
+}
+
   /* =========================================================
      Cards
   ========================================================= */
@@ -1204,6 +1258,9 @@ onMounted(() => {
     font-size: 21px;
     line-height: 2;
     color: var(--mk-text);
+
+  white-space: pre-line;
+
   }
   
   .alignRight { text-align: right; }
@@ -1331,7 +1388,11 @@ onMounted(() => {
     line-height: 1.35;
     margin-top: 2px;
   }
-  
+  .disabledCard {
+  opacity: 0.7;
+  cursor: default;
+}
+
   /* list */
   .mini-list{
     margin-top: 8px;
