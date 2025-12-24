@@ -281,7 +281,7 @@
               <div class="settingsLabel">الوضع الليلي</div>
               <ion-toggle :checked="theme === 'dark'" @ionChange="toggleTheme" />
             </div>
-  <div v-if="isWeb">
+
             <div class="settingsRow" v-if="isWeb">
               <div class="settingsLabel">حجم الخط</div>
               <div class="rangeWrap">
@@ -295,6 +295,8 @@
                 <div class="rangeValue">{{ fontScale.toFixed(2) }}x</div>
               </div>
             </div>
+            <template v-if="!isWeb">
+
             <div class="settingsRow" >
   <div class="settingsLabel">تذكير يومي لقراءة رسالة اليوم</div>
   <ion-toggle :checked="reminderEnabled" @ionChange="onReminderToggle" />
@@ -312,7 +314,7 @@
 <ion-button expand="block" fill="outline" @click="testReminder">
   جرّب إشعار الآن
 </ion-button>
-</div>
+</template>
 
 
             <div class="hint">
