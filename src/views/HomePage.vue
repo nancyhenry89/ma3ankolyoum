@@ -32,7 +32,7 @@
   />
   
       <div class="brand">
-        <div class="brand_name">معًا كل يوم </div><div class="accent">مع</div><div class="abouna"> القمص يوحنا باقي
+        <div class="brand_name">معاً كل يوم </div><div class="accent">مع</div><div class="abouna"> القمص يوحنا باقي
         </div> </div>
   
       <div class="dates" @click="showDatePicker = true">
@@ -218,6 +218,20 @@
       <div class="skeleton-line"></div>
       <div class="skeleton-line short"></div>
     </div>
+<!-- قريباً على المتاجر (Web فقط) -->
+<div class="storesSoon" v-if="isWeb && !isLoading && !noData">
+  <div class="storesTitle">قريباً  علي</div>
+
+  <div class="storesRow" aria-label="قريبًا على App Store و Google Play">
+    <a class="storeBadge" href="#" aria-label="App Store (قريبًا)" @click.prevent>
+      <img src="/badges/appstore.png" alt="App Store" />
+    </a>
+
+    <a class="storeBadge" href="#" aria-label="Google Play (قريبًا)" @click.prevent>
+      <img src="/badges/googleplay.png" alt="Google Play" />
+    </a>
+  </div>
+</div>
 
 
     <div class="space"></div>
@@ -305,7 +319,7 @@
   <h2>عن التطبيق</h2>
 
   <p>
-    <strong>معًا كل يوم</strong> هو تطبيق روحي كنسي يهدف إلى مساندة الحياة الروحية اليومية
+    <strong>معاً كل يوم</strong> هو تطبيق روحي كنسي يهدف إلى مساندة الحياة الروحية اليومية
     من خلال قراءات وتأملات وتدريبات منتظمة تساعد على النمو الروحي والالتصاق بكلمة الله.
   </p>
 
@@ -434,6 +448,7 @@ const CONTENT_BASE = Capacitor.isNativePlatform()
   const AGBIA_AUDIO_BASE = `${CONTENT_BASE}/audio/agbia`
 
 const router = useRouter()
+const isWeb = computed(() => !Capacitor.isNativePlatform())
 
 const SHEET_CSV_URL =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vRzBoz5JKy5BfRIXlo_rOSIYsce_9oXsLG9R07CvC3-MztLmg3vv7EYoNLFdt9YmL21tv8XYevOxedh/pub?gid=0&single=true&output=csv'
@@ -1457,15 +1472,7 @@ onMounted(() => {
   }
   
   /* subtle decoration */
-  .training::before{
-    content: "✦";
-    position: absolute;
-    top: -10px;
-    left: 14px;
-    font-size: 48px;
-    opacity: 0.10;
-    color: rgba(24,42,68,0.85);
-  }
+
   .disabledSaint {
   cursor: default;
   opacity: 0.65;
@@ -1629,6 +1636,49 @@ onMounted(() => {
     z-index: -1;
     pointer-events: none;
   }
+  .storesSoon{
+  margin: 18px 0 6px;
+  text-align: center;
+  padding: 16px 14px;
+  border-radius: 18px;
+
+}
+
+.storesTitle{
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  margin-bottom: 10px;
+  color: var(--mk-text);
+}
+
+.storesRow{
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.storeBadge{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  padding: 8px 10px;
+  background: rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.home.theme-dark .storeBadge{
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+}
+
+.storeBadge img{
+  height: 44px;
+  width: auto;
+  display: block;
+}
 
   /* =========================================================
      Mobile
