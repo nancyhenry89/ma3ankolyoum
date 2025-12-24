@@ -33,3 +33,9 @@ CapApp.addListener('backButton', ({ canGoBack }) => {
     CapApp.exitApp()
   }
 })
+import { LocalNotifications } from '@capacitor/local-notifications'
+
+LocalNotifications.addListener('localNotificationActionPerformed', (ev) => {
+  const route = ev.notification.extra?.route
+  if (route) router.push(route)
+})

@@ -295,7 +295,28 @@
                 <div class="rangeValue">{{ fontScale.toFixed(2) }}x</div>
               </div>
             </div>
-  
+            <div class="settingsRow">
+  <div class="settingsLabel">تذكير يومي لقراءة رسالة اليوم</div>
+  <ion-toggle :checked="reminderEnabled" @ionChange="onReminderToggle" />
+</div>
+
+<div class="settingsRow" v-if="reminderEnabled">
+  <div class="settingsLabel">وقت التذكير</div>
+  <input
+    class="timeInput"
+    type="time"
+    v-model="reminderTime"
+  />
+</div>
+
+<ion-button expand="block" fill="outline" @click="testReminder">
+  جرّب إشعار الآن
+</ion-button>
+
+<div class="hint">
+  لو لم تظهر الإشعارات: راجع Permissions من إعدادات الهاتف.
+</div>
+
             <div class="hint">
               الإعدادات بتتخزن تلقائيًا على الجهاز.
             </div>
@@ -383,6 +404,7 @@ import { readDayCache, writeDayCache } from '@/utils/dayCache'
 
 const showShareSheet = ref(false)
 const captureRef = ref<HTMLElement | null>(null)
+  import { scheduleDailyReminder, disableDailyReminder, sendTestReminder } from '@/services/reminder'
 
   import { useRoute } from 'vue-router'
 import { watch } from 'vue'
@@ -462,6 +484,8 @@ function todayISO(): string {
 type ThemeMode = 'light' | 'dark'
 const theme = ref<ThemeMode>((localStorage.getItem('mk_theme') as ThemeMode) || 'light')
 const fontScale = ref<number>(Number(localStorage.getItem('mk_fontScale') || '1'))
+  const reminderEnabled = ref(localStorage.getItem('mk_reminder_enabled') === '1')
+const reminderTime = ref(localStorage.getItem('mk_reminder_time') || '09:00')
 
 const themeClass = computed(() => (theme.value === 'dark' ? 'theme-dark' : 'theme-light'))
 
@@ -495,6 +519,34 @@ function onDateChange(ev: any) {
   selectedDateISO.value = iso
   showDatePicker.value = false
   loadByDate(iso)
+}
+async function applyReminderSchedule() {
+  if (!reminderEnabled.value) {
+    await disableDailyReminder()
+    return
+  }
+
+  const [h, m] = reminderTime.value.split(':').map(Number)
+  if (Number.isNaN(h) || Number.isNaN(m)) return
+
+  await scheduleDailyReminder(h, m)
+}
+
+async function onReminderToggle(ev: any) {
+  reminderEnabled.value = !!ev.detail.checked
+  localStorage.setItem('mk_reminder_enabled', reminderEnabled.value ? '1' : '0')
+  await applyReminderSchedule()
+}
+
+watch(reminderTime, async () => {
+  localStorage.setItem('mk_reminder_time', reminderTime.value)
+  if (reminderEnabled.value) {
+    await applyReminderSchedule()
+  }
+})
+
+async function testReminder() {
+  await sendTestReminder()
 }
 
 async function shareAsText() {
@@ -1039,6 +1091,10 @@ onMounted(() => {
   } else {
     loadByDate(iso).catch(console.error)
   }
+  if (Capacitor.isNativePlatform() && reminderEnabled.value) {
+  applyReminderSchedule().catch(console.error)
+}
+
 })
 
 </script>
@@ -1239,6 +1295,16 @@ onMounted(() => {
     font-weight: 900;
     color: var(--mk-text);
   }
+  .timeInput{
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--mk-border);
+  background: var(--mk-card);
+  color: var(--mk-text);
+  font-weight: 800;
+  min-width: 140px;
+}
+
   .announcement-card {
   margin: 10px 0 6px;
   padding: 14px 16px;
