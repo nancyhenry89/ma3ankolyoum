@@ -237,11 +237,12 @@
   
           <ion-content class="ion-padding">
             <ion-datetime
-              presentation="date"
-              :value="selectedDateISO"
-              :max="todayISO()"
-              @ionChange="onDateChange"
-            />
+  presentation="date"
+  :value="selectedDateISO"
+  :max="allowFuture ? undefined : todayISO()"
+  @ionChange="onDateChange"
+/>
+
             <div class="hint">
               لا يمكن اختيار أيام بعد تاريخ اليوم.
             </div>
@@ -384,6 +385,7 @@ onMounted(() => {
 
 
 const route = useRoute()
+const allowFuture = computed(() => route.query.debugFuture === '1')
 
 watch(
   () => route.query.modal,
@@ -471,11 +473,15 @@ const bibleIsEmptyFromSheet = ref(false)
 function onDateChange(ev: any) {
   const iso = String(ev.detail.value || '').substring(0, 10)
   if (!iso) return
-  if (iso > todayISO()) return // منع المستقبل
+
+  // ⛔ block future ONLY if debugFuture is not enabled
+  if (!allowFuture.value && iso > todayISO()) return
+
   selectedDateISO.value = iso
   showDatePicker.value = false
   loadByDate(iso)
 }
+
 async function shareAsText() {
   if (noData.value || isLoading.value) return
 
@@ -997,25 +1003,25 @@ function safeTodayISO() {
 onMounted(() => {
   applyPrefs()
 
-  // 🔹 DEBUG: force skeleton on web with ?debugSkeleton=1
-  if (!Capacitor.isNativePlatform() && typeof window !== 'undefined') {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('debugSkeleton') === '1') {
-      isLoading.value = true
-      noData.value = false
-      // ما نحملش داتا خالص علشان نشوف الاسكلتون بس
-      return
-    }
+  const queryDate = typeof route.query.date === 'string'
+    ? route.query.date.substring(0, 10)
+    : null
+
+  if (queryDate) {
+    // ⛔ prevent future unless debugFuture=1
+    if (!allowFuture.value && queryDate > todayISO()) return
+
+    selectedDateISO.value = queryDate
+    loadByDate(queryDate)
+    return
   }
 
   const iso = String(selectedDateISO.value).substring(0, 10)
   const cached = readDayCache(iso)
 
   if (cached) {
-    // ✅ عندك كاش: اعملي تحديث من النت في الخلفية
     refreshHomeFromNetwork(iso).catch(console.error)
   } else {
-    // ✅ مفيش كاش: ساعتها حمّلي طبيعي
     loadByDate(iso).catch(console.error)
   }
 })
