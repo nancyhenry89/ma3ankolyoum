@@ -281,8 +281,8 @@
               <div class="settingsLabel">الوضع الليلي</div>
               <ion-toggle :checked="theme === 'dark'" @ionChange="toggleTheme" />
             </div>
-  
-            <div class="settingsRow">
+  <div v-if="isWeb">
+            <div class="settingsRow" v-if="isWeb">
               <div class="settingsLabel">حجم الخط</div>
               <div class="rangeWrap">
                 <ion-range
@@ -295,7 +295,7 @@
                 <div class="rangeValue">{{ fontScale.toFixed(2) }}x</div>
               </div>
             </div>
-            <div class="settingsRow">
+            <div class="settingsRow" >
   <div class="settingsLabel">تذكير يومي لقراءة رسالة اليوم</div>
   <ion-toggle :checked="reminderEnabled" @ionChange="onReminderToggle" />
 </div>
@@ -312,10 +312,8 @@
 <ion-button expand="block" fill="outline" @click="testReminder">
   جرّب إشعار الآن
 </ion-button>
-
-<div class="hint">
-  لو لم تظهر الإشعارات: راجع Permissions من إعدادات الهاتف.
 </div>
+
 
             <div class="hint">
               الإعدادات بتتخزن تلقائيًا على الجهاز.
@@ -521,6 +519,7 @@ function onDateChange(ev: any) {
   loadByDate(iso)
 }
 async function applyReminderSchedule() {
+  if (isWeb.value) return
   if (!reminderEnabled.value) {
     await disableDailyReminder()
     return
@@ -1094,7 +1093,9 @@ onMounted(() => {
   if (Capacitor.isNativePlatform() && reminderEnabled.value) {
   applyReminderSchedule().catch(console.error)
 }
-
+if (!isWeb.value && reminderEnabled.value) {
+    applyReminderSchedule().catch(console.error)
+  }
 })
 
 </script>
