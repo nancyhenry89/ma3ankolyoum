@@ -220,6 +220,14 @@
       <div class="skeleton-line"></div>
       <div class="skeleton-line short"></div>
     </div>
+    <div class="space"></div>
+    <StreakRewards
+  v-if="!isLoading && !noData && isTodaySelected"
+  :todayISO="todayISO()"
+/>
+
+
+
 <!-- قريباً على المتاجر (Web فقط) -->
 <div class="storesSoon" v-if="isWeb && !isLoading && !noData">
   <div class="storesTitle">قريباً  علي</div>
@@ -391,6 +399,8 @@ import { menuOutline } from 'ionicons/icons'
 import CopticSection from '@/components/CopticSection.vue'
 import { App } from '@capacitor/app'
 import { useIonRouter } from '@ionic/vue'
+import StreakRewards from '@/components/StreakRewards.vue'
+
 
 import { onMounted, ref, computed } from 'vue'
 import { IonActionSheet } from '@ionic/vue'
@@ -424,6 +434,9 @@ onMounted(() => {
 
 const route = useRoute()
 const allowFuture = computed(() => route.query.debugFuture === '1')
+const isTodaySelected = computed(() => {
+  return String(selectedDateISO.value).substring(0, 10) === todayISO()
+})
 
 watch(
   () => route.query.modal,
