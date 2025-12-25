@@ -113,7 +113,9 @@
     <!-- التأمل -->
     <div class="card" v-if="!isLoading && !noData">
   <p v-if="hasReflection" class="text alignRight">
-    {{ reflection }}
+    <div class="card-title">التأمل</div>
+
+   <div>{{ reflection }}</div> 
   </p>
   <p v-else class="text alignRight emptyMsg">
     لا يوجد تأمل لهذا اليوم.
@@ -205,7 +207,7 @@
 />
     <!-- التدريب -->
     <div class="training" v-if="!isLoading && !noData">
-  <div class="training-pill">التدريب</div>
+  <div class="training-pill">خطوة لقدام</div>
   <div v-if="hasTraining" class="training-text alignRight">
     {{ training }}
   </div>
@@ -1566,7 +1568,28 @@ if (!isWeb.value && reminderEnabled.value) {
     margin-bottom: 12px;
 
   }
-  
+  .training-pill{
+    color: #20b2aa;
+    font-weight: 900;
+    border-radius: 14px;
+    padding: 8px 18px;
+    font-size: 20px;
+    display: inline-block;
+    margin-bottom: 12px;
+
+  }
+  .card-title{
+    color: #20b2aa;
+    font-weight: 900;
+    border-radius: 14px;
+    padding: 8px 18px;
+    font-size: 20px;
+    display: inline-block;
+    margin-bottom: 12px;
+    text-align: center;
+    width:100%;
+
+  }
   .training-text{
     font-size: 20px;
     line-height: 2;
