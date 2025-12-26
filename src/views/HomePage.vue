@@ -79,9 +79,9 @@
   
     <!-- القصة -->
     <div class="card" v-if="!isLoading && !noData">
-  <p v-if="hasStory" class="text alignRight">
-    {{ story }}
-  </p>
+      <div v-if="hasStory" class="text alignRight md" v-html="storyHtml"></div>
+
+
   <p v-else class="text alignRight emptyMsg">
     لا توجد قصة لهذا اليوم.
   </p>
@@ -112,11 +112,11 @@
   
     <!-- التأمل -->
     <div class="card" v-if="!isLoading && !noData">
-  <p v-if="hasReflection" class="text alignRight">
-    <div class="card-title">التأمل</div>
+      <div v-if="hasReflection" class="text alignRight">
+  <div class="card-title">التأمل</div>
+  <div class="md" v-html="reflectionHtml"></div>
+</div>
 
-   <div>{{ reflection }}</div> 
-  </p>
   <p v-else class="text alignRight emptyMsg">
     لا يوجد تأمل لهذا اليوم.
   </p>
@@ -420,6 +420,8 @@ const captureRef = ref<HTMLElement | null>(null)
 
   import { useRoute } from 'vue-router'
 import { watch } from 'vue'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 
 const ionRouter = useIonRouter()
 
@@ -631,6 +633,7 @@ import { Share } from '@capacitor/share'
 import { Filesystem, Directory } from '@capacitor/filesystem'
 import { Capacitor } from '@capacitor/core'
 
+
 function downloadDataUrl(dataUrl: string, fileName: string) {
   const a = document.createElement('a')
   a.href = dataUrl
@@ -709,6 +712,35 @@ const story = ref('')
 const verseText = ref('')
 const verseRef = ref('')
 const reflection = ref('')
+
+function mdToSafeHtml(md: string) {
+  try {
+    if (!md) return ''
+
+    const withSpecial = applySpecialMarks(String(md))
+
+    const html = marked.parse(withSpecial, {
+      breaks: true,
+      gfm: true
+    })
+
+    // ✅ اسمحي بالـ span و class صراحة
+    return DOMPurify.sanitize(String(html), {
+      USE_PROFILES: { html: true },
+      ADD_TAGS: ['span'],
+      ADD_ATTR: ['class']
+    })
+  } catch (e) {
+    console.error('mdToSafeHtml error:', e)
+    // لو حصل أي مشكلة، ارجعي نص خام بدل صفحة فاضية
+    return `<p>${escapeHtml(String(md || ''))}</p>`
+  }
+}
+
+
+
+const storyHtml = computed(() => mdToSafeHtml(story.value))
+const reflectionHtml = computed(() => mdToSafeHtml(reflection.value))
 
 const bibleBookKey = ref('') // Matthew
 const bibleChapter = ref<number>(1)
@@ -840,6 +872,28 @@ const previewSections = computed(() => {
   const list = chapterPreview.value?.sections?.map(s => s.title).filter(Boolean) || []
   return list.length ? list : bibleItems.value
 })
+function applySpecialMarks(md: string) {
+  // ++text++
+  md = md.replace(/\+\+([^\n]+?)\+\+/g, (_m, inner) => {
+    return `<span class="mkSpecial plus">${escapeHtml(inner.trim())}</span>`
+  })
+
+  // --text--  OR  –text–
+  md = md.replace(/(?:--|–)([^\n]+?)(?:--|–)/g, (_m, inner) => {
+    return `<span class="mkSpecial dash">${escapeHtml(inner.trim())}</span>`
+  })
+
+  return md
+}
+
+function escapeHtml(s: string) {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
 
 // ====== Helpers: normalize row keys (حل مشكلة المسافات/الحروف) ======
 function normalizeKeys(row: any) {
@@ -1241,7 +1295,21 @@ if (!isWeb.value && reminderEnabled.value) {
   .brand_name { font-size: 16px; }
   .brand .accent { font-size: 14px; color: var(--mk-accent); }
   .abouna { font-size: 15px; }
-  
+  .mkSpecial{
+  display: inline;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 900;
+  background: rgba(40,214,204,0.18);
+  border: 1px solid rgba(40,214,204,0.45);
+  color: inherit;
+}
+
+.home.theme-dark .mkSpecial{
+  background: rgba(56,242,229,0.14);
+  border-color: rgba(56,242,229,0.22);
+}
+
   .dates {
     margin-top: 6px;
     font-size: 16px;
@@ -1371,7 +1439,50 @@ if (!isWeb.value && reminderEnabled.value) {
   white-space: pre-line;
 
   }
-  
+  /* Markdown content */
+.md{
+  white-space: normal; /* لأن marked بيطلع <p> */
+}
+
+.md p{
+  margin: 0 0 12px;
+}
+
+.md p:last-child{
+  margin-bottom: 0;
+}
+
+.md strong{
+  font-weight: 1000;
+}
+
+.md em{
+  font-style: italic;
+}
+
+.md a{
+  color: var(--mk-accent);
+  font-weight: 900;
+  text-decoration: underline;
+}
+
+.md ul, .md ol{
+  margin: 10px 0;
+  padding-right: 22px; /* RTL */
+}
+
+.md blockquote{
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-right: 4px solid var(--mk-accent);
+  background: rgba(0,0,0,0.03);
+  border-radius: 12px;
+}
+
+.home.theme-dark .md blockquote{
+  background: rgba(255,255,255,0.06);
+}
+
   .alignRight { text-align: right; }
   
   /* =========================================================
@@ -1785,6 +1896,27 @@ if (!isWeb.value && reminderEnabled.value) {
   height: 44px;
   width: auto;
   display: block;
+}
+:deep(.md .mkSpecial){
+  font-weight: 900;
+  font-style: italic;
+  color: #1ea19a;
+}
+
+/* ++ */
+:deep(.md .mkSpecial.plus)::before{
+  content: "+ ";
+  font-weight: 900;
+}
+
+/* -- */
+:deep(.md .mkSpecial.dash)::before{
+  content: "— ";
+  font-weight: 900;
+}
+
+.md li{
+  margin: 6px 0;
 }
 
   /* =========================================================

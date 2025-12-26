@@ -28,8 +28,10 @@
     "@capacitor/status-bar": "8.0.0",
     "@ionic/vue": "^8.0.0",
     "@ionic/vue-router": "^8.0.0",
+    "dompurify": "^3.3.1",
     "html2canvas": "^1.4.1",
     "ionicons": "^7.0.0",
+    "marked": "^17.0.1",
     "papaparse": "^5.5.3",
     "vue": "^3.3.0",
     "vue-router": "^4.2.0"
