@@ -1213,9 +1213,11 @@ if (!isWeb.value && reminderEnabled.value) {
   
   /* Verse + Training gradient: 28d6cc -> white */
   .home {
-    --mk-soft-grad:
-    radial-gradient(700px 240px at 15% 0%, rgba(40, 214, 204, 0.38), rgba(255, 255, 255, 0) 62%), linear-gradient(135deg, #28d6cc30, #f0f0f0)  }
-  
+  --mk-soft-grad:
+    radial-gradient(700px 240px at 15% 0%, rgba(40, 214, 204, 0.38), rgba(255, 255, 255, 0) 62%),
+    linear-gradient(135deg, #28d6cc30, #f0f0f0);
+}
+
   /* =========================================================
      Header
   ========================================================= */
