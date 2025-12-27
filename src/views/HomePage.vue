@@ -1866,13 +1866,14 @@ if (!isWeb.value && reminderEnabled.value) {
   
   /* Share btn (you had opacity:0 — keeping your behavior) */
   .shareBtn{
-    opacity: 1;
+    opacity: 0;
     position: absolute;
     top: -4px;
     right: 0;
+    color: var(--mk-text);
+    background: rgba(255,255,255,0.60);
     border-radius: 12px;
     backdrop-filter: blur(8px);
-    color:#1a1400;
   }
   .home.theme-dark .shareBtn{
     background: rgba(0,0,0,0.30);
