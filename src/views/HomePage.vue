@@ -469,18 +469,14 @@ async function shareAsImageWeb() {
   const wrap = el.querySelector('.wrap') as HTMLElement | null
   if (!wrap) return
 
-  // ✅ LOCAL CAPTURE MODE ON
+  // ✅ capture mode ON (local, safe)
   isCapturing.value = true
   await new Promise(requestAnimationFrame)
 
-  // remove scaling temporarily
   const prevWrapTransform = wrap.style.transform
   wrap.style.transform = 'none'
 
   try {
-    await new Promise(requestAnimationFrame)
-
-    // ✅ صوّري wrap (أبسط وأقل مشاكل من bg absolute)
     const canvas = await html2canvas(wrap, {
       backgroundColor: '#ffffff',
       useCORS: true,
@@ -490,21 +486,30 @@ async function shareAsImageWeb() {
     const blob: Blob | null = await new Promise(resolve =>
       canvas.toBlob(b => resolve(b), 'image/png')
     )
-    if (!blob) return
 
+    if (!blob || blob.size < 1000) {
+      alert('فشل إنشاء الصورة')
+      return
+    }
+
+    const fileName = `ma3an-kol-youm-${Date.now()}.png`
+
+    // ✅ direct download (most reliable)
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `ma3an-kol-youm-${Date.now()}.png`
+    a.download = fileName
     document.body.appendChild(a)
     a.click()
     a.remove()
     URL.revokeObjectURL(url)
+
   } finally {
     wrap.style.transform = prevWrapTransform || ''
     isCapturing.value = false
   }
 }
+
 
 
 const shareButtons = computed(() => ([
@@ -741,9 +746,6 @@ if (!Capacitor.isNativePlatform()) {
   )
   if (!blob) return
 
-  // ✅ Best: save dialog (works even after async capture)
-  const saved = await saveBlobWithPicker(blob, fileName)
-  if (saved) return
 
   // fallback: normal download
   downloadBlob(blob, fileName)
