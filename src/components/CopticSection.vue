@@ -23,7 +23,7 @@
           <div class="coptic-row">
             <ion-icon
               :icon="volumeHighOutline"
-              class="volume-icon"
+              class="volume-icon mkNoCapture"
               :class="{ dimIcon: !it.audioUrl }"
             />
 
@@ -347,10 +347,12 @@ width:100%}
   font-weight: 900;
   opacity: 0.75;
   background: rgba(255,255,255,0.35);
+  color:black;
 }
 
 .home.theme-dark .coptic-empty{
   background: rgba(255,255,255,0.06);
+  color:#a29b9b
 }
 
 .dimIcon{

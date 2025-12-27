@@ -6,7 +6,7 @@
 
   
       <ion-content :fullscreen="true" class="content">
-        <div class="capture home" :class="themeClass" ref="captureRef">
+        <div class="capture home" :class="[themeClass, { 'mk-capturing': isCapturing }]" ref="captureRef">
           <!-- خلفية -->
       <div class="bg"></div>
   
@@ -15,7 +15,7 @@
     <!-- Header: Data -->
     <div class="header" v-if="!isLoading && !noData">
   
-      <ion-menu-button class="burgerBtn" :auto-hide="false" />
+      <ion-menu-button class="burgerBtn mkNoCapture" :auto-hide="false" />
 
 
   
@@ -139,7 +139,7 @@
   <div class="mini-head mini-head-row">
     <span>الكتاب المقدس</span>
     <ion-button
-      class="audioBtn"
+      class="audioBtn mkNoCapture"
       fill="clear"
       size="small"
       aria-label="عرض الإصحاح"
@@ -165,7 +165,7 @@
         <div class="mini-head mini-head-row">
     <span>الأجبية</span>
     <ion-button
-  class="audioBtn"
+  class="audioBtn mkNoCapture"
   fill="clear"
   size="small"
   @click.stop="openAgbiaAudio()"
@@ -200,7 +200,7 @@
       </div>
     </div>
     <!-- لغتنا القبطية -->
-<CopticSection
+<CopticSection class="mkNoCapture"
   v-if="!isLoading && !noData"
   :dateISO="selectedDateISO"
   :contentBase="CONTENT_BASE"
@@ -221,7 +221,7 @@
       <div class="skeleton-line short"></div>
     </div>
     <div class="space"></div>
-    <StreakRewards
+    <StreakRewards class="mkNoCapture"
   v-if="!isLoading && !noData && isTodaySelected"
   :todayISO="todayISO()"
 />
@@ -229,7 +229,7 @@
 
 
 <!-- قريباً على المتاجر (Web فقط) -->
-<div class="storesSoon" v-if="isWeb && !isLoading && !noData">
+<div class="storesSoon mkNoCapture" v-if="isWeb && !isLoading && !noData">
   <div class="storesTitle">قريباً  علي</div>
 
   <div class="storesRow" aria-label="قريبًا على App Store و Google Play">
@@ -457,21 +457,62 @@ function closeAbout() {
   showAbout.value = false
   router.replace({ query: {} })
 }
+async function shareAsImageWeb() {
+  if (noData.value || isLoading.value) return
+
+  showShareSheet.value = false
+  await new Promise(r => setTimeout(r, 50))
+
+  const el = captureRef.value
+  if (!el) return
+
+  const wrap = el.querySelector('.wrap') as HTMLElement | null
+  if (!wrap) return
+
+  // ✅ LOCAL CAPTURE MODE ON
+  isCapturing.value = true
+  await new Promise(requestAnimationFrame)
+
+  // remove scaling temporarily
+  const prevWrapTransform = wrap.style.transform
+  wrap.style.transform = 'none'
+
+  try {
+    await new Promise(requestAnimationFrame)
+
+    // ✅ صوّري wrap (أبسط وأقل مشاكل من bg absolute)
+    const canvas = await html2canvas(wrap, {
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      scale: 3
+    })
+
+    const blob: Blob | null = await new Promise(resolve =>
+      canvas.toBlob(b => resolve(b), 'image/png')
+    )
+    if (!blob) return
+
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `ma3an-kol-youm-${Date.now()}.png`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  } finally {
+    wrap.style.transform = prevWrapTransform || ''
+    isCapturing.value = false
+  }
+}
+
 
 const shareButtons = computed(() => ([
-  {
-    text: 'مشاركة كنص',
-    handler: () => shareAsText()
-  },
-  {
-    text: 'مشاركة كصورة',
-    handler: () => shareAsImage()
-  },
-  {
-    text: 'إلغاء',
-    role: 'cancel'
-  }
+  { text: 'مشاركة كنص', handler: () => { void shareAsText() } },
+  { text: 'مشاركة كصورة', handler: () => { void shareAsImageWeb() } },
+  { text: 'إلغاء', role: 'cancel' }
 ]))
+
 
 type ChapterPreview = {
   bookName: string
@@ -483,7 +524,8 @@ type ChapterPreview = {
 
 const CONTENT_BASE = Capacitor.isNativePlatform()
   ? 'https://nancyhenry89.github.io/ma3ankolyoum/src/content'
-  : 'https://ma3ankolyoum.org/content'
+  : `${window.location.origin}/content`  // أو '/content'
+
   const AGBIA_AUDIO_BASE = `${CONTENT_BASE}/audio/agbia`
 
 const router = useRouter()
@@ -507,9 +549,11 @@ const reminderTime = ref(localStorage.getItem('mk_reminder_time') || '09:00')
 const themeClass = computed(() => (theme.value === 'dark' ? 'theme-dark' : 'theme-light'))
 
 function applyPrefs() {
-  document.documentElement.style.setProperty('--mk-fontScale', String(fontScale.value))
+  const fs = Number(fontScale.value)
+  document.documentElement.style.setProperty('--mk-fontScale', String(Number.isFinite(fs) ? fs : 1))
   document.documentElement.setAttribute('data-mk-theme', theme.value)
 }
+
 function toggleTheme(ev: any) {
   theme.value = ev.detail.checked ? 'dark' : 'light'
   localStorage.setItem('mk_theme', theme.value)
@@ -526,6 +570,8 @@ const showDatePicker = ref(false)
 const selectedDateISO = ref(todayISO())
 const bibleFromSheet = ref(false)
 const bibleIsEmptyFromSheet = ref(false)
+const isCapturing = ref(false)
+
 function onDateChange(ev: any) {
   const iso = String(ev.detail.value || '').substring(0, 10)
   if (!iso) return
@@ -634,66 +680,88 @@ import { Filesystem, Directory } from '@capacitor/filesystem'
 import { Capacitor } from '@capacitor/core'
 
 
-function downloadDataUrl(dataUrl: string, fileName: string) {
+
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
-  a.href = dataUrl
+  a.href = url
   a.download = fileName
   document.body.appendChild(a)
   a.click()
   a.remove()
+  URL.revokeObjectURL(url)
 }
+
 
 async function shareAsImage() {
   if (noData.value || isLoading.value) return
 
-  // اقفلي ActionSheet
   showShareSheet.value = false
   await new Promise(r => setTimeout(r, 80))
 
   const el = captureRef.value
   if (!el) return
 
-  // الغي scale مؤقتًا
   const wrap = el.querySelector('.wrap') as HTMLElement | null
-  const prevTransform = wrap?.style.transform
-  if (wrap) wrap.style.transform = 'none'
+  if (!wrap) return
 
+  // ✅ enable capture mode (hide burger/stores/audio/etc)
+  document.documentElement.classList.add('mk-capturing')
+
+  // ✅ temporarily remove scaling so layout is true size
+  const prevWrapTransform = wrap.style.transform
+  wrap.style.transform = 'none'
+
+  // ✅ crop capture to content width (fix left white space on desktop)
+  const prevElWidth = (el as HTMLElement).style.width
+  const prevElDisplay = (el as HTMLElement).style.display
+  const prevElMargin = (el as HTMLElement).style.margin
+
+  // get real width of wrap
   await new Promise(requestAnimationFrame)
+  const w = Math.ceil(wrap.getBoundingClientRect().width)
 
-  const canvas = await html2canvas(el, {
-    backgroundColor: null,
-    useCORS: true,
-    scale: Math.max(2, window.devicePixelRatio || 1)
-  })
+  ;(el as HTMLElement).style.display = 'inline-block'
+  ;(el as HTMLElement).style.width = `${w}px`
+  ;(el as HTMLElement).style.margin = '0'
 
-  if (wrap) wrap.style.transform = prevTransform || ''
+  try {
+    await new Promise(requestAnimationFrame)
 
-  const fileName = `ma3an-kol-youm-${Date.now()}.png`
-  const dataUrl = canvas.toDataURL('image/png')
+    const canvas = await html2canvas(el, {
+  backgroundColor: null,
+  useCORS: true,
+  scale: 3, // ⭐ مهم للجودة
+})
+const fileName = `ma3an-kol-youm-${Date.now()}.png`
 
-  // 🌍 Web → download مباشر
-  if (!Capacitor.isNativePlatform()) {
-    const a = document.createElement('a')
-    a.href = dataUrl
-    a.download = fileName
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    return
+if (!Capacitor.isNativePlatform()) {
+  const blob: Blob | null = await new Promise(resolve =>
+    canvas.toBlob(b => resolve(b), 'image/png')
+  )
+  if (!blob) return
+
+  // ✅ Best: save dialog (works even after async capture)
+  const saved = await saveBlobWithPicker(blob, fileName)
+  if (saved) return
+
+  // fallback: normal download
+  downloadBlob(blob, fileName)
+  return
+}
+
+
+
+  } finally {
+    // ✅ restore everything
+    document.documentElement.classList.remove('mk-capturing')
+
+    wrap.style.transform = prevWrapTransform || ''
+
+    ;(el as HTMLElement).style.width = prevElWidth || ''
+    ;(el as HTMLElement).style.display = prevElDisplay || ''
+    ;(el as HTMLElement).style.margin = prevElMargin || ''
   }
-
-  // 📱 Android / iOS
-  const base64 = dataUrl.split(',')[1]
-  const saved = await Filesystem.writeFile({
-    path: fileName,
-    data: base64,
-    directory: Directory.Cache
-  })
-
-  await Share.share({
-    title: 'معًا كل يوم',
-    url: saved.uri
-  })
 }
 
 
@@ -1652,6 +1720,7 @@ if (!isWeb.value && reminderEnabled.value) {
     line-height: 2;
     margin-top: 10px;
     color: var(--mk-text);
+    padding:10px;
   }
   .mini-author {
     margin-top: 8px;
@@ -1924,6 +1993,11 @@ if (!isWeb.value && reminderEnabled.value) {
 .md li{
   margin: 6px 0;
 }
+/* ===== capture mode (LOCAL) ===== */
+.capture.home.mk-capturing .mkNoCapture{
+  display: none !important;
+}
+
 
   /* =========================================================
      Mobile

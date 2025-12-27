@@ -64,7 +64,7 @@
           :class="{ on: i <= crossesShown }"
           aria-label="يوم من الأسبوع"
         >
-          <span class="srDayIcon">✝︎</span>
+          <span class="srDayIcon">♰</span>
         </button>
       </div>
     </div>
