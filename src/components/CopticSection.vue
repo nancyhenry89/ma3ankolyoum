@@ -253,6 +253,8 @@ onBeforeUnmount(() => {
     font-size: 20px;
     display: inline-block;
     margin-bottom: 12px;
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;
+
   text-align:center;
 width:100%}
   .chev.open{ transform: rotate(180deg); }
@@ -331,6 +333,8 @@ width:100%}
   .arabic-word{
     font-size: 20px;
     font-weight: 900;
+    font-family: "Amiri", serif;
+
   }
   
   .sub{

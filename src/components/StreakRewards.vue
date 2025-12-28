@@ -28,7 +28,7 @@
           @click="toggleReadToday"
         >
           <span class="btnInner">
-            <span class="btnIcon">{{ readToday ? "✓" : "✚" }}</span>
+            <span class="btnIcon">{{ readToday ? "✓" : "♰" }}</span>
             <span class="btnText">{{ readToday ? "شيل علامة اليوم" : "علّم إنك قرأت اليوم" }}</span>
           </span>
         </ion-button>
@@ -380,6 +380,8 @@ watch(effectiveTodayISO, () => recompute());
     color: var(--sr-text);
     backdrop-filter: blur(10px);
     box-shadow: var(--sr-shadow-1);
+    font-family: Amiri, serif;
+
   }
   
   /* =====================================================
@@ -401,6 +403,7 @@ watch(effectiveTodayISO, () => recompute());
     flex-direction:column;
     gap:8px;
     align-items:flex-end;
+
   }
   
   /* =====================================================
@@ -416,6 +419,9 @@ watch(effectiveTodayISO, () => recompute());
     --padding-bottom: 10px;
     --box-shadow: 0 10px 18px rgba(0,0,0,0.10);
     transform: translateZ(0);
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;
+    font-size:12px;
+
   }
   .srTodayBtn .btnInner{ display:inline-flex; align-items:center; gap:8px; }
   .srTodayBtn .btnIcon{
@@ -423,7 +429,7 @@ watch(effectiveTodayISO, () => recompute());
     display:inline-flex; align-items:center; justify-content:center;
     border-radius: 10px;
     font-weight: 1000;
-    background: rgba(255,255,255,0.22);
+    font-size: 18px;
   }
   .srTodayBtn .btnText{ font-weight: 1000; }
   
@@ -446,7 +452,7 @@ watch(effectiveTodayISO, () => recompute());
   }
   
   /* Recover button */
-  .srRecoverBtn{ border-radius: 12px; font-weight: 900; }
+  .srRecoverBtn{ border-radius: 12px; font-weight: 900;     font-family:"Noto Kufi Arabic", system-ui, sans-serif;}
   
   /* =====================================================
      HERO

@@ -1326,8 +1326,14 @@ if (!isWeb.value && reminderEnabled.value) {
   }
   .capture.home{
   position: relative;
-  overflow: hidden; /* optional */
+  overflow: visible; /* خليها visible عشان الصفحة تكمل */
 }
+
+/* وقت الالتقاط بس */
+.capture.home.mk-capturing{
+  overflow: hidden;
+}
+
 
   .capture {  margin: 0 auto; }
   
@@ -1394,6 +1400,8 @@ if (!isWeb.value && reminderEnabled.value) {
     text-decoration: underline;
     opacity: 0.9;
     color: var(--mk-text);
+    font-family: Amiri, serif;
+
   }
   
   /* =========================================================
@@ -1406,7 +1414,7 @@ if (!isWeb.value && reminderEnabled.value) {
     font-size: 18px;
     font-weight: 900;
     cursor: pointer;
-  
+    font-family: Amiri, serif;
     background: var(--mk-clickable-grad);
     color: #ffffff;
     border: 1px solid rgba(255,255,255,0.16);
@@ -1476,7 +1484,7 @@ if (!isWeb.value && reminderEnabled.value) {
   font-size: 18px;
   font-weight: 800;
   text-align: center;
-
+  font-family: Amiri, serif;
   background: linear-gradient(135deg, #ffd166, #fff1c1);
   color: #3a2c00;
   box-shadow: var(--mk-shadow);
@@ -1505,6 +1513,7 @@ if (!isWeb.value && reminderEnabled.value) {
   .card {
     padding: 20px 18px;
     margin: 12px 0;
+    font-family: Amiri,serif
   }
   
   .text {
@@ -1674,6 +1683,7 @@ if (!isWeb.value && reminderEnabled.value) {
     margin-bottom: 12px;
     width: 50%;
     margin-inline: auto;
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;
   }
   
   /* chapter title line */
@@ -1683,6 +1693,7 @@ if (!isWeb.value && reminderEnabled.value) {
     font-weight: 900;
     line-height: 1.35;
     margin-top: 2px;
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;
   }
   .disabledCard {
   opacity: 0.7;
@@ -1698,7 +1709,7 @@ if (!isWeb.value && reminderEnabled.value) {
     font-size: 15px;
     line-height: 1.85;
     color: var(--mk-text);
-    opacity: 0.95;
+    font-family: Amiri, serif;
   }
   
   .mini-list li{
@@ -1723,11 +1734,14 @@ if (!isWeb.value && reminderEnabled.value) {
     margin-top: 10px;
     color: var(--mk-text);
     padding:10px;
+    font-family: Amiri, serif;
   }
   .mini-author {
     margin-top: 8px;
     font-weight: 900;
     color: var(--mk-danger);
+    font-family: Amiri, serif;
+    font-size:20px
   }
   
   /* =========================================================
@@ -1769,6 +1783,7 @@ if (!isWeb.value && reminderEnabled.value) {
     font-size: 20px;
     display: inline-block;
     margin-bottom: 12px;
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;
 
   }
   .training-pill{
@@ -1788,9 +1803,9 @@ if (!isWeb.value && reminderEnabled.value) {
     padding: 8px 18px;
     font-size: 20px;
     display: inline-block;
-    margin-bottom: 12px;
     text-align: center;
     width:100%;
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;
 
   }
   .training-text{

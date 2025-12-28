@@ -226,13 +226,14 @@
   
   .saintPage.theme-dark .card{ background: rgba(255,255,255,0.06); }
   
-  .bigCard{ margin: 12px 0; }
+  .bigCard{ margin: 12px 0;}
   
   .text{
-    font-family:"Noto Naskh Arabic", system-ui, sans-serif;
+    font-family: Amiri, serif;
     font-size: 21px;
     line-height: 2;
     color: var(--mk-text);
+
   }
   .alignRight{ text-align:right; }
   
