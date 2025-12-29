@@ -2,7 +2,12 @@
 
   
   
-  <ion-page :class="['home', themeClass]" dir="rtl">
+<ion-page
+  :class="['home', themeClass]"
+  :style="{ '--mk-fontScale': String(fontScale) }"
+  dir="rtl"
+>
+
 
   
       <ion-content :fullscreen="true" class="content">
@@ -274,7 +279,7 @@
         </ion-modal>
   
         <!-- Settings Modal -->
-        <ion-modal :is-open="showSettings" @didDismiss="showSettings = false">
+        <ion-modal :is-open="showSettings" @didDismiss="closeSettings()">
           <ion-header>
             <ion-toolbar>
               <ion-title>الإعدادات</ion-title>
@@ -292,19 +297,20 @@
               <ion-toggle :checked="theme === 'dark'" @ionChange="toggleTheme" />
             </div>
 
-            <div class="settingsRow" v-if="isWeb">
-              <div class="settingsLabel">حجم الخط</div>
-              <div class="rangeWrap">
-                <ion-range
-                  :min="0.85"
-                  :max="1.2"
-                  :step="0.05"
-                  :value="fontScale"
-                  @ionChange="onFontScale"
-                />
-                <div class="rangeValue">{{ fontScale.toFixed(2) }}x</div>
-              </div>
-            </div>
+            <div class="settingsRow">
+  <div class="settingsLabel">حجم الخط</div>
+  <div class="rangeWrap">
+    <ion-range
+      :min="0.85"
+      :max="1.2"
+      :step="0.05"
+      :value="fontScale"
+      @ionChange="onFontScale"
+    />
+    <div class="rangeValue">{{ fontScale.toFixed(2) }}x</div>
+  </div>
+</div>
+
             <template v-if="!isWeb">
 
             <div class="settingsRow" >
@@ -333,8 +339,8 @@
           </ion-content>
         </ion-modal>
         <!-- About Modal -->
-  <ion-modal :is-open="showAbout" @didDismiss="showAbout = false">
-    <ion-header>
+        <ion-modal :is-open="showAbout" @didDismiss="closeAbout()">
+          <ion-header>
       <ion-toolbar>
         <ion-title>عن التطبيق</ion-title>
         <ion-buttons slot="end">
@@ -439,24 +445,32 @@ const allowFuture = computed(() => route.query.debugFuture === '1')
 const isTodaySelected = computed(() => {
   return String(selectedDateISO.value).substring(0, 10) === todayISO()
 })
-
+// ====== Settings modal ======
+const showSettings = ref(false)
+const showAbout = ref(false)
 watch(
   () => route.query.modal,
   (v) => {
-    if (v === 'settings') showSettings.value = true
-    if (v === 'about') showAbout.value = true
+    showSettings.value = v === 'settings'
+    showAbout.value = v === 'about'
   },
   { immediate: true }
 )
 
 function closeSettings() {
   showSettings.value = false
-  router.replace({ query: {} })
+  const q = { ...route.query }
+  delete (q as any).modal
+  router.replace({ query: q })
 }
+
 function closeAbout() {
   showAbout.value = false
-  router.replace({ query: {} })
+  const q = { ...route.query }
+  delete (q as any).modal
+  router.replace({ query: q })
 }
+
 async function shareAsImageWeb() {
   if (noData.value || isLoading.value) return
 
@@ -555,7 +569,6 @@ const themeClass = computed(() => (theme.value === 'dark' ? 'theme-dark' : 'them
 
 function applyPrefs() {
   const fs = Number(fontScale.value)
-  document.documentElement.style.setProperty('--mk-fontScale', String(Number.isFinite(fs) ? fs : 1))
   document.documentElement.setAttribute('data-mk-theme', theme.value)
 }
 
@@ -565,10 +578,11 @@ function toggleTheme(ev: any) {
   applyPrefs()
 }
 function onFontScale(ev: any) {
-  fontScale.value = Number(ev.detail.value || 1)
+  const v = Number(ev?.detail?.value)
+  fontScale.value = Number.isFinite(v) ? v : 1
   localStorage.setItem('mk_fontScale', String(fontScale.value))
-  applyPrefs()
 }
+
 
 // ====== Date picker ======
 const showDatePicker = ref(false)
@@ -768,9 +782,7 @@ if (!Capacitor.isNativePlatform()) {
 
 
 
-// ====== Settings modal ======
-const showSettings = ref(false)
-const showAbout = ref(false)
+
 // ====== Data state ======
 const gregorianDate = ref('')
 const copticDate = ref('')
@@ -1164,7 +1176,7 @@ async function loadByDate(dateISO: string) {
     console.error(e)
     clearData()
     noData.value = true
-    noDataMsg.value = 'حصلت مشكلة في تحميل البيانات. تأكدي من الإنترنت.'
+    noDataMsg.value = 'حصلت مشكلة في تحميل البيانات. تأكد من الإنترنت.'
   } finally {
     isLoading.value = false
   }
@@ -1321,8 +1333,7 @@ if (!isWeb.value && reminderEnabled.value) {
     padding: calc(env(safe-area-inset-top) + 22px) 16px 0;
     max-width: 720px;
     margin: 0 auto;
-    transform: scale(var(--mk-fontScale, 1));
-    transform-origin: top center;
+
   }
   .capture.home{
   position: relative;
@@ -1352,7 +1363,38 @@ if (!isWeb.value && reminderEnabled.value) {
   --mk-soft-grad:
     radial-gradient(700px 240px at 15% 0%, rgba(40, 214, 204, 0.38), rgba(255, 255, 255, 0) 62%),
     linear-gradient(135deg, #28d6cc30, #f0f0f0);
+
 }
+
+
+/* أهم النصوص */
+.brand{ font-size: calc(20px * var(--mk-fontScale)); }
+.brand_name{ font-size: calc(16px * var(--mk-fontScale)); }
+.brand .accent{ font-size: calc(14px * var(--mk-fontScale)); }
+.abouna{ font-size: calc(15px * var(--mk-fontScale)); }
+
+.dates{ font-size: calc(16px * var(--mk-fontScale)); }
+.saint{ font-size: calc(18px * var(--mk-fontScale)); }
+
+.title{ font-size: calc(38px * var(--mk-fontScale)); }
+
+.text{ font-size: calc(25px * var(--mk-fontScale)); }
+.emptyMsg{ font-size: calc(18px * var(--mk-fontScale)); }
+
+.verse-text{ font-size: calc(24px * var(--mk-fontScale)); }
+.verse-ref{ font-size: calc(16px * var(--mk-fontScale)); }
+.verse-empty{ font-size: calc(18px * var(--mk-fontScale)); }
+
+.mini-sub{ font-size: calc(16px * var(--mk-fontScale)); }
+.bible-pill{ font-size: calc(20px * var(--mk-fontScale)); }
+.mini-title{ font-size: calc(18px * var(--mk-fontScale)); }
+.mini-list{ font-size: calc(15px * var(--mk-fontScale)); }
+.mini-body{ font-size: calc(19px * var(--mk-fontScale)); }
+.mini-author{ font-size: calc(20px * var(--mk-fontScale)); }
+
+.training-pill{ font-size: calc(20px * var(--mk-fontScale)); }
+.training-text{ font-size: calc(20px * var(--mk-fontScale)); }
+.card-title{ font-size: calc(20px * var(--mk-fontScale)); }
 
   /* =========================================================
      Header
@@ -1370,7 +1412,6 @@ if (!isWeb.value && reminderEnabled.value) {
   }
   
   .brand {
-    font-size: 20px;
     font-weight: 900;
     color: var(--mk-text);
   }
@@ -1462,7 +1503,6 @@ if (!isWeb.value && reminderEnabled.value) {
   ========================================================= */
   .title {
     margin-top: 17px;
-    font-size: 38px;
     line-height: 1.2;
     font-weight: 900;
     color: var(--mk-text);
@@ -1517,7 +1557,6 @@ if (!isWeb.value && reminderEnabled.value) {
   }
   
   .text {
-    font-size: 21px;
     line-height: 2;
     color: var(--mk-text);
 
@@ -2020,8 +2059,9 @@ if (!isWeb.value && reminderEnabled.value) {
      Mobile
   ========================================================= */
   @media (max-width: 420px) {
-    .title { font-size: 34px; }
-    .row { grid-template-columns: 1fr; }
-  }
+  .title { font-size: calc(34px * var(--mk-fontScale)); }
+  .row { grid-template-columns: 1fr; }
+}
+
   </style>
   
