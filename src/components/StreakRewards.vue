@@ -1,6 +1,5 @@
-<!-- src/components/StreakRewards.vue -->
 <template>
-  <section class="srCard" :class="{ srDonePulse: justToggled }" dir="rtl">
+  <section class="srCard mkNoCapture" :class="{ srDonePulse: justToggled }" dir="rtl">
     <!-- Header -->
     <header class="srHeader">
       <div class="srTitleWrap">
@@ -9,15 +8,16 @@
       </div>
 
       <div class="srHeaderBtns">
+        <!-- Soft Reset: يرجّع لآخر milestone (مثلاً 9 -> 7) -->
         <ion-button
-          v-if="canRecover"
+          v-if="canSoftReset"
           size="small"
           fill="outline"
           color="warning"
           class="srRecoverBtn"
-          @click="recoverStreak"
+          @click="softResetToPrevMilestone"
         >
-          تعويض يوم (مقابل يومين)
+         ارجع لآخر محطة
         </ion-button>
 
         <ion-button
@@ -35,15 +35,15 @@
       </div>
     </header>
 
-    <!-- Hero streak -->
-    <div class="srHero" :class="{ on: streak > 0 }">
-      <div class="srHeroIcon">{{ streak === 0 ? "✨" : "🔥" }}</div>
+    <!-- Hero -->
+    <div class="srHero" :class="{ on: displayedStreak > 0 }">
+      <div class="srHeroIcon">{{ displayedStreak === 0 ? "✨" : "🔥" }}</div>
       <div class="srHeroText">
         <div class="srHeroMain">
-          سلسلة الأيام: <span class="srHeroNum">{{ streak }}</span> يوم
+          سلسلة الأيام: <span class="srHeroNum">{{ displayedStreak }}</span> يوم
         </div>
         <div class="srHeroSub">
-          {{ streak === 0 ? "ابدأ النهارده… علامة واحدة كل يوم ✨" : "كمّل النهارده علشان السلسلة ما تقفش 💛" }}
+          {{ displayedStreak === 0 ? "ابدأ النهارده… علامة واحدة كل يوم ✨" : "كمّل النهارده علشان السلسلة ما تقفش 💛" }}
         </div>
       </div>
     </div>
@@ -72,7 +72,6 @@
     <!-- Counters -->
     <div class="srSection">
       <div class="srRows">
-        <!-- Weekly crowns -->
         <div class="srRow">
           <div class="srRowTop">
             <div class="srRowLabel">مكافآت أسبوعية</div>
@@ -89,12 +88,10 @@
           </div>
         </div>
 
-        <!-- Monthly stars -->
         <div class="srRow">
           <div class="srRowTop">
             <div class="srRowLabel">
-              مكافآت شهرية
-              <span class="srMiniNote">⭐ كل 4 أسابيع</span>
+              مكافآت شهرية <span class="srMiniNote">⭐ كل 4 أسابيع</span>
             </div>
             <div class="srCountChip soft">
               <span class="srChipNum">{{ monthsLabel }}</span>
@@ -123,8 +120,7 @@
           <div class="srMilIcon">🕯️</div>
           <div class="srMilText">3 شهور</div>
           <div class="srMilState">
-            <span v-if="rewards.threeMonths">اتحقق ✅</span>
-            <span v-else>لسه 🔒</span>
+            <span v-if="rewards.threeMonths">اتحقق ✅</span><span v-else>لسه 🔒</span>
           </div>
         </div>
 
@@ -132,8 +128,7 @@
           <div class="srMilIcon">✨</div>
           <div class="srMilText">6 شهور</div>
           <div class="srMilState">
-            <span v-if="rewards.sixMonths">اتحقق ✅</span>
-            <span v-else>لسه 🔒</span>
+            <span v-if="rewards.sixMonths">اتحقق ✅</span><span v-else>لسه 🔒</span>
           </div>
         </div>
 
@@ -141,8 +136,7 @@
           <div class="srMilIcon">⛪</div>
           <div class="srMilText">سنة</div>
           <div class="srMilState">
-            <span v-if="rewards.year">اتحقق ✅</span>
-            <span v-else>لسه 🔒</span>
+            <span v-if="rewards.year">اتحقق ✅</span><span v-else>لسه 🔒</span>
           </div>
         </div>
       </div>
@@ -159,7 +153,6 @@
         <span v-for="d in recentDays" :key="d" class="srChip" :class="{ on: d === effectiveTodayISO }">
           {{ formatDay(d) }}
         </span>
-
         <span v-if="recentDays.length === 0" class="srMuted">مفيش أيام متسجلة لسه</span>
       </div>
     </div>
@@ -170,10 +163,7 @@
 
       <div class="srDebugRow">
         <div class="srDebugLabel">اليوم المستخدم:</div>
-        <div class="srDebugValue">
-          {{ effectiveTodayISO }}
-          <span v-if="fakeToday" class="srDebugHint">(وهمي)</span>
-        </div>
+        <div class="srDebugValue">{{ effectiveTodayISO }} <span v-if="fakeToday" class="srDebugHint">(وهمي)</span></div>
       </div>
 
       <div class="srDebugBtns">
@@ -184,12 +174,11 @@
         <ion-button size="small" fill="outline" @click="shiftFakeDay(7)">+7 أيام</ion-button>
       </div>
 
-      <div class="srDebugBtns" style="margin-top: 10px">
-        <ion-button size="small" fill="outline" @click="seedStreak(6)">6 أيام</ion-button>
-        <ion-button size="small" fill="outline" @click="seedStreak(7)">7 (👑)</ion-button>
-        <ion-button size="small" fill="outline" @click="seedStreak(14)">14 (👑👑)</ion-button>
+      <div class="srDebugBtns" style="margin-top:10px">
+        <ion-button size="small" fill="outline" @click="seedStreak(7)">7</ion-button>
+        <ion-button size="small" fill="outline" @click="seedStreak(14)">14</ion-button>
+        <ion-button size="small" fill="outline" @click="seedStreak(21)">21</ion-button>
         <ion-button size="small" fill="outline" @click="seedStreak(28)">28 (⭐)</ion-button>
-        <ion-button size="small" fill="outline" @click="seedStreak(56)">56 (⭐⭐)</ion-button>
         <ion-button size="small" fill="outline" @click="seedStreak(90)">90 (3 شهور)</ion-button>
         <ion-button size="small" fill="outline" @click="seedStreak(180)">180 (6 شهور)</ion-button>
         <ion-button size="small" fill="outline" @click="seedStreak(365)">365 (سنة)</ion-button>
@@ -200,146 +189,282 @@
 </template>
 
 <script setup lang="ts">
-import { IonButton } from "@ionic/vue";
-import { ref, onMounted, computed, watch } from "vue";
-import { useRoute } from "vue-router";
-
-import { getReadDays, addReadDay, removeReadDay, setDebugReadDays, clearReadDays } from "@/utils/streakStore";
-import { computeStreak, computeRewards } from "@/utils/streakLogic";
-
-const props = defineProps<{ todayISO: string }>();
-const route = useRoute();
-const isDebug = computed(() => route.query.debug === "1");
-
-/** Debug fake today */
-const fakeToday = ref<string | null>(null);
-const effectiveTodayISO = computed(() => fakeToday.value ?? props.todayISO);
-
-function pad(n: number) {
-  return String(n).padStart(2, "0");
-}
-function addDaysISO(iso: string, n: number) {
-  const d = new Date(`${iso}T00:00:00`);
-  d.setDate(d.getDate() + n);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-function shiftFakeDay(delta: number) {
-  const base = fakeToday.value ?? props.todayISO;
-  fakeToday.value = addDaysISO(base, delta);
-}
-function resetFakeToday() {
-  fakeToday.value = null;
-}
-
-/** state */
-const readDays = ref<string[]>([]);
-const readToday = computed(() => readDays.value.includes(effectiveTodayISO.value));
-
-const streak = ref(0);
-const rewards = ref(computeRewards(0));
-
-const recentDays = computed(() => [...readDays.value].sort().reverse().slice(0, 14));
-
-function formatDay(iso: string) {
-  const d = new Date(`${iso}T00:00:00`);
-  return `${d.getDate()}/${d.getMonth() + 1}`;
-}
-
-function recompute() {
-  const s = computeStreak(readDays.value, effectiveTodayISO.value);
-  streak.value = s.streak;
-  rewards.value = computeRewards(s.streak);
-}
-
-/** UI derived */
-const crossesShown = computed(() => {
-  const c = Number((rewards.value as any).crossesThisWeek ?? 0);
-  if (streak.value > 0 && c === 0) return 7;
-  return c;
-});
-const weeks = computed(() => Number((rewards.value as any).fullWeeks ?? 0));
-const months = computed(() => Number((rewards.value as any).fullMonths ?? 0));
-
-const weeksLabel = computed(() => (weeks.value >= 50 ? "50+" : String(weeks.value)));
-const monthsLabel = computed(() => (months.value >= 50 ? "50+" : String(months.value)));
-
-const weeksShown = computed(() => Math.min(weeks.value, 12));
-const monthsShown = computed(() => Math.min(months.value, 12));
-
-/** Recover rule */
-const canRecover = computed(() => {
-  if (readToday.value) return false;
-  const set = new Set(readDays.value);
-  const y = addDaysISO(effectiveTodayISO.value, -1);
-  return !set.has(y) && readDays.value.length >= 2;
-});
-
-async function recoverStreak() {
-  const sorted = [...new Set(readDays.value)].sort(); // asc
-  if (sorted.length < 2) return;
-
-  sorted.splice(0, 2); // remove oldest 2
-  const y = addDaysISO(effectiveTodayISO.value, -1);
-  if (!sorted.includes(y)) sorted.push(y);
-  sorted.sort();
-
-  readDays.value = await setDebugReadDays(sorted);
-  recompute();
-  pulseFlag(rewardsPop, 520);
-  pulseFlag(weekPop, 520);
-}
-
-/** Animations */
-const justToggled = ref(false);
-const weekPop = ref(false);
-const rewardsPop = ref(false);
-
-function pulseFlag(flag: { value: boolean }, ms = 420) {
-  flag.value = true;
-  window.setTimeout(() => (flag.value = false), ms);
-}
-
-/** Data load */
-async function load() {
-  readDays.value = await getReadDays();
-  recompute();
-}
-
-async function toggleReadToday() {
-  const beforeWeeks = weeks.value;
-  const beforeMonths = months.value;
-  const beforeCrosses = crossesShown.value;
-
-  if (readToday.value) {
-    readDays.value = await removeReadDay(effectiveTodayISO.value);
-  } else {
-    readDays.value = await addReadDay(effectiveTodayISO.value);
+  import { IonButton } from "@ionic/vue";
+  import { ref, onMounted, computed, watch } from "vue";
+  import { useRoute } from "vue-router";
+  
+  import {
+    getReadDays,
+    addReadDay,
+    removeReadDay,
+    setDebugReadDays,
+    clearReadDays,
+  } from "@/utils/streakStore";
+  
+  import { computeStreak, computeRewards } from "@/utils/streakLogic";
+  import { getStreakMeta, setStreakMeta, type StreakMeta } from "@/utils/streakMetaStore";
+  
+  const props = defineProps<{ todayISO: string }>();
+  
+  const route = useRoute();
+  const isDebug = computed(() => route.query.debug === "1");
+  
+  /** Fake today (debug) */
+  const fakeToday = ref<string | null>(null);
+  const effectiveTodayISO = computed(() => fakeToday.value ?? props.todayISO);
+  
+  /** helpers */
+  function pad(n: number) { return String(n).padStart(2, "0"); }
+  function addDaysISO(iso: string, n: number) {
+    const d = new Date(`${iso}T00:00:00`);
+    d.setDate(d.getDate() + n);
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   }
-
-  recompute();
-  pulseFlag(justToggled);
-
-  if (crossesShown.value !== beforeCrosses) pulseFlag(weekPop);
-  if (weeks.value > beforeWeeks || months.value > beforeMonths) pulseFlag(rewardsPop, 520);
-}
-
-async function seedStreak(n: number) {
-  const days: string[] = [];
-  for (let i = 0; i < n; i++) days.push(addDaysISO(effectiveTodayISO.value, -i));
-  readDays.value = await setDebugReadDays(days);
-  recompute();
-  pulseFlag(rewardsPop, 520);
-  pulseFlag(weekPop, 520);
-}
-async function resetAll() {
-  readDays.value = await clearReadDays();
-  recompute();
-}
-
-onMounted(load);
-watch(() => props.todayISO, load);
-watch(effectiveTodayISO, () => recompute());
-</script>
+  function diffDaysISO(aISO: string, bISO: string) {
+    const a = new Date(`${aISO}T00:00:00`).getTime();
+    const b = new Date(`${bISO}T00:00:00`).getTime();
+    return Math.round((a - b) / (1000 * 60 * 60 * 24));
+  }
+  
+  function shiftFakeDay(delta: number) {
+    const base = fakeToday.value ?? props.todayISO;
+    fakeToday.value = addDaysISO(base, delta);
+  }
+  function resetFakeToday() { fakeToday.value = null; }
+  
+  /** Milestones */
+  const MILESTONES = [7, 14, 21, 28, 90, 180, 365];
+  function nearestMilestoneBelow(n: number) {
+    const eligible = MILESTONES.filter(m => m <= n);
+    return eligible.length ? eligible[eligible.length - 1] : 0;
+  }
+  
+  /** state */
+  const readDays = ref<string[]>([]);
+  const readToday = computed(() => readDays.value.includes(effectiveTodayISO.value));
+  
+  const baseStreak = ref(0);
+  const displayedStreak = ref(0);
+  const rewards = ref(computeRewards(0));
+  
+  const recentDays = computed(() => [...readDays.value].sort().reverse().slice(0, 14));
+  function formatDay(iso: string) {
+    const d = new Date(`${iso}T00:00:00`);
+    return `${d.getDate()}/${d.getMonth() + 1}`;
+  }
+  
+  /**
+   * meta
+   * bankMilestone: أعلى milestone وصلنا له قبل كده
+   * softResetState:
+   *  - armed: التعويض جاهز ومؤقت (يعرض base لو streak=0)
+   *  - running: بعد أول قراءة، هنضيف base على streak الجديد
+   * softResetBase: قيمة milestone اللي بنكمّل منها
+   * softResetUntilISO: تاريخ انتهاء armed (اليوم + 1) عشان ما يبانش التعويض للأبد
+   */
+  type LocalMeta = StreakMeta & {
+    bankMilestone?: number;
+    softResetBase?: number;
+    softResetState?: "armed" | "running";
+    softResetUntilISO?: string;
+  };
+  
+  const meta = ref<LocalMeta>({});
+  
+  async function persistMeta() {
+    await setStreakMeta(meta.value);
+  }
+  
+  /** Soft reset is considered "active" if we have base + state */
+  const softResetActive = computed(() => {
+    const base = meta.value.softResetBase ?? 0;
+    const state = meta.value.softResetState;
+    if (!base || !state) return false;
+  
+    if (state === "armed") {
+      const until = meta.value.softResetUntilISO;
+      if (!until) return false;
+      return diffDaysISO(until, effectiveTodayISO.value) >= 0; // today <= until
+    }
+  
+    // running
+    return true;
+  });
+  
+  /** Animations */
+  const justToggled = ref(false);
+  const weekPop = ref(false);
+  const rewardsPop = ref(false);
+  function pulseFlag(flag: { value: boolean }, ms = 420) {
+    flag.value = true;
+    window.setTimeout(() => (flag.value = false), ms);
+  }
+  
+  /** recompute */
+  function recompute() {
+    // streak for "today"
+    const s = computeStreak(readDays.value, effectiveTodayISO.value);
+    baseStreak.value = s.streak;
+  
+    // 1) Update bankMilestone whenever we earn a higher milestone (from REAL streak)
+    const bank = meta.value.bankMilestone ?? 0;
+    const earned = nearestMilestoneBelow(baseStreak.value);
+    if (earned > bank) {
+      meta.value.bankMilestone = earned;
+      setStreakMeta(meta.value); // fire-and-forget
+    }
+  
+    // 2) Clear expired "armed" if time passed and still no streak
+    if (meta.value.softResetState === "armed") {
+      const until = meta.value.softResetUntilISO;
+      const expired = !until || diffDaysISO(until, effectiveTodayISO.value) < 0;
+      if (expired && baseStreak.value === 0) {
+        delete meta.value.softResetBase;
+        delete meta.value.softResetState;
+        delete meta.value.softResetUntilISO;
+        setStreakMeta(meta.value); // fire-and-forget
+      }
+    }
+  
+    // 3) If we were "running" and streak broke again => stop it completely
+    // so next time it shows 0 and the reset button can appear again
+    if (meta.value.softResetState === "running" && baseStreak.value === 0) {
+      delete meta.value.softResetBase;
+      delete meta.value.softResetState;
+      delete meta.value.softResetUntilISO;
+      setStreakMeta(meta.value); // fire-and-forget
+    }
+  
+    // 4) DISPLAY LOGIC
+    const state = meta.value.softResetState;
+    const softBase = meta.value.softResetBase ?? 0;
+  
+    if (state === "armed") {
+      const until = meta.value.softResetUntilISO;
+      const ok = !!until && diffDaysISO(until, effectiveTodayISO.value) >= 0;
+  
+      // show base only while broken (streak=0) and within window
+      displayedStreak.value = (ok && baseStreak.value === 0) ? softBase : baseStreak.value;
+    } else if (state === "running") {
+      // add base while connected
+      displayedStreak.value = baseStreak.value > 0 ? (softBase + baseStreak.value) : 0;
+    } else {
+      displayedStreak.value = baseStreak.value;
+    }
+  
+    rewards.value = computeRewards(displayedStreak.value);
+  }
+  
+  /** UI derived */
+  const crossesShown = computed(() => {
+    const c = Number((rewards.value as any).crossesThisWeek ?? 0);
+    if (displayedStreak.value > 0 && c === 0) return 7;
+    return c;
+  });
+  const weeks = computed(() => Number((rewards.value as any).fullWeeks ?? 0));
+  const months = computed(() => Number((rewards.value as any).fullMonths ?? 0));
+  const weeksLabel = computed(() => (weeks.value >= 50 ? "50+" : String(weeks.value)));
+  const monthsLabel = computed(() => (months.value >= 50 ? "50+" : String(months.value)));
+  const weeksShown = computed(() => Math.min(weeks.value, 12));
+  const monthsShown = computed(() => Math.min(months.value, 12));
+  
+  /**
+   * canSoftReset:
+   * - اليوم مش متعلم
+   * - streak اليوم = 0 (مكسور)
+   * - عندي bankMilestone
+   * - ومش already armed/running (يعني مفيش reset شغال)
+   */
+  const canSoftReset = computed(() => {
+    if (readToday.value) return false;
+    if (!readDays.value.length) return false;
+  
+    const sToday = computeStreak(readDays.value, effectiveTodayISO.value).streak;
+    if (sToday > 0) return false;
+  
+    if (softResetActive.value) return false; // hide after pressing reset
+  
+    return (meta.value.bankMilestone ?? 0) > 0;
+  });
+  
+  async function softResetToPrevMilestone() {
+    const bank = meta.value.bankMilestone ?? 0;
+    if (bank <= 0) return;
+  
+    // armed for today + tomorrow
+    meta.value.softResetBase = bank;
+    meta.value.softResetState = "armed";
+    meta.value.softResetUntilISO = addDaysISO(effectiveTodayISO.value, 1);
+  
+    await persistMeta();
+    recompute();
+    pulseFlag(rewardsPop, 520);
+    pulseFlag(weekPop, 520);
+  }
+  
+  /** load */
+  async function load() {
+    readDays.value = await getReadDays();
+    meta.value = (await getStreakMeta()) || {};
+    recompute();
+  }
+  
+  async function toggleReadToday() {
+    const beforeWeeks = weeks.value;
+    const beforeMonths = months.value;
+    const beforeCrosses = crossesShown.value;
+  
+    if (readToday.value) {
+      readDays.value = await removeReadDay(effectiveTodayISO.value);
+    } else {
+      readDays.value = await addReadDay(effectiveTodayISO.value);
+    }
+  
+    recompute();
+    pulseFlag(justToggled);
+  
+    if (crossesShown.value !== beforeCrosses) pulseFlag(weekPop);
+    if (weeks.value > beforeWeeks || months.value > beforeMonths) pulseFlag(rewardsPop, 520);
+  
+    // if we were armed and user started reading => switch to running
+    if (meta.value.softResetState === "armed" && (meta.value.softResetBase ?? 0) > 0 && baseStreak.value > 0) {
+      meta.value.softResetState = "running";
+      delete meta.value.softResetUntilISO;
+      await persistMeta();
+      recompute();
+    }
+  }
+  
+  /** debug seed */
+  async function seedStreak(n: number) {
+    const days: string[] = [];
+    for (let i = 0; i < n; i++) days.push(addDaysISO(effectiveTodayISO.value, -i));
+  
+    readDays.value = await setDebugReadDays(days);
+    meta.value = {};
+    await persistMeta();
+  
+    recompute();
+    pulseFlag(rewardsPop, 520);
+    pulseFlag(weekPop, 520);
+  }
+  
+  async function resetAll() {
+    readDays.value = await clearReadDays();
+    meta.value = {};
+    await persistMeta();
+    recompute();
+  }
+  
+  onMounted(load);
+  watch(() => props.todayISO, load);
+  watch(effectiveTodayISO, recompute);
+  </script>
+  
+  
+  
+  
+  
 <style scoped>
   /* =====================================================
      THEME TOKENS (Light as default)  ✅ KEEP LIGHT SAME
@@ -347,28 +472,28 @@ watch(effectiveTodayISO, () => recompute());
   .srCard{
     --sr-card-bg: rgba(255, 255, 255, 0.72);
     --sr-card-border: rgba(0,0,0,0.08);
-  
+
     --sr-soft-bg: rgba(0,0,0,0.02);
     --sr-soft-border: rgba(0,0,0,0.06);
-  
+
     --sr-text: #0f172a;
     --sr-muted: rgba(15,23,42,0.70);
-  
+
     --sr-chip-bg: rgba(0,0,0,0.03);
     --sr-chip-border: rgba(0,0,0,0.06);
-  
+
     --sr-whiteish: rgba(255,255,255,0.78);
     --sr-whiteish-border: rgba(0,0,0,0.08);
-  
+
     --sr-accent: rgba(40,214,204,1);
     --sr-accent-soft: rgba(40,214,204,0.18);
     --sr-accent-border: rgba(40,214,204,0.55);
-  
+
     --sr-shadow-1: 0 10px 22px rgba(0,0,0,0.08);
     --sr-shadow-2: 0 10px 18px rgba(0,0,0,0.06);
     --sr-shadow-accent: 0 8px 18px rgba(40,214,204,0.18);
   }
-  
+
   /* =====================================================
      CARD SHELL
   ===================================================== */
@@ -381,9 +506,8 @@ watch(effectiveTodayISO, () => recompute());
     backdrop-filter: blur(10px);
     box-shadow: var(--sr-shadow-1);
     font-family: Amiri, serif;
-
   }
-  
+
   /* =====================================================
      HEADER
   ===================================================== */
@@ -397,15 +521,14 @@ watch(effectiveTodayISO, () => recompute());
   .srTitleWrap{ display:flex; flex-direction:column; gap:2px; }
   .srTitle{ font-weight: 1000; font-size: 18px; color: var(--sr-text); }
   .srSubtitle{ font-weight: 800; font-size: 13px; color: var(--sr-muted); }
-  
+
   .srHeaderBtns{
     display:flex;
     flex-direction:column;
     gap:8px;
     align-items:flex-end;
-
   }
-  
+
   /* =====================================================
      TODAY BUTTON
   ===================================================== */
@@ -421,7 +544,6 @@ watch(effectiveTodayISO, () => recompute());
     transform: translateZ(0);
     font-family:"Noto Kufi Arabic", system-ui, sans-serif;
     font-size:12px;
-
   }
   .srTodayBtn .btnInner{ display:inline-flex; align-items:center; gap:8px; }
   .srTodayBtn .btnIcon{
@@ -432,28 +554,28 @@ watch(effectiveTodayISO, () => recompute());
     font-size: 18px;
   }
   .srTodayBtn .btnText{ font-weight: 1000; }
-  
+
   .srTodayBtn:not(.on){
     --background: linear-gradient(135deg, rgba(40,214,204,0.95), rgba(32,178,170,0.85));
     --color: #061018;
     border: 1px solid rgba(40,214,204,0.45);
   }
-  
+
   .srTodayBtn.on{
     --background: var(--sr-soft-bg);
     --color: var(--sr-text);
     border: 1px solid var(--sr-soft-border);
     --box-shadow: 0 8px 14px rgba(0,0,0,0.08);
   }
-  
+
   .srTodayBtn:active{
     transform: translateY(1px);
     filter: brightness(0.98);
   }
-  
+
   /* Recover button */
-  .srRecoverBtn{ border-radius: 12px; font-weight: 900;     font-family:"Noto Kufi Arabic", system-ui, sans-serif;}
-  
+  .srRecoverBtn{ border-radius: 12px; font-weight: 900; font-family:"Noto Kufi Arabic", system-ui, sans-serif; }
+
   /* =====================================================
      HERO
   ===================================================== */
@@ -468,12 +590,12 @@ watch(effectiveTodayISO, () => recompute());
     box-shadow: var(--sr-shadow-2);
     margin-bottom: 14px;
   }
-  
+
   .srHeroIcon{ font-size: 22px; }
   .srHeroMain{ font-weight: 1000; font-size: 16px; color: var(--sr-text); }
   .srHeroNum{ font-size: 20px; }
   .srHeroSub{ margin-top:2px; font-weight: 900; font-size: 13px; color: var(--sr-muted); }
-  
+
   /* =====================================================
      SECTIONS HEADER
   ===================================================== */
@@ -487,7 +609,7 @@ watch(effectiveTodayISO, () => recompute());
   }
   .srSectionTitle{ font-weight: 1000; color: var(--sr-text); }
   .srSectionHint{ font-weight: 900; font-size: 12px; color: var(--sr-muted); }
-  
+
   /* =====================================================
      WEEK GRID
   ===================================================== */
@@ -500,7 +622,7 @@ watch(effectiveTodayISO, () => recompute());
     border: 1px solid var(--sr-soft-border);
     background: var(--sr-soft-bg);
   }
-  
+
   .srDay{
     height: 44px;
     border-radius: 14px;
@@ -511,28 +633,28 @@ watch(effectiveTodayISO, () => recompute());
     justify-content:center;
     transition: transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease;
   }
-  
+
   .srDayIcon{ font-size: 18px; opacity: .45; color: var(--sr-text); }
-  
+
   .srDay.on{
     background: var(--sr-accent-soft);
     border-color: var(--sr-accent-border);
     box-shadow: var(--sr-shadow-accent);
   }
   .srDay.on .srDayIcon{ opacity: 1; }
-  
+
   /* =====================================================
      ROWS (weekly/monthly)
   ===================================================== */
   .srRows{ display:flex; flex-direction:column; gap:12px; }
-  
+
   .srRow{
     padding: 10px;
     border-radius: 18px;
     border: 1px solid var(--sr-soft-border);
     background: var(--sr-soft-bg);
   }
-  
+
   .srRowTop{
     display:flex;
     align-items:center;
@@ -542,7 +664,7 @@ watch(effectiveTodayISO, () => recompute());
   }
   .srRowLabel{ font-weight: 1000; color: var(--sr-text); }
   .srMiniNote{ font-size:12px; font-weight:900; color: var(--sr-muted); margin-right:6px; }
-  
+
   .srCountChip{
     display:inline-flex;
     align-items:center;
@@ -557,10 +679,10 @@ watch(effectiveTodayISO, () => recompute());
     color: var(--sr-text);
   }
   .srCountChip.soft{ background: rgba(255,255,255,0.78); }
-  
+
   .srChipNum{ font-size:14px; }
   .srChipIcon{ font-size:16px; }
-  
+
   .srIconsScroll{
     display:flex;
     align-items:center;
@@ -570,7 +692,7 @@ watch(effectiveTodayISO, () => recompute());
     scrollbar-width: none;
   }
   .srIconsScroll::-webkit-scrollbar{ display:none; }
-  
+
   .srRewardIcon{
     width: 34px;
     height: 34px;
@@ -582,9 +704,9 @@ watch(effectiveTodayISO, () => recompute());
     border: 1px solid var(--sr-soft-border);
     flex: 0 0 auto;
   }
-  
+
   .srMore{ font-weight: 1000; color: var(--sr-muted); padding: 0 4px; }
-  
+
   /* =====================================================
      MILESTONES
   ===================================================== */
@@ -603,11 +725,11 @@ watch(effectiveTodayISO, () => recompute());
     transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
     color: var(--sr-text);
   }
-  
+
   .srMilIcon{ font-size: 18px; }
   .srMilText{ margin-top: 6px; font-weight: 1000; }
   .srMilState{ margin-top: 4px; font-weight: 900; font-size: 12px; color: var(--sr-muted); }
-  
+
   .srMilestone.achieved{
     opacity: 1;
     background: linear-gradient(135deg, var(--sr-accent-soft), rgba(255,255,255,0.88));
@@ -615,7 +737,7 @@ watch(effectiveTodayISO, () => recompute());
     border-color: rgba(40,214,204,0.35);
   }
   .srMilestone.achieved:hover{ transform: translateY(-1px); }
-  
+
   /* =====================================================
      DAYS CHIPS
   ===================================================== */
@@ -625,7 +747,7 @@ watch(effectiveTodayISO, () => recompute());
     gap: 8px;
     justify-content:flex-end;
   }
-  
+
   .srChip{
     padding: 8px 10px;
     border-radius: 999px;
@@ -642,7 +764,7 @@ watch(effectiveTodayISO, () => recompute());
     box-shadow: 0 10px 18px rgba(40,214,204,0.12);
     opacity: 1;
   }
-  
+
   /* =====================================================
      DEBUG
   ===================================================== */
@@ -653,10 +775,10 @@ watch(effectiveTodayISO, () => recompute());
     border: 1px dashed var(--sr-soft-border);
     background: var(--sr-soft-bg);
   }
-  
+
   .srDebugTitle{ font-weight: 1000; margin-bottom: 10px; color: var(--sr-text); }
   .srDebugBtns{ display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; }
-  
+
   .srDebugRow{
     display:flex;
     align-items:center;
@@ -667,9 +789,9 @@ watch(effectiveTodayISO, () => recompute());
   .srDebugLabel{ font-weight: 900; color: var(--sr-text); }
   .srDebugValue{ font-weight: 900; color: var(--sr-muted); }
   .srDebugHint{ margin-right: 6px; font-size: 12px; color: var(--sr-muted); }
-  
+
   .srMuted{ color: var(--sr-muted); font-weight: 900; }
-  
+
   /* Animations */
   @keyframes pop{ 0%{transform:scale(.985)} 50%{transform:scale(1.02)} 100%{transform:scale(1)} }
   @keyframes pulseGlow{
@@ -677,46 +799,42 @@ watch(effectiveTodayISO, () => recompute());
     50%{ box-shadow: 0 0 0 8px rgba(56,242,229,0.12) }
     100%{ box-shadow: 0 0 0 rgba(56,242,229,0) }
   }
-  
+
   /* =====================================================
      DARK MODE (ROBUST SELECTORS FOR IONIC)
-     We target ANY dark ancestor: body.dark, html.dark, ion-app.dark, .dark
   ===================================================== */
-  
+
   :global(body.dark) .srCard,
   :global(html.dark) .srCard,
   :global(.dark) .srCard,
   :global(ion-app.dark) .srCard,
   :global(ion-app.ion-color-scheme-dark) .srCard{
-    /* tokens */
     --sr-card-bg: rgba(12, 16, 20, 0.92);
     --sr-card-border: rgba(255,255,255,0.06);
-  
+
     --sr-soft-bg: rgba(255,255,255,0.055);
     --sr-soft-border: rgba(255,255,255,0.10);
-  
+
     --sr-text: rgba(241,245,249,0.94);
     --sr-muted: rgba(241,245,249,0.64);
-  
+
     --sr-chip-bg: rgba(255,255,255,0.06);
     --sr-chip-border: rgba(255,255,255,0.10);
-  
+
     --sr-whiteish: rgba(255,255,255,0.040);
     --sr-whiteish-border: rgba(255,255,255,0.10);
-  
+
     --sr-accent: rgba(56,242,229,0.92);
     --sr-accent-soft: rgba(56,242,229,0.11);
     --sr-accent-border: rgba(56,242,229,0.22);
-  
+
     --sr-shadow-1: 0 18px 46px rgba(0,0,0,0.58);
     --sr-shadow-2: 0 14px 34px rgba(0,0,0,0.48);
     --sr-shadow-accent: 0 14px 34px rgba(56,242,229,0.12);
-  
-    /* soften outer card border */
+
     border-color: rgba(255,255,255,0.07);
   }
-  
-  /* Today button (dark) */
+
   :global(body.dark) .srTodayBtn:not(.on),
   :global(html.dark) .srTodayBtn:not(.on),
   :global(.dark) .srTodayBtn:not(.on),
@@ -740,8 +858,7 @@ watch(effectiveTodayISO, () => recompute());
   :global(ion-app.ion-color-scheme-dark) .srTodayBtn.on .btnIcon{
     background: rgba(56,242,229,0.14);
   }
-  
-  /* Remove "bad borders" everywhere in dark + add depth like screenshot */
+
   :global(body.dark) .srHero,
   :global(body.dark) .srWeekGrid,
   :global(body.dark) .srRow,
@@ -763,8 +880,7 @@ watch(effectiveTodayISO, () => recompute());
       0 12px 28px rgba(0,0,0,0.38),
       inset 0 1px 0 rgba(255,255,255,0.04);
   }
-  
-  /* Hero special gradient */
+
   :global(body.dark) .srHero,
   :global(html.dark) .srHero,
   :global(.dark) .srHero{
@@ -773,8 +889,7 @@ watch(effectiveTodayISO, () => recompute());
       0 16px 40px rgba(0,0,0,0.50),
       inset 0 1px 0 rgba(255,255,255,0.04);
   }
-  
-  /* Small items in dark: no borders, pill/surface depth */
+
   :global(body.dark) .srDay,
   :global(body.dark) .srRewardIcon,
   :global(body.dark) .srCountChip,
@@ -793,16 +908,14 @@ watch(effectiveTodayISO, () => recompute());
       0 10px 22px rgba(0,0,0,0.30),
       inset 0 1px 0 rgba(255,255,255,0.03);
   }
-  
-  /* Day icons opacity in dark */
+
   :global(body.dark) .srDayIcon,
   :global(html.dark) .srDayIcon,
   :global(.dark) .srDayIcon{ opacity: .72; }
   :global(body.dark) .srDay.on .srDayIcon,
   :global(html.dark) .srDay.on .srDayIcon,
   :global(.dark) .srDay.on .srDayIcon{ opacity: 1; }
-  
-  /* ON states glow (day + chip) */
+
   :global(body.dark) .srDay.on,
   :global(html.dark) .srDay.on,
   :global(.dark) .srDay.on{
@@ -821,8 +934,7 @@ watch(effectiveTodayISO, () => recompute());
       0 10px 22px rgba(0,0,0,0.32),
       inset 0 1px 0 rgba(255,255,255,0.04);
   }
-  
-  /* Milestone achieved in dark */
+
   :global(body.dark) .srMilestone.achieved,
   :global(html.dark) .srMilestone.achieved,
   :global(.dark) .srMilestone.achieved{
@@ -832,17 +944,14 @@ watch(effectiveTodayISO, () => recompute());
       0 14px 34px rgba(56,242,229,0.10),
       inset 0 1px 0 rgba(255,255,255,0.04);
   }
-  
-  /* Pulse selector (when toggled) */
+
   :global(body.dark) .srCard.srDonePulse,
   :global(html.dark) .srCard.srDonePulse,
   :global(.dark) .srCard.srDonePulse{
     animation: pulseGlow 0.42s ease;
   }
-  
-  /* Mobile */
+
   @media (max-width: 420px){
     .srMilestones{ grid-template-columns: 1fr; }
   }
-  </style>
-  
+</style>

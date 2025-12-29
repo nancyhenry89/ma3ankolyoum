@@ -1,55 +1,52 @@
-function toTime(iso: string) {
-    return new Date(`${iso}T00:00:00`).getTime()
+// src/utils/streakLogic.ts
+
+function pad(n: number) {
+    return String(n).padStart(2, "0");
   }
   
-  function addDays(iso: string, n: number) {
-    const d = new Date(`${iso}T00:00:00`)
-    d.setDate(d.getDate() + n)
-    const y = d.getFullYear()
-    const m = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    return `${y}-${m}-${day}`
+  export function addDays(iso: string, n: number) {
+    const d = new Date(`${iso}T00:00:00`);
+    d.setDate(d.getDate() + n);
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   }
   
+  /**
+   * computeStreak:
+   * - لو اليوم متعلم => نبدأ من اليوم
+   * - لو اليوم مش متعلم لكن أمس متعلم => نبدأ من أمس (عشان الستريك ما يبقاش 0 قبل ما يعلّم اليوم)
+   * - غير كده => streak = 0
+   */
   export function computeStreak(days: string[], todayISO: string) {
-    const set = new Set(days)
-    // streak يعتبر متصل لو اليوم موجود أو أمس موجود (لو لسه ما قراش النهارده)
-    let startISO = todayISO
+    const set = new Set(days);
+  
+    let startISO = todayISO;
     if (!set.has(todayISO) && set.has(addDays(todayISO, -1))) {
-      startISO = addDays(todayISO, -1)
+      startISO = addDays(todayISO, -1);
     } else if (!set.has(todayISO)) {
-      return { streak: 0, streakDays: [] as string[] }
+      return { streak: 0, streakDays: [] as string[] };
     }
   
-    const streakDays: string[] = []
-    let cursor = startISO
+    const streakDays: string[] = [];
+    let cursor = startISO;
     while (set.has(cursor)) {
-      streakDays.push(cursor)
-      cursor = addDays(cursor, -1)
+      streakDays.push(cursor);
+      cursor = addDays(cursor, -1);
     }
   
-    return { streak: streakDays.length, streakDays }
+    return { streak: streakDays.length, streakDays };
   }
   
   export function computeRewards(streak: number) {
-    const crossesThisWeek = streak % 7
-    const fullWeeks = Math.floor(streak / 7)
+    const crossesThisWeek = streak % 7;
+    const fullWeeks = Math.floor(streak / 7);
   
-    const fullMonths = Math.floor(streak / 28) // بسيط (4 أسابيع)
-    const threeMonths = streak >= 90
-    const sixMonths = streak >= 180
-    const year = streak >= 365
+    // كل 4 أسابيع = شهر
+    const fullMonths = Math.floor(streak / 28);
   
-    return {
-      crossesThisWeek,
-      fullWeeks,
-      fullMonths,
-      threeMonths,
-      sixMonths,
-      year,
-      streak,
-      brokenYesterday: true,
-      canRecover: true
-    }
+    const threeMonths = streak >= 90;
+    const sixMonths = streak >= 180;
+    const year = streak >= 365;
+  
+    return { crossesThisWeek, fullWeeks, fullMonths, threeMonths, sixMonths, year };
   }
   
