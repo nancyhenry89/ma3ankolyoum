@@ -8,17 +8,19 @@
       </div>
 
       <div class="srHeaderBtns">
-        <!-- Soft Reset: يرجّع لآخر milestone (مثلاً 9 -> 7) -->
         <ion-button
-          v-if="canSoftReset"
-          size="small"
-          fill="outline"
-          color="warning"
-          class="srRecoverBtn"
-          @click="softResetToPrevMilestone"
-        >
-         ارجع لآخر محطة
-        </ion-button>
+  v-if="canSoftReset"
+  size="small"
+  fill="clear"
+  class="srRecoverBtn"
+  @click="softResetToPrevMilestone"
+>
+  <span class="srRecoverInner">
+    <span class="srRecoverIcon">♻️</span>
+    <span class="srRecoverText">ارجع لآخر محطة</span>
+  </span>
+</ion-button>
+
 
         <ion-button
           size="small"
@@ -35,18 +37,23 @@
       </div>
     </header>
 
-    <!-- Hero -->
-    <div class="srHero" :class="{ on: displayedStreak > 0 }">
-      <div class="srHeroIcon">{{ displayedStreak === 0 ? "✨" : "🔥" }}</div>
-      <div class="srHeroText">
-        <div class="srHeroMain">
-          سلسلة الأيام: <span class="srHeroNum">{{ displayedStreak }}</span> يوم
-        </div>
-        <div class="srHeroSub">
-          {{ displayedStreak === 0 ? "ابدأ النهارده… علامة واحدة كل يوم ✨" : "كمّل النهارده علشان السلسلة ما تقفش 💛" }}
-        </div>
-      </div>
+  <!-- Hero -->
+<div class="srHero" :class="{ on: displayedStreak > 0 }">
+  <div class="srHeroIcon">{{ displayedStreak === 0 ? "✨" : "🔥" }}</div>
+
+  <div class="srHeroText">
+    <div class="srHeroMain">
+      <span class="srHeroTitle">{{ spiritualMessage.title }}</span>
+
+      <span class="srHeroLabel">سلسلة الأيام:</span>
+      <span class="srHeroNum">{{ displayedStreak }}</span>
+      <span class="srHeroUnit">يوم</span>
     </div>
+
+    <div class="srHeroSub">{{ spiritualMessage.text }}</div>
+  </div>
+</div>
+
 
     <!-- Week -->
     <div class="srSection">
@@ -354,7 +361,46 @@
   
     rewards.value = computeRewards(displayedStreak.value);
   }
-  
+  const spiritualMessage = computed(() => {
+  // لا يوجد أي قراءة
+  if (displayedStreak.value === 0 && !canSoftReset.value) {
+    return {
+      title: "✨ ابدأ النهارده",
+      text: "كل يوم جديد هو خطوة لقدام."
+    };
+  }
+
+  // السلسلة مكسورة و reset متاح
+  if (displayedStreak.value === 0 && canSoftReset.value) {
+    return {
+      title: "✨ لا تيأس",
+      text: "رجوعك اهم من سقوتك"
+    };
+  }
+
+  // بعد الضغط على Soft Reset (قبل القراءة)
+  if ((meta.value.softResetBase ?? 0) > 0 && baseStreak.value === 0) {
+    return {
+      title: "🕯️رجوعك النهاردة اهم خطوة",
+      text: "اللي بنيته ما ضاعش… كمّل وربنا هيساعدك."
+    };
+  }
+
+  // أول قراءة بعد reset
+  if ((meta.value.softResetBase ?? 0) > 0 && baseStreak.value === 1) {
+    return {
+      title: "🌿 ربنا قبل رجوعك",
+      text: "مش مهم البداية… المهم الاستمرار."
+    };
+  }
+
+  // السلسلة شغالة طبيعي
+  return {
+    title: "سلسلة القراءة",
+    text: "استمر كل يوم خطوة جديدة مع ربنا"
+  };
+});
+
   /** UI derived */
   const crossesShown = computed(() => {
     const c = Number((rewards.value as any).crossesThisWeek ?? 0);
@@ -437,18 +483,26 @@
   
   /** debug seed */
   async function seedStreak(n: number) {
-    const days: string[] = [];
-    for (let i = 0; i < n; i++) days.push(addDaysISO(effectiveTodayISO.value, -i));
-  
-    readDays.value = await setDebugReadDays(days);
-    meta.value = {};
-    await persistMeta();
-  
-    recompute();
-    pulseFlag(rewardsPop, 520);
-    pulseFlag(weekPop, 520);
+  // clear existing
+  await clearReadDays();
+
+  // add last N days including today
+  for (let i = 0; i < n; i++) {
+    await addReadDay(addDaysISO(effectiveTodayISO.value, -i));
   }
-  
+
+  // optionally reset meta
+  meta.value = {};
+  await persistMeta();
+
+  // reload from store to be 100% consistent
+  readDays.value = await getReadDays();
+  recompute();
+
+  pulseFlag(rewardsPop, 520);
+  pulseFlag(weekPop, 520);
+}
+
   async function resetAll() {
     readDays.value = await clearReadDays();
     meta.value = {};
@@ -573,8 +627,50 @@
     filter: brightness(0.98);
   }
 
-  /* Recover button */
-  .srRecoverBtn{ border-radius: 12px; font-weight: 900; font-family:"Noto Kufi Arabic", system-ui, sans-serif; }
+/* =========================
+   RECOVER / SOFT RESET BTN
+========================= */
+
+.srRecoverBtn{
+  --background: transparent;
+  --color: var(--sr-text);
+  --padding-start: 10px;
+  --padding-end: 10px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 160, 60, 0.55);
+  background: linear-gradient(135deg, rgb(255 200 120), rgba(255, 255, 255, 0.55));
+  box-shadow: 0 8px 16px rgba(255, 170, 80, 0.18);
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  font-weight: 900;
+}
+
+.srRecoverInner{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+
+.srRecoverIcon{
+  font-size: 18px;
+  line-height: 1;
+}
+
+.srRecoverText{
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* hover / active */
+.srRecoverBtn:hover{
+  filter: brightness(1.02);
+}
+
+.srRecoverBtn:active{
+  transform: translateY(1px);
+}
 
   /* =====================================================
      HERO
@@ -737,6 +833,48 @@
     border-color: rgba(40,214,204,0.35);
   }
   .srMilestone.achieved:hover{ transform: translateY(-1px); }
+  .srHeroText{
+  flex: 1;
+  min-width: 0;
+}
+
+.srHeroMain{
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;          /* يسمح بالسطر التاني لو الشاشة ضيقة */
+  line-height: 1.25;
+}
+
+.srHeroTitle{
+  font-weight: 1000;
+  display: block;
+  width:100%;
+  font-size:20px
+}
+
+.srHeroDot{
+  opacity: .5;
+}
+
+.srHeroLabel{
+  font-weight: 1000;
+}
+
+.srHeroNum{
+  font-size: 22px;
+  font-weight: 1000;
+  direction: ltr;           /* مهم للأرقام مع RTL */
+  unicode-bidi: plaintext;  /* يمنع تقليب ترتيب الأرقام */
+}
+
+.srHeroSub{
+  margin-top: 6px;
+  font-weight: 900;
+  font-size: 13px;
+  color: var(--sr-muted);
+  line-height: 1.6;
+}
 
   /* =====================================================
      DAYS CHIPS
