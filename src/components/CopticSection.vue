@@ -1,13 +1,21 @@
 <template>
-  <section class="coptic" v-if="!isLoading">
-    <!-- Empty message -->
-    <div v-if="!items.length" class="coptic-empty">
-      لا توجد كلمات قبطية لهذا اليوم.
+  <!-- MAIN -->
+  <section class="coptic" :dir="sectionDir" :lang="sectionLang">
+    <!-- Loading -->
+    <div v-if="isLoading" class="coptic-body">
+      <div class="coptic-title skeleton-box"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line short"></div>
+    </div>
+
+    <!-- Empty -->
+    <div v-else-if="!items.length" class="coptic-empty">
+      {{ ui.empty }}
     </div>
 
     <!-- List -->
     <div v-else v-show="isOpen" class="coptic-body">
-      <div class="coptic-title">لغتنا القبطية</div>
+      <div class="coptic-title">{{ ui.title }}</div>
 
       <div class="coptic-list">
         <button
@@ -29,72 +37,68 @@
 
             <span class="coptic-word">{{ it.coptic }}</span>
             <span class="eq">=</span>
-            <span class="arabic-word">{{ it.arabic }}</span>
+            <span class="meaning-word">{{ it.meaning }}</span>
           </div>
-
-
         </button>
       </div>
     </div>
   </section>
-
-  <!-- Loading skeleton (اختياري لو تحبي) -->
-  <section v-else class="coptic">
-    <div class="coptic-body">
-      <div class="coptic-title skeleton-box"></div>
-      <div class="skeleton-line"></div>
-      <div class="skeleton-line short"></div>
-    </div>
-  </section>
 </template>
 
-  <script setup lang="ts">
-  import { ref, watch } from 'vue'
-  import { volumeHighOutline } from 'ionicons/icons'
+<script setup lang="ts">
+import { ref, watch, computed, onBeforeUnmount } from 'vue'
+import { volumeHighOutline } from 'ionicons/icons'
 
-  type CopticItem = {
-    coptic: string
-    arabic: string
-    audioUrl: string
-  }
-  
-  const props = defineProps<{
-    dateISO: string
-    contentBase: string // نفس CONTENT_BASE عندك
-  }>()
-  
-  /** ✅ شيت القبطي (CSV published) */
-  const COPTIC_SHEET_CSV_URL =
-    'https://docs.google.com/spreadsheets/d/e/2PACX-1vTljfbjiBccVFJpqzxoOfOe4f_zjS0MVztleuJJ0GZtNfL7aqEnDJ3gI-a5PP0x8vhMRtiQYdQYsb3E/pub?gid=0&single=true&output=csv'
-  
-  /** لو الصوت متخزن على GitHub بنفس content structure */
-  const COPTIC_AUDIO_BASE = `${props.contentBase}/audio/coptic`
-  
-  const isLoading = ref(false)
-  const items = ref<CopticItem[]>([])
-    import { onBeforeUnmount } from 'vue'
+type CopticItem = {
+  coptic: string
+  meaning: string
+  audioUrl: string
+}
 
+const props = defineProps<{
+  dateISO: string
+  contentBase: string
+  lang: 'ar' | 'en'
+}>()
+
+const isArabic = computed(() => props.lang !== 'en')
+
+const ui = computed(() => {
+  return isArabic.value
+    ? { title: 'لغتنا القبطية', empty: 'لا توجد كلمات قبطية لهذا اليوم.' }
+    : { title: 'Our Coptic Language', empty: 'No Coptic words for today.' }
+})
+
+const sectionDir = computed(() => (isArabic.value ? 'rtl' : 'ltr'))
+const sectionLang = computed(() => (isArabic.value ? 'ar' : 'en'))
+
+/** ✅ Coptic sheet columns:
+ * date_iso, coptic_word, arabic_word, english_word, coptic_audio
+ */
+const COPTIC_SHEET_CSV_URL =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vTljfbjiBccVFJpqzxoOfOe4f_zjS0MVztleuJJ0GZtNfL7aqEnDJ3gI-a5PP0x8vhMRtiQYdQYsb3E/pub?gid=0&single=true&output=csv'
+
+const COPTIC_AUDIO_BASE = `${props.contentBase}/audio/coptic`
+
+const isLoading = ref(false)
+const items = ref<CopticItem[]>([])
+const isOpen = ref(true)
+
+/* =========================
+   AUDIO (single element)
+========================= */
 const audioEl = new Audio()
 audioEl.preload = 'none'
 
 const currentSrc = ref('')
 const isPlaying = ref(false)
 
-audioEl.addEventListener('ended', () => {
-  isPlaying.value = false
-})
-
-audioEl.addEventListener('pause', () => {
-  isPlaying.value = false
-})
-
-audioEl.addEventListener('play', () => {
-  isPlaying.value = true
-})
+audioEl.addEventListener('ended', () => (isPlaying.value = false))
+audioEl.addEventListener('pause', () => (isPlaying.value = false))
+audioEl.addEventListener('play', () => (isPlaying.value = true))
 
 async function play(it: CopticItem) {
   if (!it.audioUrl) return
-
   try {
     if (currentSrc.value !== it.audioUrl) {
       audioEl.pause()
@@ -102,10 +106,8 @@ async function play(it: CopticItem) {
       audioEl.src = it.audioUrl
       currentSrc.value = it.audioUrl
     } else {
-      // نفس الصوت → نعيده من الأول
       audioEl.currentTime = 0
     }
-
     await audioEl.play()
   } catch (e) {
     isPlaying.value = false
@@ -118,111 +120,105 @@ onBeforeUnmount(() => {
   audioEl.src = ''
 })
 
-  const isOpen = ref(true)
+/* =========================
+   CSV helpers
+========================= */
+function normalizeKeys(row: any) {
+  const out: Record<string, any> = {}
+  Object.keys(row || {}).forEach(k => {
+    const nk = String(k).trim().toLowerCase().replace(/\s+/g, '_')
+    out[nk] = row[k]
+  })
+  return out
+}
 
-  
-  function toggleOpen() {
-    isOpen.value = !isOpen.value
+function pick(row: any, ...keys: string[]) {
+  for (const k of keys) {
+    const kk = k.trim().toLowerCase().replace(/\s+/g, '_')
+    const v = row?.[kk]
+    if (v !== undefined && v !== null && String(v).trim() !== '') return v
   }
-  
-  function normalizeKeys(row: any) {
-    const out: Record<string, any> = {}
-    Object.keys(row || {}).forEach(k => {
-      const nk = String(k).trim().toLowerCase().replace(/\s+/g, '_')
-      out[nk] = row[k]
-    })
-    return out
-  }
-  function pick(row: any, ...keys: string[]) {
-    for (const k of keys) {
-      const kk = k.trim().toLowerCase().replace(/\s+/g, '_')
-      if (row[kk] !== undefined && row[kk] !== null && String(row[kk]).trim() !== '') {
-        return row[kk]
-      }
+  return ''
+}
+
+function resolveAudioUrl(v: string) {
+  const val = String(v || '').trim()
+  if (!val) return ''
+  if (/^https?:\/\//i.test(val)) return val
+  return `${COPTIC_AUDIO_BASE}/${encodeURIComponent(val)}`
+}
+
+function splitPipe(v: any) {
+  return String(v || '')
+    .split('|')
+    .map(s => s.trim())
+    .filter(Boolean)
+}
+
+async function fetchCopticByDate(targetISO: string) {
+  isLoading.value = true
+  items.value = []
+
+  try {
+    const res = await fetch(COPTIC_SHEET_CSV_URL, { cache: 'no-store' })
+    const csv = await res.text()
+
+    const Papa = (await import('papaparse')).default
+    const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true })
+
+    const rows = (parsed.data as any[])
+      .map(r => normalizeKeys(r))
+      .filter(r => r.date_iso)
+
+    const row = rows.find(r => String(r.date_iso).trim().substring(0, 10) === targetISO)
+
+    if (!row) {
+      items.value = []
+      return
     }
-    return ''
-  }
-  
-  function resolveAudioUrl(v: string) {
-    const val = String(v || '').trim()
-    if (!val) return ''
-    if (/^https?:\/\//i.test(val)) return val
-    // لو في الشيت بتكتبي اسم الملف بس: example.mp3
-    return `${COPTIC_AUDIO_BASE}/${encodeURIComponent(val)}`
-  }
-  
-  async function fetchCopticByDate(targetISO: string) {
-    isLoading.value = true
-    items.value = []
-  
-    try {
-      const res = await fetch(COPTIC_SHEET_CSV_URL, { cache: 'no-store' })
-      const csv = await res.text()
-  
-      // PapaParse موجود عندك بالفعل في المشروع، بس عشان الكمبوننت مستقل:
-      // لو مش عايزة تعملي import تاني، تقدري تمرري البيانات من الهوم.
-      const Papa = (await import('papaparse')).default
-      const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true })
-  
-      const rows = (parsed.data as any[])
-        .map(r => normalizeKeys(r))
-        .filter(r => r.date_iso)
-  
-      const row = rows.find(r => String(r.date_iso).trim().substring(0, 10) === targetISO)
-  
-      if (!row) {
-        items.value = []
-        return
-      }
-  
-      /**
-       * دعم حالتين:
-       * 1) صف واحد فيه قوائم مفصولة بـ |
-       *    coptic_word: "ⲁ|ⲃ"
-       *    arabic_word: "ا|ب"
-       *    audio: "a.mp3|b.mp3"
-       *
-       * 2) صف واحد لكلمة واحدة فقط (اختياري)
-       */
-      const copticRaw = pick(row, 'coptic_word', 'coptic', 'coptic_words')
-      const arabicRaw = pick(row, 'arabic_word', 'arabic', 'arabic_words')
-      const audioRaw  = pick(row, 'audio', 'audio_file', 'audio_name', 'coptic_audio')
-  
-      const copticList = String(copticRaw || '').split('|').map(s => s.trim()).filter(Boolean)
-      const arabicList = String(arabicRaw || '').split('|').map(s => s.trim()).filter(Boolean)
-      const audioList  = String(audioRaw || '').split('|').map(s => s.trim()).filter(Boolean)
-  
-      // لو كلمة واحدة بس ومفيش |
-      const maxLen = Math.max(copticList.length, arabicList.length, audioList.length)
-  
-      const out: CopticItem[] = []
-      for (let i = 0; i < maxLen; i++) {
-        const coptic = copticList[i] || ''
-        const arabic = arabicList[i] || ''
-        const audioUrl = resolveAudioUrl(audioList[i] || '')
-  
-        if (!coptic && !arabic) continue
-        out.push({ coptic, arabic, audioUrl })
-      }
-  
-      items.value = out
-    } finally {
-      isLoading.value = false
+
+    const copticRaw = pick(row, 'coptic_word')
+    const arabicRaw = pick(row, 'arabic_word')
+    const englishRaw = pick(row, 'english_word')
+    const audioRaw = pick(row, 'coptic_audio')
+
+    const copticList = splitPipe(copticRaw)
+    const meaningList = splitPipe(isArabic.value ? arabicRaw : englishRaw)
+    const audioList = splitPipe(audioRaw)
+
+    const maxLen = Math.max(copticList.length, meaningList.length, audioList.length)
+
+    const out: CopticItem[] = []
+    for (let i = 0; i < maxLen; i++) {
+      const coptic = copticList[i] || ''
+      const meaning = meaningList[i] || ''
+      const audioUrl = resolveAudioUrl(audioList[i] || '')
+
+      if (!coptic && !meaning) continue
+      out.push({ coptic, meaning, audioUrl })
     }
+
+    items.value = out
+  } finally {
+    isLoading.value = false
   }
-  
-  
-  watch(
-    () => props.dateISO,
-    (iso) => {
-      const target = String(iso || '').substring(0, 10)
-      if (!target) return
-      fetchCopticByDate(target).catch(console.error)
-    },
-    { immediate: true }
-  )
-  </script>
-  
+}
+
+/* =========================
+   Watchers: date + lang
+========================= */
+watch(
+  () => [props.dateISO, props.lang] as const,
+  ([iso]) => {
+    const target = String(iso || '').substring(0, 10)
+    if (!target) return
+    fetchCopticByDate(target).catch(console.error)
+  },
+  { immediate: true }
+)
+</script>
+
+
   <style scoped>
   /* نفس جراديانت الـ clickable اللي بتحبيه */
   .clickableHead{
@@ -330,12 +326,12 @@ width:100%}
     opacity:.7;
   }
   
-  .arabic-word{
-    font-size: 20px;
-    font-weight: 900;
-    font-family: "Amiri", serif;
+  .meaning-word{
+  font-size: 20px;
+  font-weight: 900;
+  font-family: "Amiri", serif;
+}
 
-  }
   
   .sub{
     margin-top: 6px;

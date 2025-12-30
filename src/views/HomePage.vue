@@ -1,384 +1,433 @@
 <template>
-
-  
-  
-<ion-page
-  :class="['home', themeClass]"
-  :style="{ '--mk-fontScale': String(fontScale) }"
-  dir="rtl"
->
-
-
-  
-      <ion-content :fullscreen="true" class="content">
-        <div class="capture home" :class="[themeClass, { 'mk-capturing': isCapturing }]" ref="captureRef">
-          <!-- خلفية -->
-      <div class="bg"></div>
-  
-      <div class="wrap">
-  
-    <!-- Header: Data -->
-    <div class="header" v-if="!isLoading && !noData">
-  
-      <ion-menu-button class="burgerBtn mkNoCapture" :auto-hide="false" />
-
-
-  
-      <ion-button class="shareBtn" fill="clear" size="small" @click="showShareSheet = true">
-    <ion-icon :icon="shareOutline" />
-  </ion-button>
-  
-  <ion-action-sheet
-    :is-open="showShareSheet"
-    header="مشاركة"
-    :cssClass="['share-sheet']"
-    :buttons="shareButtons"
-    @didDismiss="showShareSheet = false"
-  />
-  
-      <div class="brand">
-        <div class="brand_name">معاً كل يوم </div><div class="accent">مع</div><div class="abouna"> القمص يوحنا باقي
-        </div> </div>
-  
-      <div class="dates" @click="showDatePicker = true">
-        {{ gregorianDate }} – {{ copticDate }}
-      </div>
-      <div v-if="hasAnnouncement" class="announcement-card">
-  {{ announcement }}
-</div>
-
+  <ion-page
+    :class="['home', themeClass, isArabic ? 'lang-ar' : 'lang-en']"
+    :style="{ '--mk-fontScale': String(fontScale) }"
+    :dir="pageDir"
+    :lang="lang"
+  >
+    <ion-content :fullscreen="true" class="content">
       <div
-  class="saint"
-  :class="{ clickable: hasSaint, disabledSaint: !hasSaint }"
-  @click="hasSaint && openSaint()"
->
-  <span v-if="hasSaint">
-    {{ saint }}
-  </span>
-  <span v-else>
-    لا يوجد سنكسار لهذا اليوم.
-  </span>
-</div>
+        class="capture home"
+        :class="[themeClass, { 'mk-capturing': isCapturing }]"
+        ref="captureRef"
+      >
+        <!-- Background -->
+        <div class="bg"></div>
 
-  
-      <div class="title">
-        {{ title }}
-      </div>
-    </div>
-  
-    <!-- Header: Loading -->
-    <div class="header" v-else-if="isLoading">
-      <div class="brand skeleton"></div>
-      <div class="dates skeleton"></div>
-      <div class="saint skeleton"></div>
-      <div class="title skeleton titleSk"></div>
-    </div>
-  
-    <!-- Header: No data -->
-    <div class="header" v-else>
-      <div class="brand">معًا كل يوم</div>
-      <div class="card" style="margin-top:12px">
-        <p class="text alignRight">{{ noDataMsg || 'لا توجد بيانات متاحة لهذا اليوم.' }}</p>
-      </div>
-    </div>
-  
-    <!-- القصة -->
-    <div class="card" v-if="!isLoading && !noData">
-      <div v-if="hasStory" class="text alignRight md" v-html="storyHtml"></div>
+        <div class="wrap">
+          <!-- Header: Data -->
+          <div class="header" v-if="!isLoading && !noData">
+            <ion-menu-button class="burgerBtn mkNoCapture" :auto-hide="false" />
 
+            <!-- Language switch -->
+            <ion-button
+              class="langBtn mkNoCapture"
+              fill="clear"
+              size="small"
+              :title="isArabic ? 'English' : 'العربية'"
+              @click="setLang(isArabic ? 'en' : 'ar')"
+              aria-label="Change language"
+            >
+              <span class="langFlag">
+                {{ isArabic ? '🇬🇧' : '🇪🇬' }}
+              </span>
+            </ion-button>
 
-  <p v-else class="text alignRight emptyMsg">
-    لا توجد قصة لهذا اليوم.
-  </p>
-</div>
+            <!-- Share -->
+            <ion-button class="shareBtn" fill="clear" size="small" @click="showShareSheet = true">
+              <ion-icon :icon="shareOutline" />
+            </ion-button>
 
-    <div class="card" v-else-if="isLoading">
-      <div class="skeleton-line"></div>
-      <div class="skeleton-line"></div>
-      <div class="skeleton-line short"></div>
-    </div>
-    <!-- لو noData: مفيش داعي نكرر رسالة تاني لأن الهيدر already بيعرضها -->
-  
-    <!-- الآية -->
-    <div class="verse" v-if="!isLoading && !noData">
-  <template v-if="hasVerse">
-    <div class="verse-text">"{{ verseText }}"</div>
-    <div class="verse-ref">{{ verseRef }}</div>
-  </template>
-  <div v-else class="verse-empty">
-    لا توجد آية محددة لهذا اليوم.
-  </div>
-</div>
+            <ion-action-sheet
+              :is-open="showShareSheet"
+              :header="ui.share"
+              :cssClass="['share-sheet']"
+              :buttons="shareButtons"
+              @didDismiss="showShareSheet = false"
+            />
 
-    <div class="card" v-else-if="isLoading">
-      <div class="skeleton-line"></div>
-      <div class="skeleton-line short"></div>
-    </div>
-  
-    <!-- التأمل -->
-    <div class="card" v-if="!isLoading && !noData">
-      <div v-if="hasReflection" class="text alignRight">
-  <div class="card-title">التأمل</div>
-  <div class="md" v-html="reflectionHtml"></div>
-</div>
-
-  <p v-else class="text alignRight emptyMsg">
-    لا يوجد تأمل لهذا اليوم.
-  </p>
-</div>
-
-    <div class="card" v-else-if="isLoading">
-      <div class="skeleton-line"></div>
-      <div class="skeleton-line"></div>
-      <div class="skeleton-line short"></div>
-    </div>
-  
-    <!-- الأجبية + الكتاب المقدس -->
-    <div class="row" v-if="!isLoading && !noData">
-      <button
-  class="mini-card mini-click"
-  :class="{ disabledCard: !hasBible }"
-  type="button"
-  @click="hasBible && openChapter()"
->
-  <div class="mini-head mini-head-row">
-    <span>الكتاب المقدس</span>
-    <ion-button
-      class="audioBtn mkNoCapture"
-      fill="clear"
-      size="small"
-      aria-label="عرض الإصحاح"
-    >
-      <ion-icon :icon="bookOutline" />
-    </ion-button>
-  </div>
-
-  <template v-if="hasBible">
-    <div class="mini-sub bible-pill">{{ previewLabel }}</div>
-    <div class="mini-title">{{ previewTitle }}</div>
-    <ul class="mini-list">
-      <li v-for="(item, i) in previewSections" :key="i">{{ item }}</li>
-    </ul>
+            <div class="brand">
+  <template v-if="isArabic">
+    <div class="brand_name">معاً كل يوم</div>
+    <div class="accent">مع</div>
+    <div class="abouna">القمص يوحنا باقي</div>
   </template>
 
-  <p v-else class="mini-body alignRight emptyMsg">
-    لا توجد قراءات كتاب مقدس مسجَّلة لهذا اليوم.
-  </p>
-</button>
-
-      <div class="mini-card">
-        <div class="mini-head mini-head-row">
-    <span>الأجبية</span>
-    <ion-button
-  class="audioBtn mkNoCapture"
-  fill="clear"
-  size="small"
-  @click.stop="openAgbiaAudio()"
-  aria-label="صوت الأجبية"
->
-  <ion-icon :icon="volumeHighOutline" :class="{ dimIcon: !hasAnyAgbiaAudio }" />
-</ion-button>
-
-  </div>
-  
-  <p v-if="hasAgbia" class="mini-body alignRight">
-  {{ agbia }}
-</p>
-<p v-else class="mini-body alignRight emptyMsg">
-  لا توجد قراءة من الأجبية لهذا اليوم.
-</p>
-<div class="mini-author" v-if="agbia_author && hasAgbia">
-  {{ agbia_author }}
+  <template v-else>
+    <div class="brand_name">Together Every Day</div>
+    <div class="accent">with</div>
+    <div class="abouna">Fr. Yohanna Baky</div>
+  </template>
 </div>
-      </div>
-    </div>
-    <div class="row" v-else-if="isLoading">
-      <div class="mini-card">
-        <div class="mini-head skeleton" style="height:44px;width:100%"></div>
-        <div class="skeleton-line"></div>
-        <div class="skeleton-line short"></div>
-      </div>
-      <div class="mini-card">
-        <div class="mini-head skeleton" style="height:44px;width:100%"></div>
-        <div class="skeleton-line"></div>
-        <div class="skeleton-line short"></div>
-      </div>
-    </div>
-    <!-- لغتنا القبطية -->
-<CopticSection class="mkNoCapture"
+
+            <!-- Dates -->
+            <div class="dates" @click="showDatePicker = true">
+              {{ gregorianDate }} – {{ copticDate }}
+            </div>
+
+            <!-- Announcement -->
+            <div v-if="hasAnnouncement" class="announcement-card">
+              {{ announcement }}
+            </div>
+
+            <!-- Saint -->
+            <div
+              class="saint"
+              :class="{ clickable: hasSaint && isArabic, disabledSaint: !hasSaint || !isArabic }"
+              @click="hasSaint && isArabic && openSaint()"
+            >
+              <span v-if="hasSaint">{{ saint }}</span>
+              <span v-else>{{ ui.noSaint }}</span>
+            </div>
+
+            <!-- Title -->
+            <div class="title">
+              {{ title }}
+            </div>
+          </div>
+
+          <!-- Header: Loading -->
+          <div class="header" v-else-if="isLoading">
+            <div class="brand skeleton"></div>
+            <div class="dates skeleton"></div>
+            <div class="saint skeleton"></div>
+            <div class="title skeleton titleSk"></div>
+          </div>
+
+          <!-- Header: No data -->
+          <div class="header" v-else>
+            <div class="brand">معًا كل يوم</div>
+            <div class="card" style="margin-top:12px">
+              <p class="text alignRight">{{ noDataMsg || ui.noData }}</p>
+            </div>
+          </div>
+
+          <!-- Story -->
+          <div class="card" v-if="!isLoading && !noData">
+            <div v-if="hasStory" class="text alignRight md" v-html="storyHtml"></div>
+            <p v-else class="text alignRight emptyMsg">
+              {{ ui.noStory }}
+            </p>
+          </div>
+
+          <div class="card" v-else-if="isLoading">
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+
+          <!-- Verse -->
+          <div class="verse" v-if="!isLoading && !noData">
+            <template v-if="hasVerse">
+              <div class="verse-text">"{{ verseText }}"</div>
+              <div class="verse-ref">{{ verseRef }}</div>
+            </template>
+            <div v-else class="verse-empty">
+              {{ ui.noVerse }}
+            </div>
+          </div>
+
+          <div class="card" v-else-if="isLoading">
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+
+          <!-- Reflection -->
+          <div class="card" v-if="!isLoading && !noData">
+            <div v-if="hasReflection" class="text alignRight">
+              <div class="card-title">{{ ui.reflection }}</div>
+              <div class="md" v-html="reflectionHtml"></div>
+            </div>
+
+            <p v-else class="text alignRight emptyMsg">
+              {{ ui.noReflection }}
+            </p>
+          </div>
+
+          <div class="card" v-else-if="isLoading">
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+
+          <!-- Bible + Agpeya -->
+          <div class="row" v-if="!isLoading && !noData">
+            <!-- Bible card -->
+            <button
+              class="mini-card mini-click"
+              type="button"
+              @click="hasBible && isArabic && openChapter()"
+              :class="{ disabledCard: !hasBible || !isArabic }"
+            >
+              <div class="mini-head mini-head-row">
+                <span>{{ ui.bible }}</span>
+
+                <!-- Icon only in Arabic (because EN inner pages not available) -->
+                <ion-button
+                  v-if="isArabic"
+                  class="audioBtn mkNoCapture"
+                  fill="clear"
+                  size="small"
+                  aria-label="عرض الإصحاح"
+                >
+                  <ion-icon :icon="bookOutline" />
+                </ion-button>
+              </div>
+
+              <template v-if="hasBible">
+                <div class="mini-sub bible-pill">{{ previewLabel }}</div>
+                <div class="mini-title">{{ previewTitle }}</div>
+                <ul class="mini-list">
+                  <li v-for="(item, i) in previewSections" :key="i">{{ item }}</li>
+                </ul>
+              </template>
+
+              <p v-else class="mini-body alignRight emptyMsg">
+                {{ ui.noBible }}
+              </p>
+            </button>
+
+            <!-- Agpeya card -->
+            <div class="mini-card">
+              <div class="mini-head mini-head-row">
+                <span>{{ ui.agbia }}</span>
+
+                <!-- Audio icon ONLY in Arabic -->
+                <ion-button
+                  v-if="isArabic"
+                  class="audioBtn mkNoCapture"
+                  fill="clear"
+                  size="small"
+                  @click.stop="openAgbiaAudio()"
+                  aria-label="صوت الأجبية"
+                >
+                  <ion-icon :icon="volumeHighOutline" :class="{ dimIcon: !hasAnyAgbiaAudio }" />
+                </ion-button>
+              </div>
+
+              <p v-if="hasAgbia" class="mini-body alignRight">
+                {{ agbia }}
+              </p>
+              <p v-else class="mini-body alignRight emptyMsg">
+                {{ ui.noAgbia }}
+              </p>
+
+              <div class="mini-author" v-if="agbia_author && hasAgbia">
+                {{ agbia_author }}
+              </div>
+            </div>
+          </div>
+
+          <div class="row" v-else-if="isLoading">
+            <div class="mini-card">
+              <div class="mini-head skeleton" style="height:44px;width:100%"></div>
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line short"></div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-head skeleton" style="height:44px;width:100%"></div>
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line short"></div>
+            </div>
+          </div>
+
+          <!-- Coptic -->
+          <CopticSection
+  class="mkNoCapture"
   v-if="!isLoading && !noData"
   :dateISO="selectedDateISO"
   :contentBase="CONTENT_BASE"
+  :lang="lang"
 />
-    <!-- التدريب -->
-    <div class="training" v-if="!isLoading && !noData">
-  <div class="training-pill">خطوة لقدام</div>
-  <div v-if="hasTraining" class="training-text alignRight">
-    {{ training }}
-  </div>
-  <div v-else class="training-text alignRight emptyMsg">
-    لا يوجد تدريب محدد لهذا اليوم.
-  </div>
-</div>
 
-    <div class="card" v-else-if="isLoading">
-      <div class="skeleton-line"></div>
-      <div class="skeleton-line short"></div>
-    </div>
-    <div class="space"></div>
-    <StreakRewards class="mkNoCapture"
+
+          <!-- Training -->
+          <div class="training" v-if="!isLoading && !noData">
+            <div class="training-pill">{{ ui.training }}</div>
+
+            <div v-if="hasTraining" class="training-text alignRight">
+              {{ training }}
+            </div>
+            <div v-else class="training-text alignRight emptyMsg">
+              {{ ui.noTraining }}
+            </div>
+          </div>
+
+          <div class="card" v-else-if="isLoading">
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+
+          <div class="space"></div>
+
+          <StreakRewards
+  class="mkNoCapture"
   v-if="!isLoading && !noData && isTodaySelected"
   :todayISO="todayISO()"
+  :lang="lang"
 />
 
 
+          <!-- Stores (Web only) -->
+          <div class="storesSoon mkNoCapture" v-if="isWeb && !isLoading && !noData">
+            <div class="storesTitle">{{ ui.comingSoon }}</div>
 
-<!-- قريباً على المتاجر (Web فقط) -->
-<div class="storesSoon mkNoCapture" v-if="isWeb && !isLoading && !noData">
-  <div class="storesTitle">قريباً  علي</div>
+            <div class="storesRow" aria-label="App Store and Google Play">
+              <a class="storeBadge" href="#" aria-label="App Store (Coming soon)" @click.prevent>
+                <img src="/badges/appstore.png" alt="App Store" />
+              </a>
 
-  <div class="storesRow" aria-label="قريبًا على App Store و Google Play">
-    <a class="storeBadge" href="#" aria-label="App Store (قريبًا)" @click.prevent>
-      <img src="/badges/appstore.png" alt="App Store" />
-    </a>
-
-    <a class="storeBadge" href="#" aria-label="Google Play (قريبًا)" @click.prevent>
-      <img src="/badges/googleplay.png" alt="Google Play" />
-    </a>
-  </div>
-</div>
-
-
-    <div class="space"></div>
-      </div> <!-- end .wrap -->
-    </div>   <!-- end .capture -->
-  
-  
-        <ion-modal :is-open="showDatePicker" @didDismiss="showDatePicker = false">
-          <ion-header>
-            <ion-toolbar>
-              <ion-title>اختر يوم</ion-title>
-              <ion-buttons slot="end">
-                <ion-button @click="showDatePicker = false">إغلاق</ion-button>
-              </ion-buttons>
-            </ion-toolbar>
-          </ion-header>
-  
-          <ion-content class="ion-padding">
-            <ion-datetime
-  presentation="date"
-  :value="selectedDateISO"
-  :max="allowFuture ? undefined : todayISO()"
-  @ionChange="onDateChange"
-/>
-
-            <div class="hint">
-              لا يمكن اختيار أيام بعد تاريخ اليوم.
+              <a class="storeBadge" href="#" aria-label="Google Play (Coming soon)" @click.prevent>
+                <img src="/badges/googleplay.png" alt="Google Play" />
+              </a>
             </div>
-          </ion-content>
-        </ion-modal>
-  
-        <!-- Settings Modal -->
-        <ion-modal :is-open="showSettings" @didDismiss="closeSettings()">
-          <ion-header>
-            <ion-toolbar>
-              <ion-title>الإعدادات</ion-title>
-              <ion-buttons slot="end">
-                <ion-buttons slot="end">
-  <ion-button @click="closeSettings()">إغلاق</ion-button>
-</ion-buttons>
-              </ion-buttons>
-            </ion-toolbar>
-          </ion-header>
-  
-          <ion-content class="ion-padding">
+          </div>
+
+          <div class="space"></div>
+        </div>
+        <!-- end wrap -->
+      </div>
+      <!-- end capture -->
+
+      <!-- Date picker -->
+      <ion-modal :is-open="showDatePicker" @didDismiss="showDatePicker = false">
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>{{ ui.pickDay }}</ion-title>
+            <ion-buttons slot="end">
+              <ion-button @click="showDatePicker = false">{{ ui.close }}</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+
+        <ion-content class="ion-padding">
+          <ion-datetime
+            presentation="date"
+            :value="selectedDateISO"
+            :max="allowFuture ? undefined : todayISO()"
+            @ionChange="onDateChange"
+          />
+          <div class="hint">{{ ui.noFutureHint }}</div>
+        </ion-content>
+      </ion-modal>
+
+      <!-- Settings Modal -->
+      <ion-modal :is-open="showSettings" @didDismiss="closeSettings()">
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>{{ ui.settings }}</ion-title>
+            <ion-buttons slot="end">
+              <ion-button @click="closeSettings()">{{ ui.close }}</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+
+        <ion-content class="ion-padding">
+          <div class="settingsRow">
+            <div class="settingsLabel">{{ ui.darkMode }}</div>
+            <ion-toggle :checked="theme === 'dark'" @ionChange="toggleTheme" />
+          </div>
+
+          <div class="settingsRow">
+            <div class="settingsLabel">{{ ui.fontSize }}</div>
+            <div class="rangeWrap">
+              <ion-range
+                :min="0.85"
+                :max="1.2"
+                :step="0.05"
+                :value="fontScale"
+                @ionChange="onFontScale"
+              />
+              <div class="rangeValue">{{ fontScale.toFixed(2) }}x</div>
+            </div>
+          </div>
+
+          <template v-if="!isWeb">
             <div class="settingsRow">
-              <div class="settingsLabel">الوضع الليلي</div>
-              <ion-toggle :checked="theme === 'dark'" @ionChange="toggleTheme" />
+              <div class="settingsLabel">{{ ui.dailyReminder }}</div>
+              <ion-toggle :checked="reminderEnabled" @ionChange="onReminderToggle" />
             </div>
 
-            <div class="settingsRow">
-  <div class="settingsLabel">حجم الخط</div>
-  <div class="rangeWrap">
-    <ion-range
-      :min="0.85"
-      :max="1.2"
-      :step="0.05"
-      :value="fontScale"
-      @ionChange="onFontScale"
-    />
-    <div class="rangeValue">{{ fontScale.toFixed(2) }}x</div>
-  </div>
-</div>
+            <div class="settingsRow" v-if="reminderEnabled">
+              <div class="settingsLabel">{{ ui.reminderTime }}</div>
+              <input class="timeInput" type="time" v-model="reminderTime" />
+            </div>
 
-            <template v-if="!isWeb">
+            <ion-button expand="block" fill="outline" @click="testReminder">
+              {{ ui.testNotify }}
+            </ion-button>
+          </template>
 
-            <div class="settingsRow" >
-  <div class="settingsLabel">تذكير يومي لقراءة رسالة اليوم</div>
-  <ion-toggle :checked="reminderEnabled" @ionChange="onReminderToggle" />
-</div>
+          <div class="hint">{{ ui.settingsHint }}</div>
+        </ion-content>
+      </ion-modal>
 
-<div class="settingsRow" v-if="reminderEnabled">
-  <div class="settingsLabel">وقت التذكير</div>
-  <input
-    class="timeInput"
-    type="time"
-    v-model="reminderTime"
-  />
-</div>
+      <!-- About Modal (still Arabic for now) -->
+      <ion-modal :is-open="showAbout" @didDismiss="closeAbout()">
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>{{ ui.about }}</ion-title>
+            <ion-buttons slot="end">
+              <ion-button @click="closeAbout()">{{ ui.close }}</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
 
-<ion-button expand="block" fill="outline" @click="testReminder">
-  جرّب إشعار الآن
-</ion-button>
+        <ion-content class="ion-padding">
+  <!-- Arabic -->
+  <section v-if="isArabic" class="about-app" dir="rtl" lang="ar">
+    <h2>عن التطبيق</h2>
+
+    <p>
+      <strong>معاً كل يوم</strong> هو تطبيق روحي كنسي يهدف إلى مساندة الحياة الروحية اليومية
+      من خلال قراءات وتأملات وتدريبات منتظمة تساعد على النمو الروحي والالتصاق بكلمة الله.
+    </p>
+
+    <h3>المصادر والاعتمادات</h3>
+    <ul>
+      <li><strong>إعداد المحتوى:</strong> القمص يوحنا باقي</li>
+      <li><strong>الكتاب المقدس:</strong> الترجمة العربية فان دايك، بإذن من دار الكتاب المقدس</li>
+      <li><strong>السنكسار:</strong> بحسب سنكسار دير السريان</li>
+      <li><strong>التفسير:</strong> موسوعة كنيسة مارمرقس بمصر الجديدة</li>
+    </ul>
+
+    <h3>الجهة التابعة</h3>
+    <p>
+      يُقدَّم هذا التطبيق في إطار الخدمة الروحية، وهو تابع لـ <strong>كنيسة مارمرقس بمصر الجديدة</strong>.
+    </p>
+  </section>
+
+  <!-- English -->
+  <section v-else class="about-app" dir="ltr" lang="en">
+    <h2>About the App</h2>
+
+    <p>
+      <strong>Together Everyday</strong> is a Christian spiritual app that supports daily spiritual life
+      through regular readings, reflections, and practical exercises that help users grow spiritually
+      and remain connected to the Word of God.
+    </p>
+
+    <h3>Sources & Credits</h3>
+    <ul>
+      <li><strong>Content prepared by:</strong> Fr. Yohanna Baky</li>
+      <li><strong>Bible text:</strong> Arabic Van Dyck translation, used with permission from the Bible Society</li>
+      <li><strong>Synaxarium:</strong> According to Deir El-Surian Synaxarium</li>
+      <li><strong>Commentary:</strong> St. Mark Church Encyclopedia (Heliopolis, Cairo)</li>
+    </ul>
+
+    <h3>Affiliation</h3>
+    <p>
+      This app is provided as part of a spiritual ministry and is affiliated with
+      <strong>St. Mark Church, Heliopolis (Egypt)</strong>.
+    </p>
+  </section>
+</ion-content>
+
+      </ion-modal>
+    </ion-content>
+  </ion-page>
 </template>
 
-
-            <div class="hint">
-              الإعدادات بتتخزن تلقائيًا على الجهاز.
-            </div>
-          </ion-content>
-        </ion-modal>
-        <!-- About Modal -->
-        <ion-modal :is-open="showAbout" @didDismiss="closeAbout()">
-          <ion-header>
-      <ion-toolbar>
-        <ion-title>عن التطبيق</ion-title>
-        <ion-buttons slot="end">
-          <ion-buttons slot="end">
-  <ion-button @click="closeAbout()">إغلاق</ion-button>
-</ion-buttons>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-  
-    <ion-content class="ion-padding">
-      <section class="about-app" dir="rtl" lang="ar">
-  <h2>عن التطبيق</h2>
-
-  <p>
-    <strong>معاً كل يوم</strong> هو تطبيق روحي كنسي يهدف إلى مساندة الحياة الروحية اليومية
-    من خلال قراءات وتأملات وتدريبات منتظمة تساعد على النمو الروحي والالتصاق بكلمة الله.
-  </p>
-
-  <h3>المصادر والاعتمادات</h3>
-  <ul>
-    <li><strong>إعداد المحتوى:</strong> القمص يوحنا باقي</li>
-    <li><strong>الكتاب المقدس:</strong> الترجمة العربية فان دايك، بإذن من دار الكتاب المقدس</li>
-    <li><strong>السنكسار:</strong> بحسب سنكسار دير السريان</li>
-    <li><strong>التفسير:</strong> موسوعة كنيسة مارمرقس بمصر الجديدة</li>
-  </ul>
-
-  <h3>الجهة التابعة</h3>
-  <p>
-    يُقدَّم هذا التطبيق في إطار الخدمة الروحية، وهو تابع لـ <strong>كنيسة مارمرقس بمصر الجديدة</strong>.
-  </p>
-</section>
-    </ion-content>
-  </ion-modal>
-  
-      </ion-content>
-    </ion-page>
-  </template>
   
 <script setup lang="ts">
 import {
@@ -428,6 +477,24 @@ const captureRef = ref<HTMLElement | null>(null)
 import { watch } from 'vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+type Lang = 'ar' | 'en'
+const lang = ref<Lang>((localStorage.getItem('mk_lang') as Lang) || 'ar')
+const isArabic = computed(() => lang.value === 'ar')
+const pageDir = computed(() => (isArabic.value ? 'rtl' : 'ltr'))
+
+function setLang(v: Lang) {
+  lang.value = v
+  localStorage.setItem('mk_lang', v)
+
+  // remove lang query if present so it doesn't override later
+  const q = { ...route.query }
+  if ((q as any).lang) delete (q as any).lang
+  router.replace({ query: q })
+
+  const iso = String(selectedDateISO.value).substring(0, 10)
+  loadByDate(iso).catch(console.error)
+}
+
 
 const ionRouter = useIonRouter()
 
@@ -441,6 +508,24 @@ onMounted(() => {
 
 
 const route = useRoute()
+function applyLangFromQueryOnce() {
+  const qLang = typeof route.query.lang === 'string' ? route.query.lang : ''
+  if (qLang === 'en' || qLang === 'ar') {
+    // apply
+    lang.value = qLang as any
+    localStorage.setItem('mk_lang', lang.value)
+
+    // remove from URL so it doesn't "stick"
+    const q = { ...route.query }
+    delete (q as any).lang
+    router.replace({ query: q })
+  }
+}
+
+onMounted(() => {
+  applyLangFromQueryOnce()
+})
+
 const allowFuture = computed(() => route.query.debugFuture === '1')
 const isTodaySelected = computed(() => {
   return String(selectedDateISO.value).substring(0, 10) === todayISO()
@@ -449,11 +534,18 @@ const isTodaySelected = computed(() => {
 const showSettings = ref(false)
 const showAbout = ref(false)
 watch(
+  () => route.query.lang,
+  () => applyLangFromQueryOnce(),
+  { immediate: true }
+)
+
+watch(
   () => route.query.modal,
   (v) => {
     showSettings.value = v === 'settings'
     showAbout.value = v === 'about'
   },
+  
   { immediate: true }
 )
 
@@ -550,13 +642,99 @@ const CONTENT_BASE = Capacitor.isNativePlatform()
 const router = useRouter()
 const isWeb = computed(() => !Capacitor.isNativePlatform())
 
-const SHEET_CSV_URL =
+const SHEET_CSV_URL_AR =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vRzBoz5JKy5BfRIXlo_rOSIYsce_9oXsLG9R07CvC3-MztLmg3vv7EYoNLFdt9YmL21tv8XYevOxedh/pub?gid=0&single=true&output=csv'
+
+const SHEET_CSV_URL_EN =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWXF9eFCtpOgzUaGeiNL4_j7_5naGVewHbW4iwU-l4FqQmv0b_25Snb__igfxess03wAjdJ6A9vThP/pub?gid=0&single=true&output=csv'
+
+  const sheetUrl = computed(() => (lang.value === 'en' ? SHEET_CSV_URL_EN : SHEET_CSV_URL_AR))
 
 // ====== تاريخ اليوم بتوقيت مصر ======
 function todayISO(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' }).format(new Date())
 }
+const ui = computed(() => {
+  if (lang.value === 'en') {
+    return {
+      // Share
+      share: 'Share',
+
+      // Home labels
+      reflection: 'Reflection',
+      bible: 'Bible',
+      agbia: 'Agpeya',
+      training: 'A Step Forward',
+      comingSoon: 'Coming soon on',
+
+      // Empty states
+      noData: 'No data available for this day.',
+      noSaint: 'No Synaxarium for today.',
+      noStory: 'No story for today.',
+      noVerse: 'No verse for today.',
+      noReflection: 'No reflection for today.',
+      noBible: 'No Bible readings for today.',
+      noAgbia: 'No Agpeya reading for today.',
+      noTraining: 'No training for today.',
+
+      // Date picker
+      pickDay: 'Pick a day',
+      close: 'Close',
+      noFutureHint: 'You cannot select days after today.',
+
+      // Settings modal (✅ هذه اللي ناقصة عندك)
+      settings: 'Settings',
+      darkMode: 'Dark mode',
+      fontSize: 'Font size',
+      dailyReminder: 'Daily reminder to read today’s message',
+      reminderTime: 'Reminder time',
+      testNotify: 'Test notification now',
+      settingsHint: 'Settings are saved automatically on this device.',
+
+      // About modal title
+      about: 'About'
+    }
+  }
+
+  return {
+    // Share
+    share: 'مشاركة',
+
+    // Home labels
+    reflection: 'التأمل',
+    bible: 'الكتاب المقدس',
+    agbia: 'الأجبية',
+    training: 'خطوة لقدام',
+    comingSoon: 'قريباً علي',
+
+    // Empty states
+    noData: 'لا توجد بيانات متاحة لهذا اليوم.',
+    noSaint: 'لا يوجد سنكسار لهذا اليوم.',
+    noStory: 'لا توجد قصة لهذا اليوم.',
+    noVerse: 'لا توجد آية محددة لهذا اليوم.',
+    noReflection: 'لا يوجد تأمل لهذا اليوم.',
+    noBible: 'لا توجد قراءات كتاب مقدس مسجَّلة لهذا اليوم.',
+    noAgbia: 'لا توجد قراءة من الأجبية لهذا اليوم.',
+    noTraining: 'لا يوجد تدريب محدد لهذا اليوم.',
+
+    // Date picker
+    pickDay: 'اختر يوم',
+    close: 'إغلاق',
+    noFutureHint: 'لا يمكن اختيار أيام بعد تاريخ اليوم.',
+
+    // Settings modal (✅)
+    settings: 'الإعدادات',
+    darkMode: 'الوضع الليلي',
+    fontSize: 'حجم الخط',
+    dailyReminder: 'تذكير يومي لقراءة رسالة اليوم',
+    reminderTime: 'وقت التذكير',
+    testNotify: 'جرّب إشعار الآن',
+    settingsHint: 'الإعدادات بتتخزن تلقائيًا على الجهاز.',
+
+    // About modal title
+    about: 'عن التطبيق'
+  }
+})
 
 // ====== Theme + Font scale (persist) ======
 type ThemeMode = 'light' | 'dark'
@@ -901,7 +1079,7 @@ agbia_sleep.value = c.agbia_sleep || ''
 }
 // ✅ hydrate from cache before first render
 const initialISO = String(selectedDateISO.value).substring(0, 10)
-const cachedInit = readDayCache(initialISO)
+const cachedInit = readDayCache(cacheKey(initialISO))
 
 if (cachedInit) {
   applyCachedDay(cachedInit)
@@ -978,6 +1156,10 @@ function escapeHtml(s: string) {
 }
 
 // ====== Helpers: normalize row keys (حل مشكلة المسافات/الحروف) ======
+function cacheKey(iso: string) {
+  return `${lang.value}:${String(iso).substring(0, 10)}`
+}
+
 function normalizeKeys(row: any) {
   const out: Record<string, any> = {}
   Object.keys(row || {}).forEach(k => {
@@ -997,12 +1179,14 @@ function pick(row: any, ...keys: string[]) {
 }
 
 // ====== cache rows ======
-const rowsCache = ref<any[] | null>(null)
+const rowsCache = ref<Record<Lang, any[] | null>>({ ar: null, en: null })
+
 
 async function fetchRows() {
-  if (rowsCache.value) return rowsCache.value
+  const key = lang.value
+  if (rowsCache.value[key]) return rowsCache.value[key]!
 
-  const res = await fetch(SHEET_CSV_URL, { cache: 'no-store' })
+  const res = await fetch(sheetUrl.value, { cache: 'no-store' })
   const csv = await res.text()
 
   const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true })
@@ -1010,9 +1194,10 @@ async function fetchRows() {
     .map(r => normalizeKeys(r))
     .filter(r => r.date_iso)
 
-  rowsCache.value = rows
+  rowsCache.value[key] = rows
   return rows
 }
+
 
 async function loadChapterPreview(bookKey: string, chapter: number) {
   try {
@@ -1118,7 +1303,7 @@ async function refreshHomeFromNetwork(targetISO: string) {
 
   applyRow(found)
 
-  writeDayCache(targetISO, {
+  writeDayCache(cacheKey(targetISO), {
     dateISO: targetISO,
     gregorianDate: gregorianDate.value,
     copticDate: copticDate.value,
@@ -1153,7 +1338,8 @@ async function loadByDate(dateISO: string) {
   const targetISO = String(dateISO).trim().substring(0, 10)
 
   // ✅ 1) cache-first (يعرض فوراً)
-  const cached = readDayCache(targetISO)
+  const cached = readDayCache(cacheKey(targetISO))
+
   if (cached) {
     isLoading.value = false
     noData.value = false
@@ -1182,15 +1368,7 @@ async function loadByDate(dateISO: string) {
   }
 }
 
-function openChapter() {
-  const bookKey = bibleBookKey.value || 'Matthew'
-  const ch = bibleChapter.value || 1
-  router.push(`/chapter/${bookKey}/${ch}`)
-}
-function openSaint() {
-  // نستخدم التاريخ الحالي المختار في الهوم علشان الصفحة الجديدة تقرأ نفس الصف من الشيت
-  router.push(`/saint/${selectedDateISO.value}`)
-}
+
 function resolveAgbiaAudioUrl(v: string) {
   if (!v) return ''
   if (/^https?:\/\//i.test(v)) return v
@@ -1198,10 +1376,22 @@ function resolveAgbiaAudioUrl(v: string) {
 }
 
 
+function openChapter() {
+  if (!isArabic.value) return
+  const bookKey = bibleBookKey.value || 'Matthew'
+  const ch = bibleChapter.value || 1
+  router.push(`/chapter/${bookKey}/${ch}`)
+}
+function openSaint() {
+  if (!isArabic.value) return
+  router.push(`/saint/${selectedDateISO.value}`)
+}
 function openAgbiaAudio() {
+  if (!isArabic.value) return
   const iso = String(selectedDateISO.value).substring(0, 10)
   router.push({ path: `/agbia-audio/${iso}` })
 }
+
 
 
 
@@ -1378,7 +1568,7 @@ if (!isWeb.value && reminderEnabled.value) {
 
 .title{ font-size: calc(38px * var(--mk-fontScale)); }
 
-.text{ font-size: calc(25px * var(--mk-fontScale)); }
+.text{ font-size: calc(22px * var(--mk-fontScale)); }
 .emptyMsg{ font-size: calc(18px * var(--mk-fontScale)); }
 
 .verse-text{ font-size: calc(24px * var(--mk-fontScale)); }
@@ -1533,6 +1723,71 @@ if (!isWeb.value && reminderEnabled.value) {
   background: linear-gradient(135deg, #ffd166, #bfa14a);
   color: #1a1400;
 }
+.langBtn{
+  position: absolute;
+  top: -4px;
+  right: 0;
+  opacity: 1;
+  background: rgba(255,255,255,0.60);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  padding: 6px 10px;
+  z-index: 3;
+}
+.langFlag{
+  font-size: 22px;     /* حجم العلم */
+  line-height: 1;
+  display: inline-block;
+}
+
+.langBtn{
+  position: absolute;
+  top: -4px;
+  right: 0;
+  opacity: 1;
+  background: rgba(255,255,255,0.65);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  padding: 6px 8px;
+  z-index: 3;
+}
+
+.home.theme-dark .langBtn{
+  background: rgba(0,0,0,0.35);
+}
+.langFlag{
+  font-size: 22px;     /* حجم العلم */
+  line-height: 1;
+  display: inline-block;
+}
+
+.langBtn{
+  position: absolute;
+  top: -4px;
+  right: 0;
+  opacity: 1;
+  background: rgba(255,255,255,0.65);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  padding: 6px 8px;
+  z-index: 3;
+}
+
+.home.theme-dark .langBtn{
+  background: rgba(0,0,0,0.35);
+}
+
+.home.theme-dark .langBtn{
+  background: rgba(0,0,0,0.30);
+}
+.langTxt{ font-weight: 900; letter-spacing: 0.5px; }
+
+.home.lang-en .text,
+.home.lang-en .mini-body,
+.home.lang-en .mini-list{
+  text-align: left;
+}
+.home.lang-en .alignRight{ text-align: left; }
 
   /* =========================================================
      Cards
@@ -1923,7 +2178,7 @@ if (!isWeb.value && reminderEnabled.value) {
     opacity: 0;
     position: absolute;
     top: -4px;
-    right: 0;
+    right: 160px;
     color: var(--mk-text);
     background: rgba(255,255,255,0.60);
     border-radius: 12px;
@@ -2054,6 +2309,72 @@ if (!isWeb.value && reminderEnabled.value) {
   display: none !important;
 }
 
+/* ============================
+   EN overrides (MUST be last)
+============================ */
+.home.lang-en{
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* أي عنصر كان متثبت له خط عربي → نعمل override في EN */
+.home.lang-en .brand,
+.home.lang-en .title,
+.home.lang-en .mini-head,
+.home.lang-en .storesTitle,
+.home.lang-en .training-pill,
+.home.lang-en .card-title{
+  font-family: "Merriweather", serif !important;
+}
+
+.home.lang-en .dates,
+.home.lang-en .text,
+.home.lang-en .mini-body,
+.home.lang-en .mini-list,
+.home.lang-en .training-text,
+.home.lang-en .verse-text,
+.home.lang-en .verse-ref,
+.home.lang-en .announcement-card,
+.home.lang-en .settingsLabel,
+.home.lang-en .hint{
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif !important;
+}
+
+/* Coptic meaning in EN */
+.home.lang-en :deep(.coptic .meaning-word){
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif !important;
+  font-weight: 700;
+}
+
+/* EN alignment */
+.home.lang-en .alignRight{ text-align: left; }
+.home.lang-en .mini-list{ text-align: left; }
+.home.lang-en .mini-list li{
+  padding-right: 0;
+  padding-left: 18px;
+}
+.home.lang-en .mini-list li::before{
+  right: auto;
+  left: 0;
+}
+
+
+/* Titles can use Merriweather */
+.home.lang-en .coptic-title,
+.home.lang-en .srTitle,
+.home.lang-en .card-title {
+  font-family: "Merriweather", serif;
+}
+
+/* Fine-tuning some elements */
+.home.lang-en .meaning-word {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+}
+
+.home.lang-en .srHeroTitle {
+  font-family: "Merriweather", serif;
+  font-weight: 700;
+}
 
   /* =========================================================
      Mobile

@@ -1,26 +1,30 @@
 <template>
-  <section class="srCard mkNoCapture" :class="{ srDonePulse: justToggled }" dir="rtl">
+  <section
+    class="srCard mkNoCapture"
+    :class="{ srDonePulse: justToggled }"
+    :dir="dir"
+    :lang="lang"
+  >
     <!-- Header -->
     <header class="srHeader">
       <div class="srTitleWrap">
-        <div class="srTitle">سلسلة القراءة</div>
-        <div class="srSubtitle">علّم اليوم بعد ما تخلص قراءة رسالة اليوم</div>
+        <div class="srTitle">{{ ui.title }}</div>
+        <div class="srSubtitle">{{ ui.subtitle }}</div>
       </div>
 
       <div class="srHeaderBtns">
         <ion-button
-  v-if="canSoftReset"
-  size="small"
-  fill="clear"
-  class="srRecoverBtn"
-  @click="softResetToPrevMilestone"
->
-  <span class="srRecoverInner">
-    <span class="srRecoverIcon">♻️</span>
-    <span class="srRecoverText">ارجع لآخر محطة</span>
-  </span>
-</ion-button>
-
+          v-if="canSoftReset"
+          size="small"
+          fill="clear"
+          class="srRecoverBtn"
+          @click="softResetToPrevMilestone"
+        >
+          <span class="srRecoverInner">
+            <span class="srRecoverIcon">♻️</span>
+            <span class="srRecoverText">{{ ui.recover }}</span>
+          </span>
+        </ion-button>
 
         <ion-button
           size="small"
@@ -31,35 +35,36 @@
         >
           <span class="btnInner">
             <span class="btnIcon">{{ readToday ? "✓" : "♰" }}</span>
-            <span class="btnText">{{ readToday ? "شيل علامة اليوم" : "علّم إنك قرأت اليوم" }}</span>
+            <span class="btnText">
+              {{ readToday ? ui.unmarkToday : ui.markToday }}
+            </span>
           </span>
         </ion-button>
       </div>
     </header>
 
-  <!-- Hero -->
-<div class="srHero" :class="{ on: displayedStreak > 0 }">
-  <div class="srHeroIcon">{{ displayedStreak === 0 ? "✨" : "🔥" }}</div>
+    <!-- Hero -->
+    <div class="srHero" :class="{ on: displayedStreak > 0 }">
+      <div class="srHeroIcon">{{ displayedStreak === 0 ? "✨" : "🔥" }}</div>
 
-  <div class="srHeroText">
-    <div class="srHeroMain">
-      <span class="srHeroTitle">{{ spiritualMessage.title }}</span>
+      <div class="srHeroText">
+        <div class="srHeroMain">
+          <span class="srHeroTitle">{{ spiritualMessage.title }}</span>
 
-      <span class="srHeroLabel">سلسلة الأيام:</span>
-      <span class="srHeroNum">{{ displayedStreak }}</span>
-      <span class="srHeroUnit">يوم</span>
+          <span class="srHeroLabel">{{ ui.streakLabel }}</span>
+          <span class="srHeroNum">{{ displayedStreak }}</span>
+          <span class="srHeroUnit">{{ ui.dayUnit }}</span>
+        </div>
+
+        <div class="srHeroSub">{{ spiritualMessage.text }}</div>
+      </div>
     </div>
-
-    <div class="srHeroSub">{{ spiritualMessage.text }}</div>
-  </div>
-</div>
-
 
     <!-- Week -->
     <div class="srSection">
       <div class="srSectionHead">
-        <div class="srSectionTitle">أيام الأسبوع</div>
-        <div class="srSectionHint">كل 7 أيام = 👑</div>
+        <div class="srSectionTitle">{{ ui.weekTitle }}</div>
+        <div class="srSectionHint">{{ ui.weekHint }}</div>
       </div>
 
       <div class="srWeekGrid" :class="{ pop: weekPop }">
@@ -69,7 +74,7 @@
           type="button"
           class="srDay"
           :class="{ on: i <= crossesShown }"
-          aria-label="يوم من الأسبوع"
+          :aria-label="ui.weekDayAria"
         >
           <span class="srDayIcon">♰</span>
         </button>
@@ -81,14 +86,14 @@
       <div class="srRows">
         <div class="srRow">
           <div class="srRowTop">
-            <div class="srRowLabel">مكافآت أسبوعية</div>
+            <div class="srRowLabel">{{ ui.weeklyRewards }}</div>
             <div class="srCountChip">
               <span class="srChipNum">{{ weeksLabel }}</span>
               <span class="srChipIcon">👑</span>
             </div>
           </div>
 
-          <div class="srIconsScroll" :class="{ pop: rewardsPop }" aria-label="أكاليل">
+          <div class="srIconsScroll" :class="{ pop: rewardsPop }" :aria-label="ui.crownsAria">
             <span v-for="i in weeksShown" :key="'w' + i" class="srRewardIcon">👑</span>
             <span v-if="weeks === 0" class="srMuted">—</span>
             <span v-if="weeks > 12" class="srMore">+{{ weeks - 12 }}</span>
@@ -98,7 +103,8 @@
         <div class="srRow">
           <div class="srRowTop">
             <div class="srRowLabel">
-              مكافآت شهرية <span class="srMiniNote">⭐ كل 4 أسابيع</span>
+              {{ ui.monthlyRewards }}
+              <span class="srMiniNote">{{ ui.monthlyNote }}</span>
             </div>
             <div class="srCountChip soft">
               <span class="srChipNum">{{ monthsLabel }}</span>
@@ -106,7 +112,7 @@
             </div>
           </div>
 
-          <div class="srIconsScroll" :class="{ pop: rewardsPop }" aria-label="نجوم">
+          <div class="srIconsScroll" :class="{ pop: rewardsPop }" :aria-label="ui.starsAria">
             <span v-for="i in monthsShown" :key="'m' + i" class="srRewardIcon">⭐</span>
             <span v-if="months === 0" class="srMuted">—</span>
             <span v-if="months > 12" class="srMore">+{{ months - 12 }}</span>
@@ -118,32 +124,32 @@
     <!-- Milestones -->
     <div class="srSection">
       <div class="srSectionHead">
-        <div class="srSectionTitle">إنجازات كبيرة</div>
-        <div class="srSectionHint">أهداف بعيدة…</div>
+        <div class="srSectionTitle">{{ ui.milestonesTitle }}</div>
+        <div class="srSectionHint">{{ ui.milestonesHint }}</div>
       </div>
 
       <div class="srMilestones">
         <div class="srMilestone" :class="{ achieved: rewards.threeMonths }">
           <div class="srMilIcon">🕯️</div>
-          <div class="srMilText">3 شهور</div>
+          <div class="srMilText">{{ ui.threeMonths }}</div>
           <div class="srMilState">
-            <span v-if="rewards.threeMonths">اتحقق ✅</span><span v-else>لسه 🔒</span>
+            <span v-if="rewards.threeMonths">{{ ui.achieved }}</span><span v-else>{{ ui.locked }}</span>
           </div>
         </div>
 
         <div class="srMilestone" :class="{ achieved: rewards.sixMonths }">
           <div class="srMilIcon">✨</div>
-          <div class="srMilText">6 شهور</div>
+          <div class="srMilText">{{ ui.sixMonths }}</div>
           <div class="srMilState">
-            <span v-if="rewards.sixMonths">اتحقق ✅</span><span v-else>لسه 🔒</span>
+            <span v-if="rewards.sixMonths">{{ ui.achieved }}</span><span v-else>{{ ui.locked }}</span>
           </div>
         </div>
 
         <div class="srMilestone" :class="{ achieved: rewards.year }">
           <div class="srMilIcon">⛪</div>
-          <div class="srMilText">سنة</div>
+          <div class="srMilText">{{ ui.oneYear }}</div>
           <div class="srMilState">
-            <span v-if="rewards.year">اتحقق ✅</span><span v-else>لسه 🔒</span>
+            <span v-if="rewards.year">{{ ui.achieved }}</span><span v-else>{{ ui.locked }}</span>
           </div>
         </div>
       </div>
@@ -152,15 +158,15 @@
     <!-- Days list -->
     <div class="srSection">
       <div class="srSectionHead">
-        <div class="srSectionTitle">سجل الأيام</div>
-        <div class="srSectionHint">آخر علامات</div>
+        <div class="srSectionTitle">{{ ui.daysLogTitle }}</div>
+        <div class="srSectionHint">{{ ui.daysLogHint }}</div>
       </div>
 
       <div class="srChips">
         <span v-for="d in recentDays" :key="d" class="srChip" :class="{ on: d === effectiveTodayISO }">
           {{ formatDay(d) }}
         </span>
-        <span v-if="recentDays.length === 0" class="srMuted">مفيش أيام متسجلة لسه</span>
+        <span v-if="recentDays.length === 0" class="srMuted">{{ ui.noDaysYet }}</span>
       </div>
     </div>
 
@@ -169,16 +175,19 @@
       <div class="srDebugTitle">⚙️ Debug</div>
 
       <div class="srDebugRow">
-        <div class="srDebugLabel">اليوم المستخدم:</div>
-        <div class="srDebugValue">{{ effectiveTodayISO }} <span v-if="fakeToday" class="srDebugHint">(وهمي)</span></div>
+        <div class="srDebugLabel">{{ ui.debugTodayLabel }}</div>
+        <div class="srDebugValue">
+          {{ effectiveTodayISO }}
+          <span v-if="fakeToday" class="srDebugHint">{{ ui.debugFake }}</span>
+        </div>
       </div>
 
       <div class="srDebugBtns">
-        <ion-button size="small" fill="outline" @click="resetFakeToday">اليوم الحقيقي</ion-button>
-        <ion-button size="small" fill="outline" @click="shiftFakeDay(-1)">اليوم = أمس</ion-button>
-        <ion-button size="small" fill="outline" @click="shiftFakeDay(1)">اليوم = بكرة</ion-button>
-        <ion-button size="small" fill="outline" @click="shiftFakeDay(-7)">-7 أيام</ion-button>
-        <ion-button size="small" fill="outline" @click="shiftFakeDay(7)">+7 أيام</ion-button>
+        <ion-button size="small" fill="outline" @click="resetFakeToday">{{ ui.debugRealToday }}</ion-button>
+        <ion-button size="small" fill="outline" @click="shiftFakeDay(-1)">{{ ui.debugYesterday }}</ion-button>
+        <ion-button size="small" fill="outline" @click="shiftFakeDay(1)">{{ ui.debugTomorrow }}</ion-button>
+        <ion-button size="small" fill="outline" @click="shiftFakeDay(-7)">{{ ui.debugMinus7 }}</ion-button>
+        <ion-button size="small" fill="outline" @click="shiftFakeDay(7)">{{ ui.debugPlus7 }}</ion-button>
       </div>
 
       <div class="srDebugBtns" style="margin-top:10px">
@@ -186,337 +195,381 @@
         <ion-button size="small" fill="outline" @click="seedStreak(14)">14</ion-button>
         <ion-button size="small" fill="outline" @click="seedStreak(21)">21</ion-button>
         <ion-button size="small" fill="outline" @click="seedStreak(28)">28 (⭐)</ion-button>
-        <ion-button size="small" fill="outline" @click="seedStreak(90)">90 (3 شهور)</ion-button>
-        <ion-button size="small" fill="outline" @click="seedStreak(180)">180 (6 شهور)</ion-button>
-        <ion-button size="small" fill="outline" @click="seedStreak(365)">365 (سنة)</ion-button>
-        <ion-button size="small" color="danger" @click="resetAll">مسح الكل</ion-button>
+        <ion-button size="small" fill="outline" @click="seedStreak(90)">90</ion-button>
+        <ion-button size="small" fill="outline" @click="seedStreak(180)">180</ion-button>
+        <ion-button size="small" fill="outline" @click="seedStreak(365)">365</ion-button>
+        <ion-button size="small" color="danger" @click="resetAll">{{ ui.debugResetAll }}</ion-button>
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-  import { IonButton } from "@ionic/vue";
-  import { ref, onMounted, computed, watch } from "vue";
-  import { useRoute } from "vue-router";
-  
-  import {
-    getReadDays,
-    addReadDay,
-    removeReadDay,
-    setDebugReadDays,
-    clearReadDays,
-  } from "@/utils/streakStore";
-  
-  import { computeStreak, computeRewards } from "@/utils/streakLogic";
-  import { getStreakMeta, setStreakMeta, type StreakMeta } from "@/utils/streakMetaStore";
-  
-  const props = defineProps<{ todayISO: string }>();
-  
-  const route = useRoute();
-  const isDebug = computed(() => route.query.debug === "1");
-  
-  /** Fake today (debug) */
-  const fakeToday = ref<string | null>(null);
-  const effectiveTodayISO = computed(() => fakeToday.value ?? props.todayISO);
-  
-  /** helpers */
-  function pad(n: number) { return String(n).padStart(2, "0"); }
-  function addDaysISO(iso: string, n: number) {
-    const d = new Date(`${iso}T00:00:00`);
-    d.setDate(d.getDate() + n);
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  }
-  function diffDaysISO(aISO: string, bISO: string) {
-    const a = new Date(`${aISO}T00:00:00`).getTime();
-    const b = new Date(`${bISO}T00:00:00`).getTime();
-    return Math.round((a - b) / (1000 * 60 * 60 * 24));
-  }
-  
-  function shiftFakeDay(delta: number) {
-    const base = fakeToday.value ?? props.todayISO;
-    fakeToday.value = addDaysISO(base, delta);
-  }
-  function resetFakeToday() { fakeToday.value = null; }
-  
-  /** Milestones */
-  const MILESTONES = [7, 14, 21, 28, 90, 180, 365];
-  function nearestMilestoneBelow(n: number) {
-    const eligible = MILESTONES.filter(m => m <= n);
-    return eligible.length ? eligible[eligible.length - 1] : 0;
-  }
-  
-  /** state */
-  const readDays = ref<string[]>([]);
-  const readToday = computed(() => readDays.value.includes(effectiveTodayISO.value));
-  
-  const baseStreak = ref(0);
-  const displayedStreak = ref(0);
-  const rewards = ref(computeRewards(0));
-  
-  const recentDays = computed(() => [...readDays.value].sort().reverse().slice(0, 14));
-  function formatDay(iso: string) {
-    const d = new Date(`${iso}T00:00:00`);
-    return `${d.getDate()}/${d.getMonth() + 1}`;
-  }
-  
-  /**
-   * meta
-   * bankMilestone: أعلى milestone وصلنا له قبل كده
-   * softResetState:
-   *  - armed: التعويض جاهز ومؤقت (يعرض base لو streak=0)
-   *  - running: بعد أول قراءة، هنضيف base على streak الجديد
-   * softResetBase: قيمة milestone اللي بنكمّل منها
-   * softResetUntilISO: تاريخ انتهاء armed (اليوم + 1) عشان ما يبانش التعويض للأبد
-   */
-  type LocalMeta = StreakMeta & {
-    bankMilestone?: number;
-    softResetBase?: number;
-    softResetState?: "armed" | "running";
-    softResetUntilISO?: string;
-  };
-  
-  const meta = ref<LocalMeta>({});
-  
-  async function persistMeta() {
-    await setStreakMeta(meta.value);
-  }
-  
-  /** Soft reset is considered "active" if we have base + state */
-  const softResetActive = computed(() => {
-    const base = meta.value.softResetBase ?? 0;
-    const state = meta.value.softResetState;
-    if (!base || !state) return false;
-  
-    if (state === "armed") {
-      const until = meta.value.softResetUntilISO;
-      if (!until) return false;
-      return diffDaysISO(until, effectiveTodayISO.value) >= 0; // today <= until
-    }
-  
-    // running
-    return true;
-  });
-  
-  /** Animations */
-  const justToggled = ref(false);
-  const weekPop = ref(false);
-  const rewardsPop = ref(false);
-  function pulseFlag(flag: { value: boolean }, ms = 420) {
-    flag.value = true;
-    window.setTimeout(() => (flag.value = false), ms);
-  }
-  
-  /** recompute */
-  function recompute() {
-    // streak for "today"
-    const s = computeStreak(readDays.value, effectiveTodayISO.value);
-    baseStreak.value = s.streak;
-  
-    // 1) Update bankMilestone whenever we earn a higher milestone (from REAL streak)
-    const bank = meta.value.bankMilestone ?? 0;
-    const earned = nearestMilestoneBelow(baseStreak.value);
-    if (earned > bank) {
-      meta.value.bankMilestone = earned;
-      setStreakMeta(meta.value); // fire-and-forget
-    }
-  
-    // 2) Clear expired "armed" if time passed and still no streak
-    if (meta.value.softResetState === "armed") {
-      const until = meta.value.softResetUntilISO;
-      const expired = !until || diffDaysISO(until, effectiveTodayISO.value) < 0;
-      if (expired && baseStreak.value === 0) {
-        delete meta.value.softResetBase;
-        delete meta.value.softResetState;
-        delete meta.value.softResetUntilISO;
-        setStreakMeta(meta.value); // fire-and-forget
-      }
-    }
-  
-    // 3) If we were "running" and streak broke again => stop it completely
-    // so next time it shows 0 and the reset button can appear again
-    if (meta.value.softResetState === "running" && baseStreak.value === 0) {
-      delete meta.value.softResetBase;
-      delete meta.value.softResetState;
-      delete meta.value.softResetUntilISO;
-      setStreakMeta(meta.value); // fire-and-forget
-    }
-  
-    // 4) DISPLAY LOGIC
-    const state = meta.value.softResetState;
-    const softBase = meta.value.softResetBase ?? 0;
-  
-    if (state === "armed") {
-      const until = meta.value.softResetUntilISO;
-      const ok = !!until && diffDaysISO(until, effectiveTodayISO.value) >= 0;
-  
-      // show base only while broken (streak=0) and within window
-      displayedStreak.value = (ok && baseStreak.value === 0) ? softBase : baseStreak.value;
-    } else if (state === "running") {
-      // add base while connected
-      displayedStreak.value = baseStreak.value > 0 ? (softBase + baseStreak.value) : 0;
-    } else {
-      displayedStreak.value = baseStreak.value;
-    }
-  
-    rewards.value = computeRewards(displayedStreak.value);
-  }
-  const spiritualMessage = computed(() => {
-  // لا يوجد أي قراءة
-  if (displayedStreak.value === 0 && !canSoftReset.value) {
+import { IonButton } from "@ionic/vue";
+import { ref, onMounted, computed, watch } from "vue";
+import { useRoute } from "vue-router";
+
+import {
+  getReadDays,
+  addReadDay,
+  removeReadDay,
+  clearReadDays,
+} from "@/utils/streakStore";
+
+import { computeStreak, computeRewards } from "@/utils/streakLogic";
+import { getStreakMeta, setStreakMeta, type StreakMeta } from "@/utils/streakMetaStore";
+
+const props = defineProps<{ todayISO: string; lang: "ar" | "en" }>();
+
+const isArabic = computed(() => props.lang !== "en");
+const dir = computed(() => (isArabic.value ? "rtl" : "ltr"));
+const lang = computed(() => (isArabic.value ? "ar" : "en"));
+
+const ui = computed(() => {
+  if (!isArabic.value) {
     return {
-      title: "✨ ابدأ النهارده",
-      text: "كل يوم جديد هو خطوة لقدام."
+      title: "Reading Streak",
+      subtitle: "Mark after you finish reading today's message",
+      recover: "Return to last milestone",
+      markToday: "Mark that you read today",
+      unmarkToday: "Remove today's mark",
+
+      streakLabel: "Streak days:",
+      dayUnit: "day",
+      weekTitle: "Week days",
+      weekHint: "Every 7 days = 👑",
+      weekDayAria: "A day in the week",
+
+      weeklyRewards: "Weekly rewards",
+      monthlyRewards: "Monthly rewards",
+      monthlyNote: "⭐ every 4 weeks",
+      crownsAria: "Crowns",
+      starsAria: "Stars",
+
+      milestonesTitle: "Big milestones",
+      milestonesHint: "Long-term goals…",
+      threeMonths: "3 months",
+      sixMonths: "6 months",
+      oneYear: "1 year",
+      achieved: "Achieved ✅",
+      locked: "Locked 🔒",
+
+      daysLogTitle: "Days log",
+      daysLogHint: "Recent marks",
+      noDaysYet: "No days recorded yet",
+
+      debugTodayLabel: "Effective today:",
+      debugFake: "(fake)",
+      debugRealToday: "Real today",
+      debugYesterday: "Today = yesterday",
+      debugTomorrow: "Today = tomorrow",
+      debugMinus7: "-7 days",
+      debugPlus7: "+7 days",
+      debugResetAll: "Clear all",
     };
   }
 
-  // السلسلة مكسورة و reset متاح
-  if (displayedStreak.value === 0 && canSoftReset.value) {
-    return {
-      title: "✨ لا تيأس",
-      text: "رجوعك اهم من سقوتك"
-    };
-  }
-
-  // بعد الضغط على Soft Reset (قبل القراءة)
-  if ((meta.value.softResetBase ?? 0) > 0 && baseStreak.value === 0) {
-    return {
-      title: "🕯️رجوعك النهاردة اهم خطوة",
-      text: "اللي بنيته ما ضاعش… كمّل وربنا هيساعدك."
-    };
-  }
-
-  // أول قراءة بعد reset
-  if ((meta.value.softResetBase ?? 0) > 0 && baseStreak.value === 1) {
-    return {
-      title: "🌿 ربنا قبل رجوعك",
-      text: "مش مهم البداية… المهم الاستمرار."
-    };
-  }
-
-  // السلسلة شغالة طبيعي
   return {
     title: "سلسلة القراءة",
-    text: "استمر كل يوم خطوة جديدة مع ربنا"
+    subtitle: "علّم اليوم بعد ما تخلص قراءة رسالة اليوم",
+    recover: "ارجع لآخر محطة",
+    markToday: "علّم إنك قرأت اليوم",
+    unmarkToday: "شيل علامة اليوم",
+
+    streakLabel: "سلسلة الأيام:",
+    dayUnit: "يوم",
+    weekTitle: "أيام الأسبوع",
+    weekHint: "كل 7 أيام = 👑",
+    weekDayAria: "يوم من الأسبوع",
+
+    weeklyRewards: "مكافآت أسبوعية",
+    monthlyRewards: "مكافآت شهرية",
+    monthlyNote: "⭐ كل 4 أسابيع",
+    crownsAria: "أكاليل",
+    starsAria: "نجوم",
+
+    milestonesTitle: "إنجازات كبيرة",
+    milestonesHint: "أهداف بعيدة…",
+    threeMonths: "3 شهور",
+    sixMonths: "6 شهور",
+    oneYear: "سنة",
+    achieved: "اتحقق ✅",
+    locked: "لسه 🔒",
+
+    daysLogTitle: "سجل الأيام",
+    daysLogHint: "آخر علامات",
+    noDaysYet: "مفيش أيام متسجلة لسه",
+
+    debugTodayLabel: "اليوم المستخدم:",
+    debugFake: "(وهمي)",
+    debugRealToday: "اليوم الحقيقي",
+    debugYesterday: "اليوم = أمس",
+    debugTomorrow: "اليوم = بكرة",
+    debugMinus7: "-7 أيام",
+    debugPlus7: "+7 أيام",
+    debugResetAll: "مسح الكل",
   };
 });
 
-  /** UI derived */
-  const crossesShown = computed(() => {
-    const c = Number((rewards.value as any).crossesThisWeek ?? 0);
-    if (displayedStreak.value > 0 && c === 0) return 7;
-    return c;
-  });
-  const weeks = computed(() => Number((rewards.value as any).fullWeeks ?? 0));
-  const months = computed(() => Number((rewards.value as any).fullMonths ?? 0));
-  const weeksLabel = computed(() => (weeks.value >= 50 ? "50+" : String(weeks.value)));
-  const monthsLabel = computed(() => (months.value >= 50 ? "50+" : String(months.value)));
-  const weeksShown = computed(() => Math.min(weeks.value, 12));
-  const monthsShown = computed(() => Math.min(months.value, 12));
-  
-  /**
-   * canSoftReset:
-   * - اليوم مش متعلم
-   * - streak اليوم = 0 (مكسور)
-   * - عندي bankMilestone
-   * - ومش already armed/running (يعني مفيش reset شغال)
-   */
-  const canSoftReset = computed(() => {
-    if (readToday.value) return false;
-    if (!readDays.value.length) return false;
-  
-    const sToday = computeStreak(readDays.value, effectiveTodayISO.value).streak;
-    if (sToday > 0) return false;
-  
-    if (softResetActive.value) return false; // hide after pressing reset
-  
-    return (meta.value.bankMilestone ?? 0) > 0;
-  });
-  
-  async function softResetToPrevMilestone() {
-    const bank = meta.value.bankMilestone ?? 0;
-    if (bank <= 0) return;
-  
-    // armed for today + tomorrow
-    meta.value.softResetBase = bank;
-    meta.value.softResetState = "armed";
-    meta.value.softResetUntilISO = addDaysISO(effectiveTodayISO.value, 1);
-  
-    await persistMeta();
-    recompute();
-    pulseFlag(rewardsPop, 520);
-    pulseFlag(weekPop, 520);
+const route = useRoute();
+const isDebug = computed(() => route.query.debug === "1");
+
+/** Fake today (debug) */
+const fakeToday = ref<string | null>(null);
+const effectiveTodayISO = computed(() => fakeToday.value ?? props.todayISO);
+
+/** helpers */
+function pad(n: number) { return String(n).padStart(2, "0"); }
+function addDaysISO(iso: string, n: number) {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setDate(d.getDate() + n);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+function diffDaysISO(aISO: string, bISO: string) {
+  const a = new Date(`${aISO}T00:00:00`).getTime();
+  const b = new Date(`${bISO}T00:00:00`).getTime();
+  return Math.round((a - b) / (1000 * 60 * 60 * 24));
+}
+
+function shiftFakeDay(delta: number) {
+  const base = fakeToday.value ?? props.todayISO;
+  fakeToday.value = addDaysISO(base, delta);
+}
+function resetFakeToday() { fakeToday.value = null; }
+
+/** Milestones */
+const MILESTONES = [7, 14, 21, 28, 90, 180, 365];
+function nearestMilestoneBelow(n: number) {
+  const eligible = MILESTONES.filter(m => m <= n);
+  return eligible.length ? eligible[eligible.length - 1] : 0;
+}
+
+/** state */
+const readDays = ref<string[]>([]);
+const readToday = computed(() => readDays.value.includes(effectiveTodayISO.value));
+
+const baseStreak = ref(0);
+const displayedStreak = ref(0);
+const rewards = ref(computeRewards(0));
+
+const recentDays = computed(() => [...readDays.value].sort().reverse().slice(0, 14));
+function formatDay(iso: string) {
+  const d = new Date(`${iso}T00:00:00`);
+  // EN: mm/dd , AR: dd/mm
+  if (!isArabic.value) return `${d.getMonth() + 1}/${d.getDate()}`;
+  return `${d.getDate()}/${d.getMonth() + 1}`;
+}
+
+type LocalMeta = StreakMeta & {
+  bankMilestone?: number;
+  softResetBase?: number;
+  softResetState?: "armed" | "running";
+  softResetUntilISO?: string;
+};
+
+const meta = ref<LocalMeta>({});
+
+async function persistMeta() {
+  await setStreakMeta(meta.value);
+}
+
+const softResetActive = computed(() => {
+  const base = meta.value.softResetBase ?? 0;
+  const state = meta.value.softResetState;
+  if (!base || !state) return false;
+
+  if (state === "armed") {
+    const until = meta.value.softResetUntilISO;
+    if (!until) return false;
+    return diffDaysISO(until, effectiveTodayISO.value) >= 0;
   }
-  
-  /** load */
-  async function load() {
-    readDays.value = await getReadDays();
-    meta.value = (await getStreakMeta()) || {};
-    recompute();
+  return true;
+});
+
+/** Animations */
+const justToggled = ref(false);
+const weekPop = ref(false);
+const rewardsPop = ref(false);
+function pulseFlag(flag: { value: boolean }, ms = 420) {
+  flag.value = true;
+  window.setTimeout(() => (flag.value = false), ms);
+}
+
+/** recompute */
+function recompute() {
+  const s = computeStreak(readDays.value, effectiveTodayISO.value);
+  baseStreak.value = s.streak;
+
+  const bank = meta.value.bankMilestone ?? 0;
+  const earned = nearestMilestoneBelow(baseStreak.value);
+  if (earned > bank) {
+    meta.value.bankMilestone = earned;
+    setStreakMeta(meta.value);
   }
-  
-  async function toggleReadToday() {
-    const beforeWeeks = weeks.value;
-    const beforeMonths = months.value;
-    const beforeCrosses = crossesShown.value;
-  
-    if (readToday.value) {
-      readDays.value = await removeReadDay(effectiveTodayISO.value);
-    } else {
-      readDays.value = await addReadDay(effectiveTodayISO.value);
-    }
-  
-    recompute();
-    pulseFlag(justToggled);
-  
-    if (crossesShown.value !== beforeCrosses) pulseFlag(weekPop);
-    if (weeks.value > beforeWeeks || months.value > beforeMonths) pulseFlag(rewardsPop, 520);
-  
-    // if we were armed and user started reading => switch to running
-    if (meta.value.softResetState === "armed" && (meta.value.softResetBase ?? 0) > 0 && baseStreak.value > 0) {
-      meta.value.softResetState = "running";
+
+  if (meta.value.softResetState === "armed") {
+    const until = meta.value.softResetUntilISO;
+    const expired = !until || diffDaysISO(until, effectiveTodayISO.value) < 0;
+    if (expired && baseStreak.value === 0) {
+      delete meta.value.softResetBase;
+      delete meta.value.softResetState;
       delete meta.value.softResetUntilISO;
-      await persistMeta();
-      recompute();
+      setStreakMeta(meta.value);
     }
   }
-  
-  /** debug seed */
-  async function seedStreak(n: number) {
-  // clear existing
-  await clearReadDays();
 
-  // add last N days including today
-  for (let i = 0; i < n; i++) {
-    await addReadDay(addDaysISO(effectiveTodayISO.value, -i));
+  if (meta.value.softResetState === "running" && baseStreak.value === 0) {
+    delete meta.value.softResetBase;
+    delete meta.value.softResetState;
+    delete meta.value.softResetUntilISO;
+    setStreakMeta(meta.value);
   }
 
-  // optionally reset meta
-  meta.value = {};
+  const state = meta.value.softResetState;
+  const softBase = meta.value.softResetBase ?? 0;
+
+  if (state === "armed") {
+    const until = meta.value.softResetUntilISO;
+    const ok = !!until && diffDaysISO(until, effectiveTodayISO.value) >= 0;
+    displayedStreak.value = (ok && baseStreak.value === 0) ? softBase : baseStreak.value;
+  } else if (state === "running") {
+    displayedStreak.value = baseStreak.value > 0 ? (softBase + baseStreak.value) : 0;
+  } else {
+    displayedStreak.value = baseStreak.value;
+  }
+
+  rewards.value = computeRewards(displayedStreak.value);
+}
+
+/** hero message bilingual */
+const spiritualMessage = computed(() => {
+  if (!isArabic.value) {
+    if (displayedStreak.value === 0 && !canSoftReset.value) {
+      return { title: "✨ Start today", text: "Every new day is a step forward." };
+    }
+    if (displayedStreak.value === 0 && canSoftReset.value) {
+      return { title: "✨ Don't give up", text: "Coming back matters more than falling." };
+    }
+    if ((meta.value.softResetBase ?? 0) > 0 && baseStreak.value === 0) {
+      return { title: "🕯️ Coming back matters", text: "What you built isn't lost… keep going." };
+    }
+    if ((meta.value.softResetBase ?? 0) > 0 && baseStreak.value === 1) {
+      return { title: "🌿 God welcomes your return", text: "Not the start—it's the staying." };
+    }
+    return { title: "Reading Streak", text: "Keep going—one step with God each day." };
+  }
+
+  if (displayedStreak.value === 0 && !canSoftReset.value) {
+    return { title: "✨ ابدأ النهارده", text: "كل يوم جديد هو خطوة لقدام." };
+  }
+  if (displayedStreak.value === 0 && canSoftReset.value) {
+    return { title: "✨ لا تيأس", text: "رجوعك اهم من سقوتك" };
+  }
+  if ((meta.value.softResetBase ?? 0) > 0 && baseStreak.value === 0) {
+    return { title: "🕯️رجوعك النهاردة اهم خطوة", text: "اللي بنيته ما ضاعش… كمّل وربنا هيساعدك." };
+  }
+  if ((meta.value.softResetBase ?? 0) > 0 && baseStreak.value === 1) {
+    return { title: "🌿 ربنا قبل رجوعك", text: "مش مهم البداية… المهم الاستمرار." };
+  }
+  return { title: "سلسلة القراءة", text: "استمر كل يوم خطوة جديدة مع ربنا" };
+});
+
+/** UI derived */
+const crossesShown = computed(() => {
+  const c = Number((rewards.value as any).crossesThisWeek ?? 0);
+  if (displayedStreak.value > 0 && c === 0) return 7;
+  return c;
+});
+const weeks = computed(() => Number((rewards.value as any).fullWeeks ?? 0));
+const months = computed(() => Number((rewards.value as any).fullMonths ?? 0));
+const weeksLabel = computed(() => (weeks.value >= 50 ? "50+" : String(weeks.value)));
+const monthsLabel = computed(() => (months.value >= 50 ? "50+" : String(months.value)));
+const weeksShown = computed(() => Math.min(weeks.value, 12));
+const monthsShown = computed(() => Math.min(months.value, 12));
+
+const canSoftReset = computed(() => {
+  if (readToday.value) return false;
+  if (!readDays.value.length) return false;
+
+  const sToday = computeStreak(readDays.value, effectiveTodayISO.value).streak;
+  if (sToday > 0) return false;
+
+  if (softResetActive.value) return false;
+  return (meta.value.bankMilestone ?? 0) > 0;
+});
+
+async function softResetToPrevMilestone() {
+  const bank = meta.value.bankMilestone ?? 0;
+  if (bank <= 0) return;
+
+  meta.value.softResetBase = bank;
+  meta.value.softResetState = "armed";
+  meta.value.softResetUntilISO = addDaysISO(effectiveTodayISO.value, 1);
+
   await persistMeta();
-
-  // reload from store to be 100% consistent
-  readDays.value = await getReadDays();
   recompute();
-
   pulseFlag(rewardsPop, 520);
   pulseFlag(weekPop, 520);
 }
 
-  async function resetAll() {
-    readDays.value = await clearReadDays();
-    meta.value = {};
+/** load */
+async function load() {
+  readDays.value = await getReadDays();
+  meta.value = (await getStreakMeta()) || {};
+  recompute();
+}
+
+async function toggleReadToday() {
+  const beforeWeeks = weeks.value;
+  const beforeMonths = months.value;
+  const beforeCrosses = crossesShown.value;
+
+  if (readToday.value) {
+    readDays.value = await removeReadDay(effectiveTodayISO.value);
+  } else {
+    readDays.value = await addReadDay(effectiveTodayISO.value);
+  }
+
+  recompute();
+  pulseFlag(justToggled);
+
+  if (crossesShown.value !== beforeCrosses) pulseFlag(weekPop);
+  if (weeks.value > beforeWeeks || months.value > beforeMonths) pulseFlag(rewardsPop, 520);
+
+  if (meta.value.softResetState === "armed" && (meta.value.softResetBase ?? 0) > 0 && baseStreak.value > 0) {
+    meta.value.softResetState = "running";
+    delete meta.value.softResetUntilISO;
     await persistMeta();
     recompute();
   }
-  
-  onMounted(load);
-  watch(() => props.todayISO, load);
-  watch(effectiveTodayISO, recompute);
-  </script>
-  
-  
-  
+}
+
+/** debug seed */
+async function seedStreak(n: number) {
+  await clearReadDays();
+  for (let i = 0; i < n; i++) {
+    await addReadDay(addDaysISO(effectiveTodayISO.value, -i));
+  }
+  meta.value = {};
+  await persistMeta();
+  readDays.value = await getReadDays();
+  recompute();
+  pulseFlag(rewardsPop, 520);
+  pulseFlag(weekPop, 520);
+}
+
+async function resetAll() {
+  readDays.value = await clearReadDays();
+  meta.value = {};
+  await persistMeta();
+  recompute();
+}
+
+onMounted(load);
+watch(() => props.todayISO, load);
+watch(effectiveTodayISO, recompute);
+</script>
+
   
   
 <style scoped>
