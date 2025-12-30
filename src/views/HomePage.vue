@@ -2030,7 +2030,7 @@ if (!isWeb.value && reminderEnabled.value) {
   .mini-card.mini-click{
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-sart;
     gap: 10px;
   }
   .mini-card.mini-click:active { transform: translateY(1px); }
