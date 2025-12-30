@@ -302,11 +302,12 @@
 
         <ion-content class="ion-padding">
           <ion-datetime
-            presentation="date"
-            :value="selectedDateISO"
-            :max="allowFuture ? undefined : todayISO()"
-            @ionChange="onDateChange"
-          />
+  presentation="date"
+  :value="selectedDateISO"
+  :max="allowFuture ? undefined : todayISO()"
+  @ionChange="onDateChange"
+/>
+
           <div class="hint">{{ ui.noFutureHint }}</div>
         </ion-content>
       </ion-modal>
@@ -650,10 +651,15 @@ const SHEET_CSV_URL_EN =
 
   const sheetUrl = computed(() => (lang.value === 'en' ? SHEET_CSV_URL_EN : SHEET_CSV_URL_AR))
 
-// ====== تاريخ اليوم بتوقيت مصر ======
-function todayISO(): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' }).format(new Date())
+  function todayISO(): string {
+  // returns YYYY-MM-DD based on the user's device timezone
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
+
 const ui = computed(() => {
   if (lang.value === 'en') {
     return {
@@ -1395,19 +1401,7 @@ function openAgbiaAudio() {
 
 
 
-function isoToTime(iso: string) {
-  // يضمن parsing ثابت
-  return new Date(`${iso}T00:00:00`).getTime()
-}
 
-function safeTodayISO() {
-  // خليها local (على Android ده أوثق من timeZone ICU)
-  const d = new Date()
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
 
 onMounted(() => {
   applyPrefs()
