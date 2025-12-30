@@ -175,12 +175,18 @@
               </div>
 
               <template v-if="hasBible">
-                <div class="mini-sub bible-pill">{{ previewLabel }}</div>
-                <div class="mini-title">{{ previewTitle }}</div>
-                <ul class="mini-list">
-                  <li v-for="(item, i) in previewSections" :key="i">{{ item }}</li>
-                </ul>
-              </template>
+  <!-- Always show pill -->
+  <div class="mini-sub bible-pill">{{ previewLabel }}</div>
+
+  <!-- Arabic only -->
+  <template v-if="isArabic">
+    <div class="mini-title">{{ previewTitle }}</div>
+    <ul class="mini-list">
+      <li v-for="(item, i) in previewSections" :key="i">{{ item }}</li>
+    </ul>
+  </template>
+</template>
+
 
               <p v-else class="mini-body alignRight emptyMsg">
                 {{ ui.noBible }}
@@ -304,8 +310,8 @@
           <ion-datetime
   presentation="date"
   :value="selectedDateISO"
-  :max="allowFuture ? undefined : todayISO()"
-  @ionChange="onDateChange"
+  :max="allowFuture ? undefined : todayISOComputed"
+    @ionChange="onDateChange"
 />
 
           <div class="hint">{{ ui.noFutureHint }}</div>
@@ -528,9 +534,7 @@ onMounted(() => {
 })
 
 const allowFuture = computed(() => route.query.debugFuture === '1')
-const isTodaySelected = computed(() => {
-  return String(selectedDateISO.value).substring(0, 10) === todayISO()
-})
+
 // ====== Settings modal ======
 const showSettings = ref(false)
 const showAbout = ref(false)
@@ -628,10 +632,12 @@ const shareButtons = computed(() => ([
 
 type ChapterPreview = {
   bookName: string
+  bookNameEn?: string
   chapter: number
   chapterTitle: string
   sections: { title: string }[]
 }
+
 
 
 const CONTENT_BASE = Capacitor.isNativePlatform()
@@ -771,6 +777,22 @@ function onFontScale(ev: any) {
 // ====== Date picker ======
 const showDatePicker = ref(false)
 const selectedDateISO = ref(todayISO())
+const nowTick = ref(Date.now())
+
+onMounted(() => {
+  setInterval(() => { nowTick.value = Date.now() }, 60_000) // every 1 min
+})
+
+const todayISOComputed = computed(() => {
+  // tie to nowTick so it updates after midnight automatically
+  nowTick.value
+  return todayISO()
+})
+
+const isTodaySelected = computed(() => {
+  return String(selectedDateISO.value).substring(0, 10) === todayISOComputed.value
+})
+
 const bibleFromSheet = ref(false)
 const bibleIsEmptyFromSheet = ref(false)
 const isCapturing = ref(false)
@@ -780,8 +802,7 @@ function onDateChange(ev: any) {
   if (!iso) return
 
   // ⛔ block future ONLY if debugFuture is not enabled
-  if (!allowFuture.value && iso > todayISO()) return
-
+  if (!allowFuture.value && iso > todayISOComputed.value) return
   selectedDateISO.value = iso
   showDatePicker.value = false
   loadByDate(iso)
@@ -1081,7 +1102,11 @@ agbia_sleep.value = c.agbia_sleep || ''
   bibleItems.value = Array.isArray(c.bibleItems) ? c.bibleItems : []
 
   // preview (لو موجود)
+  if (c.bibleFromSheet) {
   loadChapterPreview(bibleBookKey.value, bibleChapter.value)
+} else {
+  chapterPreview.value = null
+}
 }
 // ✅ hydrate from cache before first render
 const initialISO = String(selectedDateISO.value).substring(0, 10)
@@ -1129,8 +1154,14 @@ const bibleLabel = computed(() => {
 })
 const previewLabel = computed(() => {
   if (!chapterPreview.value) return bibleLabel.value
-  return `${chapterPreview.value.bookName} ${chapterPreview.value.chapter}`
+
+  const name = isArabic.value
+    ? chapterPreview.value.bookName
+    : chapterPreview.value.bookNameEn || chapterPreview.value.bookName
+
+  return `${name} ${chapterPreview.value.chapter}`
 })
+
 
 const previewTitle = computed(() => chapterPreview.value?.chapterTitle || bibleTitle.value)
 
@@ -1219,11 +1250,14 @@ async function loadChapterPreview(bookKey: string, chapter: number) {
 
     const json = await res.json()
     chapterPreview.value = {
-      bookName: String(json.bookName || ''),
-      chapter: Number(json.chapter || chapter),
-      chapterTitle: String(json.chapterTitle || ''),
-      sections: (json.sections || []).map((s: any) => ({ title: String(s.title || '') }))
-    }
+  bookName: String(json.bookName || ''),
+  bookNameEn: String(json.bookNameEn || ''),
+  chapter: Number(json.chapter || chapter),
+  chapterTitle: String(json.chapterTitle || ''),
+  sections: (json.sections || []).map((s: any) => ({
+    title: String(s.title || '')
+  }))
+}
   } catch (e) {
     console.error('Failed to load chapter preview', e)
     chapterPreview.value = null
@@ -1263,8 +1297,15 @@ const sheetHasBible =
   !!sheetTitle ||
   !!sheetItemsRaw
 
-bibleFromSheet.value = sheetHasBible
-bibleIsEmptyFromSheet.value = !sheetHasBible
+  bibleFromSheet.value = sheetHasBible
+  bibleIsEmptyFromSheet.value = !sheetHasBible
+  if (!sheetHasBible) {
+  chapterPreview.value = null
+  bibleItems.value = []
+  bibleTitle.value = ''
+  // (اختياري) سيبي book/chapter زي ما هم أو صفّيهم
+  return
+}
   bibleItems.value = String(items || '')
     .split('|')
     .map((s: string) => s.trim())
@@ -1281,7 +1322,7 @@ agbia_sleep.value  = pick(row, 'sleep', 'agbia_sleep', 'noum')
 
   training.value = pick(row, 'training')
   
-loadChapterPreview(bibleBookKey.value || 'Matthew', bibleChapter.value || 1)
+  loadChapterPreview(bibleBookKey.value || 'Matthew', bibleChapter.value || 1)
 
 }
 async function refreshHomeFromNetwork(targetISO: string) {
@@ -1420,7 +1461,8 @@ onMounted(() => {
   }
 
   const iso = String(selectedDateISO.value).substring(0, 10)
-  const cached = readDayCache(iso)
+  const cached = readDayCache(cacheKey(iso))
+
 
   if (cached) {
     refreshHomeFromNetwork(iso).catch(console.error)
