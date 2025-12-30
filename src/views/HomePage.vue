@@ -667,7 +667,7 @@ const ui = computed(() => {
       share: 'Share',
 
       // Home labels
-      reflection: 'Reflection',
+      reflection: 'Meditation',
       bible: 'Bible',
       agbia: 'Agpeya',
       training: 'A Step Forward',
