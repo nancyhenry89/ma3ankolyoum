@@ -72,13 +72,14 @@
 
             <!-- Saint -->
             <div
-              class="saint"
-              :class="{ clickable: hasSaint && isArabic, disabledSaint: !hasSaint || !isArabic }"
-              @click="hasSaint && isArabic && openSaint()"
-            >
-              <span v-if="hasSaint">{{ saint }}</span>
-              <span v-else>{{ ui.noSaint }}</span>
-            </div>
+  class="saint"
+  :class="{ clickable: hasSaint && isArabic }"
+  @click="hasSaint && isArabic && openSaint()"
+>
+  <span v-if="hasSaint">{{ saint }}</span>
+  <span v-else>{{ ui.noSaint }}</span>
+</div>
+
 
             <!-- Title -->
             <div class="title">
@@ -154,11 +155,12 @@
           <div class="row" v-if="!isLoading && !noData">
             <!-- Bible card -->
             <button
-              class="mini-card mini-click"
-              type="button"
-              @click="hasBible && isArabic && openChapter()"
-              :class="{ disabledCard: !hasBible || !isArabic }"
-            >
+  class="mini-card mini-click"
+  type="button"
+  @click="hasBible && isArabic && openChapter()"
+  :class="{ disabledCard: !hasBible }"
+>
+
               <div class="mini-head mini-head-row">
                 <span>{{ ui.bible }}</span>
 
@@ -1081,33 +1083,37 @@ function applyCachedDay(c: any) {
   verseText.value = c.verseText || ''
   verseRef.value = c.verseRef || ''
   reflection.value = c.reflection || ''
+
   bibleFromSheet.value = !!c.bibleFromSheet
-bibleIsEmptyFromSheet.value = !bibleFromSheet.value
+  bibleIsEmptyFromSheet.value = !bibleFromSheet.value
 
   agbia.value = c.agbia || ''
   agbia_author.value = c.agbia_author || ''
-  agbia_baker.value = c.agbia_baker || ''
-agbia_third.value = c.agbia_third || ''
-agbia_sixth.value = c.agbia_sixth || ''
-agbia_ninth.value = c.agbia_ninth || ''
-agbia_sunset.value = c.agbia_sunset || ''
-agbia_sleep.value = c.agbia_sleep || ''
 
+  // ✅ مهم: خدي نفس أسماء المفاتيح اللي بتتخزن في الكاش (baker/third/...)
+  agbia_baker.value  = c.baker  || ''
+  agbia_third.value  = c.third  || ''
+  agbia_sixth.value  = c.sixth  || ''
+  agbia_ninth.value  = c.ninth  || ''
+  agbia_sunset.value = c.sunset || ''
+  agbia_sleep.value  = c.sleep  || ''
 
   training.value = c.training || ''
 
-  bibleBookKey.value = c.bibleBookKey || 'Matthew'
+  // ✅ Bible keys من الكاش
+  bibleBookKey.value = (c.bibleBookKey || 'Matthew').trim()
   bibleChapter.value = Number(c.bibleChapter || 1)
   bibleTitle.value = c.bibleTitle || ''
   bibleItems.value = Array.isArray(c.bibleItems) ? c.bibleItems : []
 
-  // preview (لو موجود)
-  if (c.bibleFromSheet) {
-  loadChapterPreview(bibleBookKey.value, bibleChapter.value)
-} else {
-  chapterPreview.value = null
+  // ✅ preview
+  if (bibleFromSheet.value) {
+    loadChapterPreview(bibleBookKey.value, bibleChapter.value)
+  } else {
+    chapterPreview.value = null
+  }
 }
-}
+
 // ✅ hydrate from cache before first render
 const initialISO = String(selectedDateISO.value).substring(0, 10)
 const cachedInit = readDayCache(cacheKey(initialISO))
@@ -1134,33 +1140,47 @@ function clearData() {
   reflection.value = ''
   agbia.value = ''
   agbia_author.value = ''
-
   training.value = ''
-  bibleBookKey.value = 'Matthew'
+
+  // ✅ reset bible flags + preview
+  bibleFromSheet.value = false
+  bibleIsEmptyFromSheet.value = true
+  chapterPreview.value = null
+
+  // optional: reset keys
+  bibleBookKey.value = ''
   bibleChapter.value = 1
   bibleTitle.value = ''
   bibleItems.value = []
-  chapterPreview.value = null
 }
 
-// عرض "متى ١"
-const bookNameMap: Record<string, string> = {
-  Matthew: 'متى'
-}
+
+const bookNameMapAr: Record<string, string> = { Matthew: 'متى' }
+const bookNameMapEn: Record<string, string> = { Matthew: 'Matthew' }
+
 const bibleLabel = computed(() => {
-  const name = bookNameMap[bibleBookKey.value] || bibleBookKey.value || ''
-  const ch = bibleChapter.value || ''
-  return name && ch ? `${name} ${ch}` : ''
-})
-const previewLabel = computed(() => {
-  if (!chapterPreview.value) return bibleLabel.value
+  const key = (bibleBookKey.value || '').trim()
+  const ch = bibleChapter.value || 1
 
   const name = isArabic.value
-    ? chapterPreview.value.bookName
-    : chapterPreview.value.bookNameEn || chapterPreview.value.bookName
+    ? (bookNameMapAr[key] || key)
+    : (bookNameMapEn[key] || key)
 
-  return `${name} ${chapterPreview.value.chapter}`
+  return name ? `${name} ${ch}` : ''
 })
+
+function getBookName(key: string) {
+  const k = (key || '').trim()
+  if (!k) return ''
+  return isArabic.value ? (bookNameMapAr[k] || k) : (bookNameMapEn[k] || k)
+}
+
+const previewLabel = computed(() => {
+  const ch = bibleChapter.value || 1
+  const name = getBookName(bibleBookKey.value)
+  return name ? `${name} ${ch}` : ''
+})
+
 
 
 const previewTitle = computed(() => chapterPreview.value?.chapterTitle || bibleTitle.value)
@@ -1281,7 +1301,9 @@ function applyRow(rowRaw: any) {
   reflection.value = pick(row, 'reflection')
 
   bibleBookKey.value = pick(row, 'bible_book', 'book_key') || 'Matthew'
-  bibleChapter.value = Number(pick(row, 'bible_chapter', 'chapter') || 1)
+  const chRaw = String(pick(row, 'bible_chapter', 'chapter') || '').trim()
+const chNum = parseInt(chRaw, 10)
+bibleChapter.value = Number.isFinite(chNum) && chNum > 0 ? chNum : 1
   bibleTitle.value = pick(row, 'bible_title', 'chapter_title')
   announcement.value = pick(row, 'announcement', 'إعلان', 'announcements')
 
@@ -1300,10 +1322,11 @@ const sheetHasBible =
   bibleFromSheet.value = sheetHasBible
   bibleIsEmptyFromSheet.value = !sheetHasBible
   if (!sheetHasBible) {
+  bibleFromSheet.value = false
+  bibleIsEmptyFromSheet.value = true
   chapterPreview.value = null
   bibleItems.value = []
   bibleTitle.value = ''
-  // (اختياري) سيبي book/chapter زي ما هم أو صفّيهم
   return
 }
   bibleItems.value = String(items || '')
