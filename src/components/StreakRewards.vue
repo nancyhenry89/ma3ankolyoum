@@ -234,19 +234,19 @@ const ui = computed(() => {
       markToday: "Mark that you read today",
       unmarkToday: "Remove today's mark",
 
-      streakLabel: "Streak days:",
+      streakLabel: "Streak Length:",
       dayUnit: "day",
-      weekTitle: "Week days",
+      weekTitle: "Week Days",
       weekHint: "Every 7 days = 👑",
       weekDayAria: "A day in the week",
 
-      weeklyRewards: "Weekly rewards",
-      monthlyRewards: "Monthly rewards",
+      weeklyRewards: "Weekly Rewards",
+      monthlyRewards: "Monthly Rewards",
       monthlyNote: "⭐ every 4 weeks",
       crownsAria: "Crowns",
       starsAria: "Stars",
 
-      milestonesTitle: "Big milestones",
+      milestonesTitle: "Major Milestones",
       milestonesHint: "Long-term goals…",
       threeMonths: "3 months",
       sixMonths: "6 months",
@@ -254,7 +254,7 @@ const ui = computed(() => {
       achieved: "Achieved ✅",
       locked: "Locked 🔒",
 
-      daysLogTitle: "Days log",
+      daysLogTitle: " Daily Log",
       daysLogHint: "Recent marks",
       noDaysYet: "No days recorded yet",
 

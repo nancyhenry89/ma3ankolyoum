@@ -1288,6 +1288,7 @@ async function loadChapterPreview(bookKey: string, chapter: number) {
 function applyRow(rowRaw: any) {
   const row = normalizeKeys(rowRaw)
 
+  // ===== Basics =====
   gregorianDate.value = pick(row, 'gregorian', 'gregorian_date')
   copticDate.value = pick(row, 'coptic', 'coptic_date')
   saint.value = pick(row, 'saint')
@@ -1296,58 +1297,79 @@ function applyRow(rowRaw: any) {
   title.value = pick(row, 'title')
   story.value = pick(row, 'story')
   verseText.value = pick(row, 'verse_text', 'verse')
+
   const vr = pick(row, 'verse_ref', 'verse_reference')
   verseRef.value = vr ? `(${vr})` : ''
-  reflection.value = pick(row, 'reflection')
 
-  bibleBookKey.value = pick(row, 'bible_book', 'book_key') || 'Matthew'
-  const chRaw = String(pick(row, 'bible_chapter', 'chapter') || '').trim()
-const chNum = parseInt(chRaw, 10)
-bibleChapter.value = Number.isFinite(chNum) && chNum > 0 ? chNum : 1
-  bibleTitle.value = pick(row, 'bible_title', 'chapter_title')
+  reflection.value = pick(row, 'reflection')
   announcement.value = pick(row, 'announcement', 'إعلان', 'announcements')
 
-  const items = pick(row, 'bible_items', 'items')
-  const sheetBook = String(pick(row, 'bible_book', 'book_key') || '').trim()
-const sheetChapterRaw = String(pick(row, 'bible_chapter', 'chapter') || '').trim()
-const sheetTitle = String(pick(row, 'bible_title', 'chapter_title') || '').trim()
-const sheetItemsRaw = String(pick(row, 'bible_items', 'items') || '').trim()
+  // ===== Bible: parse inputs =====
+  bibleBookKey.value = pick(row, 'bible_book', 'book_key') || 'Matthew'
 
-const sheetHasBible =
-  !!sheetBook ||
-  !!sheetChapterRaw ||
-  !!sheetTitle ||
-  !!sheetItemsRaw
+  const chRaw = String(pick(row, 'bible_chapter', 'chapter') || '').trim()
+  const chNum = parseInt(chRaw, 10)
+  bibleChapter.value = Number.isFinite(chNum) && chNum > 0 ? chNum : 1
+
+  bibleTitle.value = pick(row, 'bible_title', 'chapter_title')
+
+  const itemsRaw = pick(row, 'bible_items', 'items')
+
+  // Detect if Bible exists in sheet (any bible field filled)
+  const sheetBook = String(pick(row, 'bible_book', 'book_key') || '').trim()
+  const sheetChapterRaw = String(pick(row, 'bible_chapter', 'chapter') || '').trim()
+  const sheetTitle = String(pick(row, 'bible_title', 'chapter_title') || '').trim()
+  const sheetItems = String(pick(row, 'bible_items', 'items') || '').trim()
+
+  const sheetHasBible =
+    !!sheetBook ||
+    !!sheetChapterRaw ||
+    !!sheetTitle ||
+    !!sheetItems
 
   bibleFromSheet.value = sheetHasBible
   bibleIsEmptyFromSheet.value = !sheetHasBible
-  if (!sheetHasBible) {
-  bibleFromSheet.value = false
-  bibleIsEmptyFromSheet.value = true
-  chapterPreview.value = null
-  bibleItems.value = []
-  bibleTitle.value = ''
-  return
-}
-  bibleItems.value = String(items || '')
-    .split('|')
-    .map((s: string) => s.trim())
-    .filter(Boolean)
 
+  if (!sheetHasBible) {
+    // ✅ Important: DO NOT return (so Agbia + Training still load)
+    chapterPreview.value = null
+    bibleItems.value = []
+    bibleTitle.value = ''
+  } else {
+    bibleItems.value = String(itemsRaw || '')
+      .split('|')
+      .map((s: string) => s.trim())
+      .filter(Boolean)
+
+    // only load preview if we have bible
+    loadChapterPreview(bibleBookKey.value || 'Matthew', bibleChapter.value || 1)
+  }
+
+  // ===== Agbia =====
   agbia.value = pick(row, 'agbia')
   agbia_author.value = pick(row, 'agbia_author', 'agbiaauthor', 'agbia_author_name', 'agbia_author_ar')
+
   agbia_baker.value  = pick(row, 'baker', 'agbia_baker')
-agbia_third.value  = pick(row, 'third', 'agbia_third')
-agbia_sixth.value  = pick(row, 'sixth', 'agbia_sixth')
-agbia_ninth.value  = pick(row, 'ninth', 'agbia_ninth')
-agbia_sunset.value = pick(row, 'sunset', 'agbia_sunset', 'ghoroub')
-agbia_sleep.value  = pick(row, 'sleep', 'agbia_sleep', 'noum')
+  agbia_third.value  = pick(row, 'third', 'agbia_third')
+  agbia_sixth.value  = pick(row, 'sixth', 'agbia_sixth')
+  agbia_ninth.value  = pick(row, 'ninth', 'agbia_ninth')
+  agbia_sunset.value = pick(row, 'sunset', 'agbia_sunset', 'ghoroub')
+  agbia_sleep.value  = pick(row, 'sleep', 'agbia_sleep', 'noum')
 
-  training.value = pick(row, 'training')
-  
-  loadChapterPreview(bibleBookKey.value || 'Matthew', bibleChapter.value || 1)
-
+  // ===== Training (make it resilient) =====
+  training.value = pick(
+    row,
+    'training',
+    'التدريب',
+    'تدريب',
+    'خطوة_لقدام',
+    'خطوة_لقدام؟',
+    'a_step_forward',
+    'step_forward',
+    'step'
+  )
 }
+
 async function refreshHomeFromNetwork(targetISO: string) {
   const rows = await fetchRows()
 
