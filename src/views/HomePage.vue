@@ -241,7 +241,7 @@
 
           <!-- Coptic -->
           <CopticSection
-  class="mkNoCapture"
+  class=""
   v-if="!isLoading && !noData"
   :dateISO="selectedDateISO"
   :contentBase="CONTENT_BASE"
@@ -593,7 +593,7 @@ async function shareAsImageWeb() {
     const canvas = await html2canvas(wrap, {
       backgroundColor: '#ffffff',
       useCORS: true,
-      scale: 3
+      scale: 4
     })
 
     const blob: Blob | null = await new Promise(resolve =>
