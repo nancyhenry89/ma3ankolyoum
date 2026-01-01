@@ -590,11 +590,14 @@ async function shareAsImageWeb() {
   wrap.style.transform = 'none'
 
   try {
+    await document.fonts.ready
+
+
     const canvas = await html2canvas(wrap, {
-      backgroundColor: '#ffffff',
-      useCORS: true,
-      scale: 4
-    })
+  backgroundColor: '#ffffff',
+  useCORS: true,
+  scale: Math.min(3, window.devicePixelRatio * 2)
+})
 
     const blob: Blob | null = await new Promise(resolve =>
       canvas.toBlob(b => resolve(b), 'image/png')

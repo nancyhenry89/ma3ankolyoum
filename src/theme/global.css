@@ -1,3 +1,12 @@
+
+@font-face {
+  font-family: 'AvvaShenouda';
+  src: url('/fonts/1Avva_Shenouda.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
 body {
     font-family: "Amiri", "Noto Naskh Arabic", serif;
   }
@@ -9,5 +18,12 @@ body {
   
   .verse-text {
     font-family: "Amiri", "Noto Naskh Arabic", serif;
+  }
+  .coptic-word {
+    font-family: 'AvvaShenouda', serif;
+    font-size: 32px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
   
