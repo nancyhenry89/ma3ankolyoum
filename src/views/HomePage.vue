@@ -2119,6 +2119,9 @@ if (!isWeb.value && reminderEnabled.value) {
     font-size:20px
   }
   
+.text.alignRight {
+    text-align: justify;
+}
   /* =========================================================
      Training (gradient 28d6cc -> white)
   ========================================================= */
