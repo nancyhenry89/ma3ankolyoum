@@ -229,7 +229,7 @@
   .bigCard{ margin: 12px 0;}
   
   .text{
-    font-family: Amiri, serif;
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;
     font-size: 21px;
     line-height: 2;
     color: var(--mk-text);

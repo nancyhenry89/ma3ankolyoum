@@ -390,6 +390,8 @@ async function toggleVerse(n: number) {
   color: var(--mk-text);
   text-align:center;
   margin: 6px 0 10px;
+  font-family:"Noto Kufi Arabic", system-ui, sans-serif;
+
 }
 
 /* ================== Verses container ================== */
@@ -448,6 +450,8 @@ async function toggleVerse(n: number) {
   color: var(--mk-text);
   white-space:pre-wrap;
   font-weight:800;
+  font-family:"Noto Kufi Arabic", system-ui, sans-serif;
+
 }
 
 .chev{
@@ -464,6 +468,8 @@ async function toggleVerse(n: number) {
   border-radius:14px;
   background: rgba(31,182,170,0.10);
   border: 1px solid rgba(31,182,170,0.18);
+  font-family:"Noto Kufi Arabic", system-ui, sans-serif;
+
 }
 
 .tafsirText{

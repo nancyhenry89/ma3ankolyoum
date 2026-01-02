@@ -612,7 +612,7 @@ watch(effectiveTodayISO, recompute);
     color: var(--sr-text);
     backdrop-filter: blur(10px);
     box-shadow: var(--sr-shadow-1);
-    font-family: Amiri, serif;
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;
   }
 
   /* =====================================================

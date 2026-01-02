@@ -1715,8 +1715,7 @@ if (!isWeb.value && reminderEnabled.value) {
     text-decoration: underline;
     opacity: 0.9;
     color: var(--mk-text);
-    font-family: Amiri, serif;
-
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;
   }
   
   /* =========================================================
@@ -1729,8 +1728,8 @@ if (!isWeb.value && reminderEnabled.value) {
     font-size: 18px;
     font-weight: 900;
     cursor: pointer;
-    font-family: Amiri, serif;
-    background: var(--mk-clickable-grad);
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;
+        background: var(--mk-clickable-grad);
     color: #ffffff;
     border: 1px solid rgba(255,255,255,0.16);
     box-shadow: var(--mk-shadow-strong);
@@ -1798,8 +1797,8 @@ if (!isWeb.value && reminderEnabled.value) {
   font-size: 18px;
   font-weight: 800;
   text-align: center;
-  font-family: Amiri, serif;
-  background: linear-gradient(135deg, #ffd166, #fff1c1);
+  font-family:"Noto Kufi Arabic", system-ui, sans-serif;
+    background: linear-gradient(135deg, #ffd166, #fff1c1);
   color: #3a2c00;
   box-shadow: var(--mk-shadow);
 }
@@ -1882,6 +1881,7 @@ if (!isWeb.value && reminderEnabled.value) {
     border-radius: 18px;
     border: 1px solid var(--mk-border);
     box-shadow: var(--mk-shadow);
+    font-weight: bold;
   }
   
   .home.theme-dark .card,
@@ -1892,8 +1892,7 @@ if (!isWeb.value && reminderEnabled.value) {
   .card {
     padding: 20px 18px;
     margin: 12px 0;
-    font-family: Amiri,serif
-  }
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;  }
   
   .text {
     line-height: 2;
@@ -2087,8 +2086,7 @@ if (!isWeb.value && reminderEnabled.value) {
     font-size: 15px;
     line-height: 1.85;
     color: var(--mk-text);
-    font-family: Amiri, serif;
-  }
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;  }
   
   .mini-list li{
     position: relative;
@@ -2112,13 +2110,12 @@ if (!isWeb.value && reminderEnabled.value) {
     margin-top: 10px;
     color: var(--mk-text);
     padding:10px;
-    font-family: Amiri, serif;
-  }
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;  }
   .mini-author {
     margin-top: 8px;
     font-weight: 900;
     color: var(--mk-danger);
-    font-family: Amiri, serif;
+    font-family: "Amiri", "Noto Naskh Arabic", serif;
     font-size:20px
   }
   
@@ -2192,8 +2189,7 @@ if (!isWeb.value && reminderEnabled.value) {
     font-weight: 900;
     color: #0b1f33;
     text-align:center;
-    font-family: "Amiri", serif;
-  }
+    font-family:"Noto Kufi Arabic", system-ui, sans-serif;  }
   
   /* Dark mode for training */
 

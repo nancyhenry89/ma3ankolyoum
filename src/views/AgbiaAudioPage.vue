@@ -184,6 +184,8 @@ function onAudioPlay(e: Event) {
       background: #ffffff;
       border: 1px solid rgba(24,42,68,0.10);
       box-shadow: 0 8px 18px rgba(10,20,30,0.07);
+      font-family:"Noto Kufi Arabic", system-ui, sans-serif;
+
     }
     
     /* Date */
@@ -216,6 +218,8 @@ function onAudioPlay(e: Event) {
       padding: 14px;
       background: rgba(32,178,170,0.06); /* قريب من mk-soft */
       border: 1px solid rgba(32,178,170,0.25);
+      font-family:"Noto Kufi Arabic", system-ui, sans-serif;
+
     }
     
     /* Title */
@@ -225,6 +229,8 @@ function onAudioPlay(e: Event) {
       margin-bottom: 10px;
       text-align: center;
       color: #182a44;
+      font-family:"Noto Kufi Arabic", system-ui, sans-serif;
+
     }
     
     /* Audio */
