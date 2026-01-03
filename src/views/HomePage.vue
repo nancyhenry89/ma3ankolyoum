@@ -35,7 +35,7 @@
 
             <!-- Share -->
             <ion-button class="shareBtn" fill="clear" size="small" @click="showShareSheet = true">
-              <ion-icon :icon="shareOutline" />
+              <IonIcon :icon="shareOutline" />
             </ion-button>
 
             <ion-action-sheet
@@ -47,18 +47,18 @@
             />
 
             <div class="brand">
-  <template v-if="isArabic">
-    <div class="brand_name">معاً كل يوم</div>
-    <div class="accent">مع</div>
-    <div class="abouna">القمص يوحنا باقي</div>
-  </template>
+              <template v-if="isArabic">
+                <div class="brand_name">معاً كل يوم</div>
+                <div class="accent">مع</div>
+                <div class="abouna">القمص يوحنا باقي</div>
+              </template>
 
-  <template v-else>
-    <div class="brand_name">Together Every Day</div>
-    <div class="accent">with</div>
-    <div class="abouna">Fr. Yohanna Baky</div>
-  </template>
-</div>
+              <template v-else>
+                <div class="brand_name">Together Every Day</div>
+                <div class="accent">with</div>
+                <div class="abouna">Fr. Yohanna Baky</div>
+              </template>
+            </div>
 
             <!-- Dates -->
             <div class="dates" @click="showDatePicker = true">
@@ -72,14 +72,13 @@
 
             <!-- Saint -->
             <div
-  class="saint"
-  :class="{ clickable: hasSaint && isArabic }"
-  @click="hasSaint && isArabic && openSaint()"
->
-  <span v-if="hasSaint">{{ saint }}</span>
-  <span v-else>{{ ui.noSaint }}</span>
-</div>
-
+              class="saint"
+              :class="{ clickable: hasSaint && isArabic }"
+              @click="hasSaint && isArabic && openSaint()"
+            >
+              <span v-if="hasSaint">{{ saint }}</span>
+              <span v-else>{{ ui.noSaint }}</span>
+            </div>
 
             <!-- Title -->
             <div class="title">
@@ -155,16 +154,16 @@
           <div class="row" v-if="!isLoading && !noData">
             <!-- Bible card -->
             <button
-  class="mini-card mini-click"
-  type="button"
-  @click="hasBible && isArabic && openChapter()"
-  :class="{ disabledCard: !hasBible }"
->
-
+              class="mini-card mini-click"
+              type="button"
+              @click="hasBible && isArabic && openChapter()"
+              :disabled="!hasBible || !isArabic"
+              :class="{ disabledCard: !hasBible || !isArabic }"
+            >
               <div class="mini-head mini-head-row">
                 <span>{{ ui.bible }}</span>
 
-                <!-- Icon only in Arabic (because EN inner pages not available) -->
+                <!-- Icon only in Arabic -->
                 <ion-button
                   v-if="isArabic"
                   class="audioBtn mkNoCapture"
@@ -172,23 +171,22 @@
                   size="small"
                   aria-label="عرض الإصحاح"
                 >
-                  <ion-icon :icon="bookOutline" />
+                  <IonIcon :icon="bookOutline" />
                 </ion-button>
               </div>
 
               <template v-if="hasBible">
-  <!-- Always show pill -->
-  <div class="mini-sub bible-pill">{{ previewLabel }}</div>
+                <!-- Always show pill -->
+                <div class="mini-sub bible-pill">{{ previewLabel }}</div>
 
-  <!-- Arabic only -->
-  <template v-if="isArabic">
-    <div class="mini-title">{{ previewTitle }}</div>
-    <ul class="mini-list">
-      <li v-for="(item, i) in previewSections" :key="i">{{ item }}</li>
-    </ul>
-  </template>
-</template>
-
+                <!-- Arabic only -->
+                <template v-if="isArabic">
+                  <div class="mini-title">{{ previewTitle }}</div>
+                  <ul class="mini-list">
+                    <li v-for="(item, i) in previewSections" :key="i">{{ item }}</li>
+                  </ul>
+                </template>
+              </template>
 
               <p v-else class="mini-body alignRight emptyMsg">
                 {{ ui.noBible }}
@@ -209,7 +207,7 @@
                   @click.stop="openAgbiaAudio()"
                   aria-label="صوت الأجبية"
                 >
-                  <ion-icon :icon="volumeHighOutline" :class="{ dimIcon: !hasAnyAgbiaAudio }" />
+                  <IonIcon :icon="volumeHighOutline" :class="{ dimIcon: !hasAnyAgbiaAudio }" />
                 </ion-button>
               </div>
 
@@ -241,13 +239,11 @@
 
           <!-- Coptic -->
           <CopticSection
-  class=""
-  v-if="!isLoading && !noData"
-  :dateISO="selectedDateISO"
-  :contentBase="CONTENT_BASE"
-  :lang="lang"
-/>
-
+            v-if="!isLoading && !noData"
+            :dateISO="selectedDateISO"
+            :contentBase="CONTENT_BASE"
+            :lang="lang"
+          />
 
           <!-- Training -->
           <div class="training" v-if="!isLoading && !noData">
@@ -269,12 +265,11 @@
           <div class="space"></div>
 
           <StreakRewards
-  class="mkNoCapture"
-  v-if="!isLoading && !noData && isTodaySelected"
-  :todayISO="todayISO()"
-  :lang="lang"
-/>
-
+            class="mkNoCapture"
+            v-if="!isLoading && !noData && isTodaySelected"
+            :todayISO="todayISO()"
+            :lang="lang"
+          />
 
           <!-- Stores (Web only) -->
           <div class="storesSoon mkNoCapture" v-if="isWeb && !isLoading && !noData">
@@ -310,11 +305,11 @@
 
         <ion-content class="ion-padding">
           <ion-datetime
-  presentation="date"
-  :value="selectedDateISO"
-  :max="allowFuture ? undefined : todayISOComputed"
-    @ionChange="onDateChange"
-/>
+            presentation="date"
+            :value="selectedDateISO"
+            :max="allowFuture ? undefined : todayISOComputed"
+            @ionChange="onDateChange"
+          />
 
           <div class="hint">{{ ui.noFutureHint }}</div>
         </ion-content>
@@ -371,7 +366,7 @@
         </ion-content>
       </ion-modal>
 
-      <!-- About Modal (still Arabic for now) -->
+      <!-- About Modal -->
       <ion-modal :is-open="showAbout" @didDismiss="closeAbout()">
         <ion-header>
           <ion-toolbar>
@@ -383,61 +378,59 @@
         </ion-header>
 
         <ion-content class="ion-padding">
-  <!-- Arabic -->
-  <section v-if="isArabic" class="about-app" dir="rtl" lang="ar">
-    <h2>عن التطبيق</h2>
+          <!-- Arabic -->
+          <section v-if="isArabic" class="about-app" dir="rtl" lang="ar">
+            <h2>عن التطبيق</h2>
 
-    <p>
-      <strong>معاً كل يوم</strong> هو تطبيق روحي كنسي يهدف إلى مساندة الحياة الروحية اليومية
-      من خلال قراءات وتأملات وتدريبات منتظمة تساعد على النمو الروحي والالتصاق بكلمة الله.
-    </p>
+            <p>
+              <strong>معاً كل يوم</strong> هو تطبيق روحي كنسي يهدف إلى مساندة الحياة الروحية اليومية
+              من خلال قراءات وتأملات وتدريبات منتظمة تساعد على النمو الروحي والالتصاق بكلمة الله.
+            </p>
 
-    <h3>المصادر والاعتمادات</h3>
-    <ul>
-      <li><strong>إعداد المحتوى:</strong> القمص يوحنا باقي</li>
-      <li><strong>الكتاب المقدس:</strong> الترجمة العربية فان دايك، بإذن من دار الكتاب المقدس</li>
-      <li><strong>السنكسار:</strong> بحسب سنكسار دير السريان</li>
-      <li><strong>التفسير:</strong> موسوعة كنيسة مارمرقس بمصر الجديدة</li>
-    </ul>
+            <h3>المصادر والاعتمادات</h3>
+            <ul>
+              <li><strong>إعداد المحتوى:</strong> القمص يوحنا باقي</li>
+              <li><strong>الكتاب المقدس:</strong> الترجمة العربية فان دايك، بإذن من دار الكتاب المقدس</li>
+              <li><strong>السنكسار:</strong> بحسب سنكسار دير السريان</li>
+              <li><strong>التفسير:</strong> موسوعة كنيسة مارمرقس بمصر الجديدة</li>
+            </ul>
 
-    <h3>الجهة التابعة</h3>
-    <p>
-      يُقدَّم هذا التطبيق في إطار الخدمة الروحية، وهو تابع لـ <strong>كنيسة مارمرقس بمصر الجديدة</strong>.
-    </p>
-  </section>
+            <h3>الجهة التابعة</h3>
+            <p>
+              يُقدَّم هذا التطبيق في إطار الخدمة الروحية، وهو تابع لـ <strong>كنيسة مارمرقس بمصر الجديدة</strong>.
+            </p>
+          </section>
 
-  <!-- English -->
-  <section v-else class="about-app" dir="ltr" lang="en">
-    <h2>About the App</h2>
+          <!-- English -->
+          <section v-else class="about-app" dir="ltr" lang="en">
+            <h2>About the App</h2>
 
-    <p>
-      <strong>Together Everyday</strong> is a Christian spiritual app that supports daily spiritual life
-      through regular readings, reflections, and practical exercises that help users grow spiritually
-      and remain connected to the Word of God.
-    </p>
+            <p>
+              <strong>Together Everyday</strong> is a Christian spiritual app that supports daily spiritual life
+              through regular readings, reflections, and practical exercises that help users grow spiritually
+              and remain connected to the Word of God.
+            </p>
 
-    <h3>Sources & Credits</h3>
-    <ul>
-      <li><strong>Content prepared by:</strong> Fr. Yohanna Baky</li>
-      <li><strong>Bible text:</strong> Arabic Van Dyck translation, used with permission from the Bible Society</li>
-      <li><strong>Synaxarium:</strong> According to Deir El-Surian Synaxarium</li>
-      <li><strong>Commentary:</strong> St. Mark Church Encyclopedia (Heliopolis, Cairo)</li>
-    </ul>
+            <h3>Sources & Credits</h3>
+            <ul>
+              <li><strong>Content prepared by:</strong> Fr. Yohanna Baky</li>
+              <li><strong>Bible text:</strong> Arabic Van Dyck translation, used with permission from the Bible Society</li>
+              <li><strong>Synaxarium:</strong> According to Deir El-Surian Synaxarium</li>
+              <li><strong>Commentary:</strong> St. Mark Church Encyclopedia (Heliopolis, Cairo)</li>
+            </ul>
 
-    <h3>Affiliation</h3>
-    <p>
-      This app is provided as part of a spiritual ministry and is affiliated with
-      <strong>St. Mark Church, Heliopolis (Egypt)</strong>.
-    </p>
-  </section>
-</ion-content>
-
+            <h3>Affiliation</h3>
+            <p>
+              This app is provided as part of a spiritual ministry and is affiliated with
+              <strong>St. Mark Church, Heliopolis (Egypt)</strong>.
+            </p>
+          </section>
+        </ion-content>
       </ion-modal>
     </ion-content>
   </ion-page>
 </template>
 
-  
 <script setup lang="ts">
 import {
   IonContent,
@@ -449,47 +442,38 @@ import {
   IonTitle,
   IonButtons,
   IonButton,
-  IonIcon,
   IonToggle,
   IonRange,
-  IonMenu,
-  IonMenuToggle,
   IonMenuButton,
-  IonList,
-  IonItem,
-  IonLabel
+  IonActionSheet,
+  IonIcon
 } from '@ionic/vue'
-import { menuOutline } from 'ionicons/icons'
-import CopticSection from '@/components/CopticSection.vue'
-import { App } from '@capacitor/app'
-import { useIonRouter } from '@ionic/vue'
-import StreakRewards from '@/components/StreakRewards.vue'
 
-
-import { onMounted, ref, computed } from 'vue'
-import { IonActionSheet } from '@ionic/vue'
-import html2canvas from 'html2canvas'
-
-import { useRouter } from 'vue-router'
+import { onMounted, ref, computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import Papa from 'papaparse'
-
-import { volumeHighOutline,bookOutline } from 'ionicons/icons'
-
-import { shareOutline } from 'ionicons/icons'
-import { readDayCache, writeDayCache } from '@/utils/dayCache'
-
-const showShareSheet = ref(false)
-const captureRef = ref<HTMLElement | null>(null)
-  import { scheduleDailyReminder, disableDailyReminder, sendTestReminder } from '@/services/reminder'
-
-  import { useRoute } from 'vue-router'
-import { watch } from 'vue'
+import html2canvas from 'html2canvas'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+
+import { App } from '@capacitor/app'
+import { Capacitor } from '@capacitor/core'
+import { useIonRouter } from '@ionic/vue'
+
+import CopticSection from '@/components/CopticSection.vue'
+import StreakRewards from '@/components/StreakRewards.vue'
+
+import { shareOutline, volumeHighOutline, bookOutline } from 'ionicons/icons'
+import { readDayCache, writeDayCache } from '@/utils/dayCache'
+import { scheduleDailyReminder, disableDailyReminder, sendTestReminder } from '@/services/reminder'
+
 type Lang = 'ar' | 'en'
 const lang = ref<Lang>((localStorage.getItem('mk_lang') as Lang) || 'ar')
 const isArabic = computed(() => lang.value === 'ar')
 const pageDir = computed(() => (isArabic.value ? 'rtl' : 'ltr'))
+
+const router = useRouter()
+const route = useRoute()
 
 function setLang(v: Lang) {
   lang.value = v
@@ -504,42 +488,31 @@ function setLang(v: Lang) {
   loadByDate(iso).catch(console.error)
 }
 
-
 const ionRouter = useIonRouter()
-
 onMounted(() => {
-  App.addListener('backButton', ({ canGoBack }) => {
-    if (!ionRouter.canGoBack()) {
-      App.exitApp()
-    }
+  App.addListener('backButton', () => {
+    if (!ionRouter.canGoBack()) App.exitApp()
   })
 })
 
-
-const route = useRoute()
 function applyLangFromQueryOnce() {
   const qLang = typeof route.query.lang === 'string' ? route.query.lang : ''
   if (qLang === 'en' || qLang === 'ar') {
-    // apply
-    lang.value = qLang as any
+    lang.value = qLang as Lang
     localStorage.setItem('mk_lang', lang.value)
 
-    // remove from URL so it doesn't "stick"
     const q = { ...route.query }
     delete (q as any).lang
     router.replace({ query: q })
   }
 }
 
-onMounted(() => {
-  applyLangFromQueryOnce()
-})
-
 const allowFuture = computed(() => route.query.debugFuture === '1')
 
 // ====== Settings modal ======
 const showSettings = ref(false)
 const showAbout = ref(false)
+
 watch(
   () => route.query.lang,
   () => applyLangFromQueryOnce(),
@@ -552,7 +525,6 @@ watch(
     showSettings.value = v === 'settings'
     showAbout.value = v === 'about'
   },
-  
   { immediate: true }
 )
 
@@ -570,6 +542,13 @@ function closeAbout() {
   router.replace({ query: q })
 }
 
+// ====== Share sheet ======
+const showShareSheet = ref(false)
+const captureRef = ref<HTMLElement | null>(null)
+const isCapturing = ref(false)
+
+const isWeb = computed(() => !Capacitor.isNativePlatform())
+
 async function shareAsImageWeb() {
   if (noData.value || isLoading.value) return
 
@@ -582,7 +561,6 @@ async function shareAsImageWeb() {
   const wrap = el.querySelector('.wrap') as HTMLElement | null
   if (!wrap) return
 
-  // ✅ capture mode ON (local, safe)
   isCapturing.value = true
   await new Promise(requestAnimationFrame)
 
@@ -590,14 +568,13 @@ async function shareAsImageWeb() {
   wrap.style.transform = 'none'
 
   try {
-    await document.fonts.ready
-
+    await (document as any).fonts?.ready
 
     const canvas = await html2canvas(wrap, {
-  backgroundColor: '#ffffff',
-  useCORS: true,
-  scale: Math.min(3, window.devicePixelRatio * 2)
-})
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      scale: Math.min(3, window.devicePixelRatio * 2)
+    })
 
     const blob: Blob | null = await new Promise(resolve =>
       canvas.toBlob(b => resolve(b), 'image/png')
@@ -609,8 +586,6 @@ async function shareAsImageWeb() {
     }
 
     const fileName = `ma3an-kol-youm-${Date.now()}.png`
-
-    // ✅ direct download (most reliable)
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -619,51 +594,44 @@ async function shareAsImageWeb() {
     a.click()
     a.remove()
     URL.revokeObjectURL(url)
-
   } finally {
     wrap.style.transform = prevWrapTransform || ''
     isCapturing.value = false
   }
 }
 
+const shareButtons = computed(() => {
+  // ✅ Web: text + image
+  if (isWeb.value) {
+    return [
+      { text: 'مشاركة كنص', handler: () => { void shareAsText() } },
+      { text: 'مشاركة كصورة', handler: () => { void shareAsImageWeb() } },
+      { text: 'إلغاء', role: 'cancel' }
+    ]
+  }
+  // ✅ Mobile: text only
+  return [
+    { text: 'مشاركة كنص', handler: () => { void shareAsText() } },
+    { text: 'إلغاء', role: 'cancel' }
+  ]
+})
 
-
-const shareButtons = computed(() => ([
-  { text: 'مشاركة كنص', handler: () => { void shareAsText() } },
-  { text: 'مشاركة كصورة', handler: () => { void shareAsImageWeb() } },
-  { text: 'إلغاء', role: 'cancel' }
-]))
-
-
-type ChapterPreview = {
-  bookName: string
-  bookNameEn?: string
-  chapter: number
-  chapterTitle: string
-  sections: { title: string }[]
-}
-
-
-
+// ====== Content base ======
+const APP_BASE_URL = new URL(import.meta.env.BASE_URL, window.location.origin).toString()
 const CONTENT_BASE = Capacitor.isNativePlatform()
-  ? 'https://nancyhenry89.github.io/ma3ankolyoum/src/content'
-  : `${window.location.origin}/content`  // أو '/content'
+  ? 'https://nancyhenry89.github.io/ma3ankolyoum/content'
+  : new URL('content', APP_BASE_URL).toString().replace(/\/$/, '')
 
-  const AGBIA_AUDIO_BASE = `${CONTENT_BASE}/audio/agbia`
-
-const router = useRouter()
-const isWeb = computed(() => !Capacitor.isNativePlatform())
-
+// ====== Sheets ======
 const SHEET_CSV_URL_AR =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vRzBoz5JKy5BfRIXlo_rOSIYsce_9oXsLG9R07CvC3-MztLmg3vv7EYoNLFdt9YmL21tv8XYevOxedh/pub?gid=0&single=true&output=csv'
 
 const SHEET_CSV_URL_EN =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWXF9eFCtpOgzUaGeiNL4_j7_5naGVewHbW4iwU-l4FqQmv0b_25Snb__igfxess03wAjdJ6A9vThP/pub?gid=0&single=true&output=csv'
 
-  const sheetUrl = computed(() => (lang.value === 'en' ? SHEET_CSV_URL_EN : SHEET_CSV_URL_AR))
+const sheetUrl = computed(() => (lang.value === 'en' ? SHEET_CSV_URL_EN : SHEET_CSV_URL_AR))
 
-  function todayISO(): string {
-  // returns YYYY-MM-DD based on the user's device timezone
+function todayISO(): string {
   const d = new Date()
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -671,20 +639,17 @@ const SHEET_CSV_URL_EN =
   return `${y}-${m}-${day}`
 }
 
+// ====== UI strings ======
 const ui = computed(() => {
   if (lang.value === 'en') {
     return {
-      // Share
       share: 'Share',
-
-      // Home labels
       reflection: 'Meditation',
       bible: 'Bible',
       agbia: 'Agpeya',
       training: 'A Step Forward',
       comingSoon: 'Coming soon on',
 
-      // Empty states
       noData: 'No data available for this day.',
       noSaint: 'No Synaxarium for today.',
       noStory: 'No story for today.',
@@ -694,12 +659,10 @@ const ui = computed(() => {
       noAgbia: 'No Agpeya reading for today.',
       noTraining: 'No training for today.',
 
-      // Date picker
       pickDay: 'Pick a day',
       close: 'Close',
       noFutureHint: 'You cannot select days after today.',
 
-      // Settings modal (✅ هذه اللي ناقصة عندك)
       settings: 'Settings',
       darkMode: 'Dark mode',
       fontSize: 'Font size',
@@ -708,23 +671,18 @@ const ui = computed(() => {
       testNotify: 'Test notification now',
       settingsHint: 'Settings are saved automatically on this device.',
 
-      // About modal title
       about: 'About'
     }
   }
 
   return {
-    // Share
     share: 'مشاركة',
-
-    // Home labels
     reflection: 'التأمل',
     bible: 'الكتاب المقدس',
     agbia: 'الأجبية',
     training: 'خطوة لقدام',
     comingSoon: 'قريباً علي',
 
-    // Empty states
     noData: 'لا توجد بيانات متاحة لهذا اليوم.',
     noSaint: 'لا يوجد سنكسار لهذا اليوم.',
     noStory: 'لا توجد قصة لهذا اليوم.',
@@ -734,12 +692,10 @@ const ui = computed(() => {
     noAgbia: 'لا توجد قراءة من الأجبية لهذا اليوم.',
     noTraining: 'لا يوجد تدريب محدد لهذا اليوم.',
 
-    // Date picker
     pickDay: 'اختر يوم',
     close: 'إغلاق',
     noFutureHint: 'لا يمكن اختيار أيام بعد تاريخ اليوم.',
 
-    // Settings modal (✅)
     settings: 'الإعدادات',
     darkMode: 'الوضع الليلي',
     fontSize: 'حجم الخط',
@@ -748,7 +704,6 @@ const ui = computed(() => {
     testNotify: 'جرّب إشعار الآن',
     settingsHint: 'الإعدادات بتتخزن تلقائيًا على الجهاز.',
 
-    // About modal title
     about: 'عن التطبيق'
   }
 })
@@ -757,13 +712,12 @@ const ui = computed(() => {
 type ThemeMode = 'light' | 'dark'
 const theme = ref<ThemeMode>((localStorage.getItem('mk_theme') as ThemeMode) || 'light')
 const fontScale = ref<number>(Number(localStorage.getItem('mk_fontScale') || '1'))
-  const reminderEnabled = ref(localStorage.getItem('mk_reminder_enabled') === '1')
+const reminderEnabled = ref(localStorage.getItem('mk_reminder_enabled') === '1')
 const reminderTime = ref(localStorage.getItem('mk_reminder_time') || '09:00')
 
 const themeClass = computed(() => (theme.value === 'dark' ? 'theme-dark' : 'theme-light'))
 
 function applyPrefs() {
-  const fs = Number(fontScale.value)
   document.documentElement.setAttribute('data-mk-theme', theme.value)
 }
 
@@ -772,12 +726,12 @@ function toggleTheme(ev: any) {
   localStorage.setItem('mk_theme', theme.value)
   applyPrefs()
 }
+
 function onFontScale(ev: any) {
   const v = Number(ev?.detail?.value)
   fontScale.value = Number.isFinite(v) ? v : 1
   localStorage.setItem('mk_fontScale', String(fontScale.value))
 }
-
 
 // ====== Date picker ======
 const showDatePicker = ref(false)
@@ -785,11 +739,10 @@ const selectedDateISO = ref(todayISO())
 const nowTick = ref(Date.now())
 
 onMounted(() => {
-  setInterval(() => { nowTick.value = Date.now() }, 60_000) // every 1 min
+  setInterval(() => { nowTick.value = Date.now() }, 60_000)
 })
 
 const todayISOComputed = computed(() => {
-  // tie to nowTick so it updates after midnight automatically
   nowTick.value
   return todayISO()
 })
@@ -798,20 +751,17 @@ const isTodaySelected = computed(() => {
   return String(selectedDateISO.value).substring(0, 10) === todayISOComputed.value
 })
 
-const bibleFromSheet = ref(false)
-const bibleIsEmptyFromSheet = ref(false)
-const isCapturing = ref(false)
-
 function onDateChange(ev: any) {
   const iso = String(ev.detail.value || '').substring(0, 10)
   if (!iso) return
-
-  // ⛔ block future ONLY if debugFuture is not enabled
   if (!allowFuture.value && iso > todayISOComputed.value) return
+
   selectedDateISO.value = iso
   showDatePicker.value = false
   loadByDate(iso)
 }
+
+// ====== Reminders ======
 async function applyReminderSchedule() {
   if (isWeb.value) return
   if (!reminderEnabled.value) {
@@ -821,7 +771,6 @@ async function applyReminderSchedule() {
 
   const [h, m] = reminderTime.value.split(':').map(Number)
   if (Number.isNaN(h) || Number.isNaN(m)) return
-
   await scheduleDailyReminder(h, m)
 }
 
@@ -833,21 +782,18 @@ async function onReminderToggle(ev: any) {
 
 watch(reminderTime, async () => {
   localStorage.setItem('mk_reminder_time', reminderTime.value)
-  if (reminderEnabled.value) {
-    await applyReminderSchedule()
-  }
+  if (reminderEnabled.value) await applyReminderSchedule()
 })
 
 async function testReminder() {
   await sendTestReminder()
 }
 
+// ====== Share as text ======
 async function shareAsText() {
   if (noData.value || isLoading.value) return
 
   const lines: string[] = []
-
-  // عنوان واحد بس
   lines.push(`${gregorianDate.value} – ${copticDate.value}`)
 
   if (saint.value) lines.push(`\nالسنكسار: ${saint.value}`)
@@ -868,7 +814,6 @@ async function shareAsText() {
     lines.push(reflection.value)
   }
 
-  // ✅ الإنجيل/الكتاب المقدس (بيستخدم الـ preview computed)
   const bibleHead = previewLabel.value || bibleLabel.value
   const bibleTitleLine = previewTitle.value
   const sections = previewSections.value || []
@@ -877,12 +822,9 @@ async function shareAsText() {
     lines.push('\nالكتاب المقدس:')
     if (bibleHead) lines.push(bibleHead)
     if (bibleTitleLine) lines.push(bibleTitleLine)
-    if (sections.length) {
-      lines.push(sections.map(s => `• ${s}`).join('\n'))
-    }
+    if (sections.length) lines.push(sections.map(s => `• ${s}`).join('\n'))
   }
 
-  // ✅ الأجبية
   if (agbia.value) {
     lines.push('\nالأجبية:')
     lines.push(agbia.value)
@@ -896,102 +838,13 @@ async function shareAsText() {
 
   const text = lines.join('\n')
 
-  if (navigator.share) {
-    await navigator.share({ title: 'معًا كل يوم', text })
+  if ((navigator as any).share) {
+    await (navigator as any).share({ title: 'معًا كل يوم', text })
   } else {
     await navigator.clipboard?.writeText(text)
     alert('تم نسخ النص للمشاركة ✅')
   }
 }
-
-import { Share } from '@capacitor/share'
-import { Filesystem, Directory } from '@capacitor/filesystem'
-import { Capacitor } from '@capacitor/core'
-
-
-
-function downloadBlob(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = fileName
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  URL.revokeObjectURL(url)
-}
-
-
-async function shareAsImage() {
-  if (noData.value || isLoading.value) return
-
-  showShareSheet.value = false
-  await new Promise(r => setTimeout(r, 80))
-
-  const el = captureRef.value
-  if (!el) return
-
-  const wrap = el.querySelector('.wrap') as HTMLElement | null
-  if (!wrap) return
-
-  // ✅ enable capture mode (hide burger/stores/audio/etc)
-  document.documentElement.classList.add('mk-capturing')
-
-  // ✅ temporarily remove scaling so layout is true size
-  const prevWrapTransform = wrap.style.transform
-  wrap.style.transform = 'none'
-
-  // ✅ crop capture to content width (fix left white space on desktop)
-  const prevElWidth = (el as HTMLElement).style.width
-  const prevElDisplay = (el as HTMLElement).style.display
-  const prevElMargin = (el as HTMLElement).style.margin
-
-  // get real width of wrap
-  await new Promise(requestAnimationFrame)
-  const w = Math.ceil(wrap.getBoundingClientRect().width)
-
-  ;(el as HTMLElement).style.display = 'inline-block'
-  ;(el as HTMLElement).style.width = `${w}px`
-  ;(el as HTMLElement).style.margin = '0'
-
-  try {
-    await new Promise(requestAnimationFrame)
-
-    const canvas = await html2canvas(el, {
-  backgroundColor: null,
-  useCORS: true,
-  scale: 3, // ⭐ مهم للجودة
-})
-const fileName = `ma3an-kol-youm-${Date.now()}.png`
-
-if (!Capacitor.isNativePlatform()) {
-  const blob: Blob | null = await new Promise(resolve =>
-    canvas.toBlob(b => resolve(b), 'image/png')
-  )
-  if (!blob) return
-
-
-  // fallback: normal download
-  downloadBlob(blob, fileName)
-  return
-}
-
-
-
-  } finally {
-    // ✅ restore everything
-    document.documentElement.classList.remove('mk-capturing')
-
-    wrap.style.transform = prevWrapTransform || ''
-
-    ;(el as HTMLElement).style.width = prevElWidth || ''
-    ;(el as HTMLElement).style.display = prevElDisplay || ''
-    ;(el as HTMLElement).style.margin = prevElMargin || ''
-  }
-}
-
-
-
 
 // ====== Data state ======
 const gregorianDate = ref('')
@@ -1005,18 +858,37 @@ const verseText = ref('')
 const verseRef = ref('')
 const reflection = ref('')
 
+const training = ref('')
+
+const announcement = ref('')
+const hasAnnouncement = computed(() => !!String(announcement.value).trim())
+
+function applySpecialMarks(md: string) {
+  md = md.replace(/\+\+([^\n]+?)\+\+/g, (_m, inner) => {
+    return `<span class="mkSpecial plus">${escapeHtml(inner.trim())}</span>`
+  })
+
+  md = md.replace(/(?:--|–)([^\n]+?)(?:--|–)/g, (_m, inner) => {
+    return `<span class="mkSpecial dash">${escapeHtml(inner.trim())}</span>`
+  })
+
+  return md
+}
+
+function escapeHtml(s: string) {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 function mdToSafeHtml(md: string) {
   try {
     if (!md) return ''
-
     const withSpecial = applySpecialMarks(String(md))
-
-    const html = marked.parse(withSpecial, {
-      breaks: true,
-      gfm: true
-    })
-
-    // ✅ اسمحي بالـ span و class صراحة
+    const html = marked.parse(withSpecial, { breaks: true, gfm: true })
     return DOMPurify.sanitize(String(html), {
       USE_PROFILES: { html: true },
       ADD_TAGS: ['span'],
@@ -1024,31 +896,96 @@ function mdToSafeHtml(md: string) {
     })
   } catch (e) {
     console.error('mdToSafeHtml error:', e)
-    // لو حصل أي مشكلة، ارجعي نص خام بدل صفحة فاضية
     return `<p>${escapeHtml(String(md || ''))}</p>`
   }
 }
 
-
-
 const storyHtml = computed(() => mdToSafeHtml(story.value))
 const reflectionHtml = computed(() => mdToSafeHtml(reflection.value))
+
+// ===== Bible preview =====
+type ChapterPreview = {
+  bookName: string
+  bookNameEn?: string
+  chapter: number
+  chapterTitle: string
+  sections: { title: string }[]
+}
+
+const chapterPreview = ref<ChapterPreview | null>(null)
 
 const bibleBookKey = ref('') // Matthew
 const bibleChapter = ref<number>(1)
 const bibleTitle = ref('')
 const bibleItems = ref<string[]>([])
+const bibleFromSheet = ref(false)
+const bibleIsEmptyFromSheet = ref(false)
 
+const bookNameMapAr: Record<string, string> = { Matthew: 'متى' }
+const bookNameMapEn: Record<string, string> = { Matthew: 'Matthew' }
+
+function getBookName(key: string) {
+  const k = (key || '').trim()
+  if (!k) return ''
+  return isArabic.value ? (bookNameMapAr[k] || k) : (bookNameMapEn[k] || k)
+}
+
+const bibleLabel = computed(() => {
+  const key = (bibleBookKey.value || '').trim()
+  const ch = bibleChapter.value || 1
+  const name = getBookName(key)
+  return name ? `${name} ${ch}` : ''
+})
+
+const previewLabel = computed(() => {
+  const ch = bibleChapter.value || 1
+  const name = getBookName(bibleBookKey.value)
+  return name ? `${name} ${ch}` : ''
+})
+
+const previewTitle = computed(() => chapterPreview.value?.chapterTitle || bibleTitle.value)
+
+const previewSections = computed(() => {
+  const list = chapterPreview.value?.sections?.map(s => s.title).filter(Boolean) || []
+  return list.length ? list : bibleItems.value
+})
+
+async function loadChapterPreview(bookKey: string, chapter: number) {
+  try {
+    const slug = String(bookKey || 'Matthew').toLowerCase()
+    const url = `${CONTENT_BASE}/bible/${slug}/${chapter}.json`
+
+    const res = await fetch(url, { cache: 'no-store' })
+    if (!res.ok) {
+      console.warn('Preview JSON not found:', url)
+      chapterPreview.value = null
+      return
+    }
+
+    const json = await res.json()
+    chapterPreview.value = {
+      bookName: String(json.bookName || ''),
+      bookNameEn: String(json.bookNameEn || ''),
+      chapter: Number(json.chapter || chapter),
+      chapterTitle: String(json.chapterTitle || ''),
+      sections: (json.sections || []).map((s: any) => ({ title: String(s.title || '') }))
+    }
+  } catch (e) {
+    console.error('Failed to load chapter preview', e)
+    chapterPreview.value = null
+  }
+}
+
+// ===== Agbia =====
 const agbia = ref('')
 const agbia_author = ref('')
+
 const agbia_baker = ref('')
 const agbia_third = ref('')
 const agbia_sixth = ref('')
 const agbia_ninth = ref('')
 const agbia_sunset = ref('')
 const agbia_sleep = ref('')
-const announcement = ref('')
-const hasAnnouncement = computed(() => !!String(announcement.value).trim())
 
 const hasAnyAgbiaAudio = computed(() => {
   return !!(
@@ -1060,20 +997,44 @@ const hasAnyAgbiaAudio = computed(() => {
     String(agbia_sleep.value).trim()
   )
 })
+
+// ===== Flags =====
 const hasStory = computed(() => !!String(story.value).trim())
 const hasSaint = computed(() => !!String(saint.value).trim())
-
 const hasVerse = computed(() => !!String(verseText.value).trim())
 const hasReflection = computed(() => !!String(reflection.value).trim())
 const hasAgbia = computed(() => !!String(agbia.value).trim())
 const hasTraining = computed(() => !!String(training.value).trim())
 const hasBible = computed(() => bibleFromSheet.value)
 
-const training = ref('')
-const chapterPreview = ref<ChapterPreview | null>(null)
-  const isLoading = ref(false)
+const isLoading = ref(false)
 const noData = ref(false)
 const noDataMsg = ref('')
+
+// ===== cache helpers =====
+function cacheKey(iso: string) {
+  return `${lang.value}:${String(iso).substring(0, 10)}`
+}
+
+function normalizeKeys(row: any) {
+  const out: Record<string, any> = {}
+  Object.keys(row || {}).forEach(k => {
+    const nk = String(k).trim().toLowerCase().replace(/\s+/g, '_')
+    out[nk] = row[k]
+  })
+  return out
+}
+
+function pick(row: any, ...keys: string[]) {
+  for (const k of keys) {
+    const kk = k.trim().toLowerCase().replace(/\s+/g, '_')
+    if (row[kk] !== undefined && row[kk] !== null && String(row[kk]).trim() !== '') {
+      return row[kk]
+    }
+  }
+  return ''
+}
+
 function applyCachedDay(c: any) {
   gregorianDate.value = c.gregorianDate || ''
   copticDate.value = c.copticDate || ''
@@ -1093,7 +1054,6 @@ function applyCachedDay(c: any) {
   agbia.value = c.agbia || ''
   agbia_author.value = c.agbia_author || ''
 
-  // ✅ مهم: خدي نفس أسماء المفاتيح اللي بتتخزن في الكاش (baker/third/...)
   agbia_baker.value  = c.baker  || ''
   agbia_third.value  = c.third  || ''
   agbia_sixth.value  = c.sixth  || ''
@@ -1103,32 +1063,16 @@ function applyCachedDay(c: any) {
 
   training.value = c.training || ''
 
-  // ✅ Bible keys من الكاش
   bibleBookKey.value = (c.bibleBookKey || 'Matthew').trim()
   bibleChapter.value = Number(c.bibleChapter || 1)
   bibleTitle.value = c.bibleTitle || ''
   bibleItems.value = Array.isArray(c.bibleItems) ? c.bibleItems : []
 
-  // ✅ preview
   if (bibleFromSheet.value) {
     loadChapterPreview(bibleBookKey.value, bibleChapter.value)
   } else {
     chapterPreview.value = null
   }
-}
-
-// ✅ hydrate from cache before first render
-const initialISO = String(selectedDateISO.value).substring(0, 10)
-const cachedInit = readDayCache(cacheKey(initialISO))
-
-if (cachedInit) {
-  applyCachedDay(cachedInit)
-  noData.value = false
-  noDataMsg.value = ''
-  isLoading.value = false
-} else {
-  // مفيش كاش: ساعتها بس نظهر loading
-  isLoading.value = true
 }
 
 function clearData() {
@@ -1144,103 +1088,20 @@ function clearData() {
   agbia.value = ''
   agbia_author.value = ''
   training.value = ''
+  announcement.value = ''
 
-  // ✅ reset bible flags + preview
   bibleFromSheet.value = false
   bibleIsEmptyFromSheet.value = true
   chapterPreview.value = null
 
-  // optional: reset keys
   bibleBookKey.value = ''
   bibleChapter.value = 1
   bibleTitle.value = ''
   bibleItems.value = []
 }
 
-
-const bookNameMapAr: Record<string, string> = { Matthew: 'متى' }
-const bookNameMapEn: Record<string, string> = { Matthew: 'Matthew' }
-
-const bibleLabel = computed(() => {
-  const key = (bibleBookKey.value || '').trim()
-  const ch = bibleChapter.value || 1
-
-  const name = isArabic.value
-    ? (bookNameMapAr[key] || key)
-    : (bookNameMapEn[key] || key)
-
-  return name ? `${name} ${ch}` : ''
-})
-
-function getBookName(key: string) {
-  const k = (key || '').trim()
-  if (!k) return ''
-  return isArabic.value ? (bookNameMapAr[k] || k) : (bookNameMapEn[k] || k)
-}
-
-const previewLabel = computed(() => {
-  const ch = bibleChapter.value || 1
-  const name = getBookName(bibleBookKey.value)
-  return name ? `${name} ${ch}` : ''
-})
-
-
-
-const previewTitle = computed(() => chapterPreview.value?.chapterTitle || bibleTitle.value)
-
-const previewSections = computed(() => {
-  const list = chapterPreview.value?.sections?.map(s => s.title).filter(Boolean) || []
-  return list.length ? list : bibleItems.value
-})
-function applySpecialMarks(md: string) {
-  // ++text++
-  md = md.replace(/\+\+([^\n]+?)\+\+/g, (_m, inner) => {
-    return `<span class="mkSpecial plus">${escapeHtml(inner.trim())}</span>`
-  })
-
-  // --text--  OR  –text–
-  md = md.replace(/(?:--|–)([^\n]+?)(?:--|–)/g, (_m, inner) => {
-    return `<span class="mkSpecial dash">${escapeHtml(inner.trim())}</span>`
-  })
-
-  return md
-}
-
-function escapeHtml(s: string) {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
-}
-
-// ====== Helpers: normalize row keys (حل مشكلة المسافات/الحروف) ======
-function cacheKey(iso: string) {
-  return `${lang.value}:${String(iso).substring(0, 10)}`
-}
-
-function normalizeKeys(row: any) {
-  const out: Record<string, any> = {}
-  Object.keys(row || {}).forEach(k => {
-    const nk = String(k).trim().toLowerCase().replace(/\s+/g, '_')
-    out[nk] = row[k]
-  })
-  return out
-}
-function pick(row: any, ...keys: string[]) {
-  for (const k of keys) {
-    const kk = k.trim().toLowerCase().replace(/\s+/g, '_')
-    if (row[kk] !== undefined && row[kk] !== null && String(row[kk]).trim() !== '') {
-      return row[kk]
-    }
-  }
-  return ''
-}
-
-// ====== cache rows ======
+// ===== rows cache =====
 const rowsCache = ref<Record<Lang, any[] | null>>({ ar: null, en: null })
-
 
 async function fetchRows() {
   const key = lang.value
@@ -1258,40 +1119,9 @@ async function fetchRows() {
   return rows
 }
 
-
-async function loadChapterPreview(bookKey: string, chapter: number) {
-  try {
-    const slug = String(bookKey || 'Matthew').toLowerCase()
-    const url = `${CONTENT_BASE}/bible/${slug}/${chapter}.json`
-
-    const res = await fetch(url, { cache: 'no-store' })
-    if (!res.ok) {
-      console.warn('Preview JSON not found:', url)
-      chapterPreview.value = null
-      return
-    }
-
-    const json = await res.json()
-    chapterPreview.value = {
-  bookName: String(json.bookName || ''),
-  bookNameEn: String(json.bookNameEn || ''),
-  chapter: Number(json.chapter || chapter),
-  chapterTitle: String(json.chapterTitle || ''),
-  sections: (json.sections || []).map((s: any) => ({
-    title: String(s.title || '')
-  }))
-}
-  } catch (e) {
-    console.error('Failed to load chapter preview', e)
-    chapterPreview.value = null
-  }
-}
-
-
 function applyRow(rowRaw: any) {
   const row = normalizeKeys(rowRaw)
 
-  // ===== Basics =====
   gregorianDate.value = pick(row, 'gregorian', 'gregorian_date')
   copticDate.value = pick(row, 'coptic', 'coptic_date')
   saint.value = pick(row, 'saint')
@@ -1307,34 +1137,25 @@ function applyRow(rowRaw: any) {
   reflection.value = pick(row, 'reflection')
   announcement.value = pick(row, 'announcement', 'إعلان', 'announcements')
 
-  // ===== Bible: parse inputs =====
+  // Bible
   bibleBookKey.value = pick(row, 'bible_book', 'book_key') || 'Matthew'
-
   const chRaw = String(pick(row, 'bible_chapter', 'chapter') || '').trim()
   const chNum = parseInt(chRaw, 10)
   bibleChapter.value = Number.isFinite(chNum) && chNum > 0 ? chNum : 1
 
   bibleTitle.value = pick(row, 'bible_title', 'chapter_title')
-
   const itemsRaw = pick(row, 'bible_items', 'items')
 
-  // Detect if Bible exists in sheet (any bible field filled)
   const sheetBook = String(pick(row, 'bible_book', 'book_key') || '').trim()
   const sheetChapterRaw = String(pick(row, 'bible_chapter', 'chapter') || '').trim()
   const sheetTitle = String(pick(row, 'bible_title', 'chapter_title') || '').trim()
   const sheetItems = String(pick(row, 'bible_items', 'items') || '').trim()
 
-  const sheetHasBible =
-    !!sheetBook ||
-    !!sheetChapterRaw ||
-    !!sheetTitle ||
-    !!sheetItems
-
+  const sheetHasBible = !!sheetBook || !!sheetChapterRaw || !!sheetTitle || !!sheetItems
   bibleFromSheet.value = sheetHasBible
   bibleIsEmptyFromSheet.value = !sheetHasBible
 
   if (!sheetHasBible) {
-    // ✅ Important: DO NOT return (so Agbia + Training still load)
     chapterPreview.value = null
     bibleItems.value = []
     bibleTitle.value = ''
@@ -1344,11 +1165,10 @@ function applyRow(rowRaw: any) {
       .map((s: string) => s.trim())
       .filter(Boolean)
 
-    // only load preview if we have bible
     loadChapterPreview(bibleBookKey.value || 'Matthew', bibleChapter.value || 1)
   }
 
-  // ===== Agbia =====
+  // Agbia
   agbia.value = pick(row, 'agbia')
   agbia_author.value = pick(row, 'agbia_author', 'agbiaauthor', 'agbia_author_name', 'agbia_author_ar')
 
@@ -1359,7 +1179,7 @@ function applyRow(rowRaw: any) {
   agbia_sunset.value = pick(row, 'sunset', 'agbia_sunset', 'ghoroub')
   agbia_sleep.value  = pick(row, 'sleep', 'agbia_sleep', 'noum')
 
-  // ===== Training (make it resilient) =====
+  // Training
   training.value = pick(
     row,
     'training',
@@ -1375,13 +1195,10 @@ function applyRow(rowRaw: any) {
 
 async function refreshHomeFromNetwork(targetISO: string) {
   const rows = await fetchRows()
-
   const toISO = (r: any) => String(r.date_iso || '').trim().substring(0, 10)
 
-  // 1) دور على اليوم المطلوب مباشرة (بدون فلترة "مستقبل")
   let found = rows.find(r => toISO(r) === targetISO) || null
 
-  // 2) لو مش موجود، هات آخر يوم متاح (أحدث date_iso)
   if (!found) {
     const sorted = [...rows]
       .filter(r => toISO(r))
@@ -1419,7 +1236,6 @@ async function refreshHomeFromNetwork(targetISO: string) {
     bibleFromSheet: bibleFromSheet.value,
     announcement: announcement.value,
 
-    // ✅ لو بدأتي تخزني أعمدة الأجبية الجديدة
     baker: pick(normalizeKeys(found), 'baker') || '',
     third: pick(normalizeKeys(found), 'third') || '',
     sixth: pick(normalizeKeys(found), 'sixth') || '',
@@ -1432,21 +1248,16 @@ async function refreshHomeFromNetwork(targetISO: string) {
 async function loadByDate(dateISO: string) {
   const targetISO = String(dateISO).trim().substring(0, 10)
 
-  // ✅ 1) cache-first (يعرض فوراً)
   const cached = readDayCache(cacheKey(targetISO))
-
   if (cached) {
     isLoading.value = false
     noData.value = false
     noDataMsg.value = ''
     applyCachedDay(cached)
-
-    // ✅ 2) refresh من النت في الخلفية (من غير ما يوقف UI)
     refreshHomeFromNetwork(targetISO).catch(console.error)
     return
   }
 
-  // ✅ لو مفيش كاش: حمّلي عادي
   isLoading.value = true
   noData.value = false
   noDataMsg.value = ''
@@ -1463,69 +1274,65 @@ async function loadByDate(dateISO: string) {
   }
 }
 
-
-function resolveAgbiaAudioUrl(v: string) {
-  if (!v) return ''
-  if (/^https?:\/\//i.test(v)) return v
-  return `${CONTENT_BASE}/audio/${encodeURIComponent(v)}`
-}
-
-
+// ===== Navigation =====
 function openChapter() {
   if (!isArabic.value) return
   const bookKey = bibleBookKey.value || 'Matthew'
   const ch = bibleChapter.value || 1
   router.push(`/chapter/${bookKey}/${ch}`)
 }
+
 function openSaint() {
   if (!isArabic.value) return
   router.push(`/saint/${selectedDateISO.value}`)
 }
+
 function openAgbiaAudio() {
   if (!isArabic.value) return
   const iso = String(selectedDateISO.value).substring(0, 10)
   router.push({ path: `/agbia-audio/${iso}` })
 }
 
+// ===== init =====
+const initialISO = String(selectedDateISO.value).substring(0, 10)
+const cachedInit = readDayCache(cacheKey(initialISO))
 
-
-
-
+if (cachedInit) {
+  applyCachedDay(cachedInit)
+  noData.value = false
+  noDataMsg.value = ''
+  isLoading.value = false
+} else {
+  isLoading.value = true
+}
 
 onMounted(() => {
   applyPrefs()
+  applyLangFromQueryOnce()
 
   const queryDate = typeof route.query.date === 'string'
     ? route.query.date.substring(0, 10)
     : null
 
   if (queryDate) {
-    // ⛔ prevent future unless debugFuture=1
     if (!allowFuture.value && queryDate > todayISO()) return
-
     selectedDateISO.value = queryDate
     loadByDate(queryDate)
-    return
-  }
-
-  const iso = String(selectedDateISO.value).substring(0, 10)
-  const cached = readDayCache(cacheKey(iso))
-
-
-  if (cached) {
-    refreshHomeFromNetwork(iso).catch(console.error)
   } else {
-    loadByDate(iso).catch(console.error)
+    const iso = String(selectedDateISO.value).substring(0, 10)
+    const cached = readDayCache(cacheKey(iso))
+    if (cached) refreshHomeFromNetwork(iso).catch(console.error)
+    else loadByDate(iso).catch(console.error)
   }
-  if (Capacitor.isNativePlatform() && reminderEnabled.value) {
-  applyReminderSchedule().catch(console.error)
-}
-if (!isWeb.value && reminderEnabled.value) {
+
+  if (!isWeb.value && reminderEnabled.value) {
     applyReminderSchedule().catch(console.error)
   }
 })
-
 </script>
+
+
+
 <style scoped>
   /* =========================================================
      Theme variables (keep as-is)

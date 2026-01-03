@@ -1,6 +1,9 @@
+<!-- CopticSection.vue -->
 <template>
-  <!-- MAIN -->
   <section class="coptic" :dir="sectionDir" :lang="sectionLang">
+    <!-- Hidden audio element (reliable on iOS/Android WebView) -->
+    <audio ref="audioRef" preload="none" playsinline></audio>
+
     <!-- Loading -->
     <div v-if="isLoading" class="coptic-body">
       <div class="coptic-title skeleton-box"></div>
@@ -29,7 +32,7 @@
           :aria-disabled="!it.audioUrl"
         >
           <div class="coptic-row">
-            <ion-icon
+            <IonIcon
               :icon="volumeHighOutline"
               class="volume-icon mkNoCapture"
               :class="{ dimIcon: !it.audioUrl }"
@@ -48,11 +51,14 @@
 <script setup lang="ts">
 import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { volumeHighOutline } from 'ionicons/icons'
+import { Capacitor } from '@capacitor/core'
+import { IonIcon } from '@ionic/vue'
 
 type CopticItem = {
   coptic: string
   meaning: string
   audioUrl: string
+  audioAltUrl?: string
 }
 
 const props = defineProps<{
@@ -78,47 +84,105 @@ const sectionLang = computed(() => (isArabic.value ? 'ar' : 'en'))
 const COPTIC_SHEET_CSV_URL =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vTljfbjiBccVFJpqzxoOfOe4f_zjS0MVztleuJJ0GZtNfL7aqEnDJ3gI-a5PP0x8vhMRtiQYdQYsb3E/pub?gid=0&single=true&output=csv'
 
-const COPTIC_AUDIO_BASE = `${props.contentBase}/audio/coptic`
+/**
+ * IMPORTANT:
+ * - On web, props.contentBase is correct (it already ends with /content).
+ * - On native (Capacitor), we force GitHub Pages /content base.
+ */
+const GITHUB_CONTENT_BASE = 'https://nancyhenry89.github.io/ma3ankolyoum/content'
+
+const COPTIC_AUDIO_BASE = computed(() => {
+  const base = Capacitor.isNativePlatform() ? GITHUB_CONTENT_BASE : props.contentBase
+  return `${String(base).replace(/\/$/, '')}/audio/coptic`
+})
 
 const isLoading = ref(false)
 const items = ref<CopticItem[]>([])
 const isOpen = ref(true)
 
 /* =========================
-   AUDIO (single element)
+   AUDIO (DOM element)
 ========================= */
-const audioEl = new Audio()
-audioEl.preload = 'none'
-
+const audioRef = ref<HTMLAudioElement | null>(null)
 const currentSrc = ref('')
 const isPlaying = ref(false)
 
-audioEl.addEventListener('ended', () => (isPlaying.value = false))
-audioEl.addEventListener('pause', () => (isPlaying.value = false))
-audioEl.addEventListener('play', () => (isPlaying.value = true))
+function bindAudioEvents(a: HTMLAudioElement) {
+  a.addEventListener('ended', () => (isPlaying.value = false))
+  a.addEventListener('pause', () => (isPlaying.value = false))
+  a.addEventListener('play', () => (isPlaying.value = true))
+}
+
+watch(
+  audioRef,
+  a => {
+    if (!a) return
+    bindAudioEvents(a)
+  },
+  { immediate: true }
+)
+
+async function tryPlayUrl(a: HTMLAudioElement, url: string) {
+  if (!url) return false
+  try {
+    if (currentSrc.value !== url) {
+      a.pause()
+      a.currentTime = 0
+      a.src = url
+      a.load()
+      currentSrc.value = url
+    } else {
+      a.currentTime = 0
+    }
+    await a.play()
+    return true
+  } catch {
+    return false
+  }
+}
 
 async function play(it: CopticItem) {
+  const a = audioRef.value
+  if (!a) return
   if (!it.audioUrl) return
-  try {
-    if (currentSrc.value !== it.audioUrl) {
-      audioEl.pause()
-      audioEl.currentTime = 0
-      audioEl.src = it.audioUrl
-      currentSrc.value = it.audioUrl
-    } else {
-      audioEl.currentTime = 0
-    }
-    await audioEl.play()
-  } catch (e) {
+
+  // ✅ try primary, then fallback
+  const ok1 = await tryPlayUrl(a, it.audioUrl)
+  if (ok1) return
+
+  const ok2 = it.audioAltUrl ? await tryPlayUrl(a, it.audioAltUrl) : false
+  if (!ok2) {
     isPlaying.value = false
-    console.warn('Audio play failed', e)
+    console.warn('Coptic audio play failed', {
+      primary: it.audioUrl,
+      alt: it.audioAltUrl
+    })
   }
 }
 
 onBeforeUnmount(() => {
-  audioEl.pause()
-  audioEl.src = ''
+  const a = audioRef.value
+  if (!a) return
+  a.pause()
+  a.removeAttribute('src')
+  a.load()
 })
+async function urlExists(url: string) {
+  if (!url) return false
+  try {
+    const res = await fetch(url, { method: 'HEAD', cache: 'no-store' })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+/** يرجّع رابط واحد صحيح (primary لو شغال وإلا alt) */
+async function pickWorkingAudioUrl(primary: string, alt?: string) {
+  if (await urlExists(primary)) return primary
+  if (alt && (await urlExists(alt))) return alt
+  return '' // ولا واحد شغال
+}
 
 /* =========================
    CSV helpers
@@ -141,11 +205,40 @@ function pick(row: any, ...keys: string[]) {
   return ''
 }
 
-function resolveAudioUrl(v: string) {
-  const val = String(v || '').trim()
-  if (!val) return ''
-  if (/^https?:\/\//i.test(val)) return val
-  return `${COPTIC_AUDIO_BASE}/${encodeURIComponent(val)}`
+function normalizeAudioNameKeep(val: string) {
+  let v = String(val || '').trim()
+  if (!v) return ''
+  // remove spaces
+  v = v.replace(/\s+/g, '')
+  return v
+}
+
+/**
+ * ✅ Build BOTH candidates:
+ * - primary: whatever sheet says (but we encode)
+ * - alt: if ends with .mp3 => try .mp3.mp3 (fix your current repo mistake)
+ *        if ends with .mp3.mp3 => try single .mp3
+ */
+function resolveAudioUrls(nameRaw: string) {
+  const name = normalizeAudioNameKeep(nameRaw)
+  if (!name) return { primary: '', alt: '' }
+
+  // absolute URL
+  if (/^https?:\/\//i.test(name)) {
+    return { primary: name, alt: '' }
+  }
+
+  const primary = `${COPTIC_AUDIO_BASE.value}/${encodeURIComponent(name)}`
+  let alt = ''
+
+  if (/\.mp3$/i.test(name) && !/\.mp3\.mp3$/i.test(name)) {
+    alt = `${COPTIC_AUDIO_BASE.value}/${encodeURIComponent(name + '.mp3')}`
+  } else if (/\.mp3\.mp3$/i.test(name)) {
+    const fixed = name.replace(/\.mp3\.mp3$/i, '.mp3')
+    alt = `${COPTIC_AUDIO_BASE.value}/${encodeURIComponent(fixed)}`
+  }
+
+  return { primary, alt }
 }
 
 function splitPipe(v: any) {
@@ -153,6 +246,19 @@ function splitPipe(v: any) {
     .split('|')
     .map(s => s.trim())
     .filter(Boolean)
+}
+// ✅ Greek -> Coptic Unicode (for display so Avva font renders)
+const GREEK_TO_COPTIC: Record<string, string> = {
+  'α': 'ⲁ','β': 'ⲃ','γ': 'ⲅ','δ': 'ⲇ','ε': 'ⲉ','ζ': 'ⲍ','η': 'ⲏ','θ': 'ⲑ',
+  'ι': 'ⲓ','κ': 'ⲕ','λ': 'ⲗ','μ': 'ⲙ','ν': 'ⲛ','ξ': 'ⲝ','ο': 'ⲟ','π': 'ⲡ',
+  'ρ': 'ⲣ','σ': 'ⲥ','ς': 'ⲥ','τ': 'ⲧ','υ': 'ⲩ','φ': 'ⲫ','χ': 'ⲭ','ψ': 'ⲯ','ω': 'ⲱ',
+  'Α': 'Ⲁ','Β': 'Ⲃ','Γ': 'Ⲅ','Δ': 'Ⲇ','Ε': 'Ⲉ','Ζ': 'Ⲍ','Η': 'Ⲏ','Θ': 'Ⲑ',
+  'Ι': 'Ⲓ','Κ': 'Ⲕ','Λ': 'Ⲗ','Μ': 'Ⲙ','Ν': 'Ⲛ','Ξ': 'Ⲝ','Ο': 'Ⲟ','Π': 'Ⲡ',
+  'Ρ': 'Ⲣ','Σ': 'Ⲥ','Τ': 'Ⲧ','Υ': 'Ⲩ','Φ': 'Ⲫ','Χ': 'Ⲭ','Ψ': 'Ⲯ','Ω': 'Ⲱ'
+}
+
+function toCopticUnicode(input: string) {
+  return String(input || '').replace(/[Α-Ωα-ως]/g, ch => GREEK_TO_COPTIC[ch] || ch)
 }
 
 async function fetchCopticByDate(targetISO: string) {
@@ -190,12 +296,19 @@ async function fetchCopticByDate(targetISO: string) {
 
     const out: CopticItem[] = []
     for (let i = 0; i < maxLen; i++) {
-      const coptic = copticList[i] || ''
+      const coptic = toCopticUnicode(copticList[i] || '')
       const meaning = meaningList[i] || ''
-      const audioUrl = resolveAudioUrl(audioList[i] || '')
 
-      if (!coptic && !meaning) continue
-      out.push({ coptic, meaning, audioUrl })
+      const { primary, alt } = resolveAudioUrls(audioList[i] || '')
+
+const working = await pickWorkingAudioUrl(primary, alt)
+out.push({
+  coptic,
+  meaning,
+  audioUrl: working,       // ✅ رابط واحد مضمون
+  audioAltUrl: undefined
+})
+
     }
 
     items.value = out
@@ -218,127 +331,124 @@ watch(
 )
 </script>
 
+<style scoped>
+/* نفس جراديانت الـ clickable اللي بتحبيه */
+.clickableHead{
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  padding: 14px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  cursor:pointer;
+  color:#fff;
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 900;
 
-  <style scoped>
-  /* نفس جراديانت الـ clickable اللي بتحبيه */
-  .clickableHead{
-    width: 100%;
-    border: 0;
-    border-radius: 16px;
-    padding: 14px 14px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    cursor:pointer;
-    color:#fff;
-    font-family: "Noto Kufi Arabic", system-ui, sans-serif;
-    font-size: 20px;
-    font-weight: 900;
-  
-    background:
-      radial-gradient(600px 200px at 20% 0%, rgba(32,178,170,0.35), transparent 60%),
-      linear-gradient(135deg, var(--mk-dark), rgba(16,27,47,0.90));
-    box-shadow: var(--mk-shadow-strong);
-    border: 1px solid rgba(255,255,255,0.16);
-  }
-.coptic-title{    color: #20b2aa;
-    font-weight: 900;
-    border-radius: 14px;
-    padding: 8px 18px;
-    font-size: 20px;
-    display: inline-block;
-    margin-bottom: 12px;
-    font-family:"Noto Kufi Arabic", system-ui, sans-serif;
-
+  background:
+    radial-gradient(600px 200px at 20% 0%, rgba(32,178,170,0.35), transparent 60%),
+    linear-gradient(135deg, var(--mk-dark), rgba(16,27,47,0.90));
+  box-shadow: var(--mk-shadow-strong);
+  border: 1px solid rgba(255,255,255,0.16);
+}
+.coptic-title{
+  color: #20b2aa;
+  font-weight: 900;
+  border-radius: 14px;
+  padding: 8px 18px;
+  font-size: 20px;
+  display: inline-block;
+  margin-bottom: 12px;
+  font-family:"Noto Kufi Arabic", system-ui, sans-serif;
   text-align:center;
-width:100%}
-  .chev.open{ transform: rotate(180deg); }
-  
-  .coptic{
-    margin-top: 14px;
-  }
-  .volume-icon {
-    font-size: 24px;
+  width:100%
 }
-  .coptic-body{
-    margin-top: 10px;
-    background: radial-gradient(600px 200px at 20% 0%, rgba(32,178,170,0.35), transparent 60%),
-      linear-gradient(135deg, var(--mk-dark), rgba(16,27,47,0.90));
-    border-radius: 18px;
-    border: 1px solid var(--mk-border);
-    box-shadow: var(--mk-shadow);
-    padding: 14px;
-    position:relative
-  }
-  
-  .home.theme-dark .coptic-body{
-    background: rgba(255,255,255,0.06);
-  }
-  
-  .coptic-hint{
-    margin: 0 0 10px;
-    font-weight: 800;
-    opacity: .85;
-    text-align: center;
-  }
-  
-  .coptic-list{
-    display: grid;
-    gap: 10px;
-  }
-  
-  .coptic-item{
-    width: 100%;
-    text-align: center;
-    border-radius: 16px;
-    background: transparent;
-    cursor: pointer;
-  }
-  
+.chev.open{ transform: rotate(180deg); }
 
-  
-  .coptic-row{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap: 10px;
-    flex-wrap: wrap;
-    color:#fff
-  }
-  .coptic-body:before {
-    content: "ⲁ";
-    position: absolute;
-    top: 12px;
-    right: 14px;
-    font-size: 90px;
-    opacity: 0.10;
-    color: rgb(255 255 255 / 85%);
-    font-family: "Amiri", serif;
+.coptic{
+  margin-top: 14px;
 }
-  .coptic-word{
-    font-size: 22px;
-    font-weight: 900;
-  }
-  
-  .eq{
-    font-weight: 900;
-    opacity:.7;
-  }
-  
-  .meaning-word{
+.volume-icon {
+  font-size: 24px;
+}
+.coptic-body{
+  margin-top: 10px;
+  background: radial-gradient(600px 200px at 20% 0%, rgba(32,178,170,0.35), transparent 60%),
+    linear-gradient(135deg, var(--mk-dark), rgba(16,27,47,0.90));
+  border-radius: 18px;
+  border: 1px solid var(--mk-border);
+  box-shadow: var(--mk-shadow);
+  padding: 14px;
+  position:relative
+}
+
+.home.theme-dark .coptic-body{
+  background: rgba(255,255,255,0.06);
+}
+
+.coptic-hint{
+  margin: 0 0 10px;
+  font-weight: 800;
+  opacity: .85;
+  text-align: center;
+}
+
+.coptic-list{
+  display: grid;
+  gap: 10px;
+}
+
+.coptic-item{
+  width: 100%;
+  text-align: center;
+  border-radius: 16px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.coptic-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 10px;
+  flex-wrap: wrap;
+  color:#fff
+}
+.coptic-body:before {
+  content: "ⲁ";
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-size: 90px;
+  opacity: 0.10;
+  color: rgb(255 255 255 / 85%);
+  font-family: "Amiri", serif;
+}
+.coptic-word{
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.eq{
+  font-weight: 900;
+  opacity:.7;
+}
+
+.meaning-word{
   font-size: 20px;
   font-weight: 900;
   font-family: "Amiri", serif;
 }
 
-  
-  .sub{
-    margin-top: 6px;
-    font-weight: 900;
-    color: var(--mk-danger);
-  }
-  .coptic-empty{
+.sub{
+  margin-top: 6px;
+  font-weight: 900;
+  color: var(--mk-danger);
+}
+.coptic-empty{
   margin-top: 14px;
   padding: 16px;
   border-radius: 18px;
@@ -376,6 +486,16 @@ width:100%}
   border-radius: 12px;
   background: linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.10), rgba(0,0,0,0.06));
 }
+/* ✅ Load Avva font (GitHub Pages base is /ma3ankolyoum/) */
+@font-face{
+  font-family: "AvvaShenouda";
+  src: url("/ma3ankolyoum/fonts/Avva_Shenouda.ttf") format("truetype");
+  font-display: swap;
+}
 
-  </style>
-  
+/* ✅ Apply ONLY to the Coptic word */
+.coptic-word{
+  font-family: "AvvaShenouda", serif;
+}
+
+</style>

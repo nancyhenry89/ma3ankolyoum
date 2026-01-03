@@ -1,11 +1,9 @@
-
 @font-face {
-  font-family: 'AvvaShenouda';
-  src: url('/fonts/1Avva_Shenouda.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: block;
+  font-family: "AvvaShenouda";
+  src: url("/ma3ankolyoum/fonts/Avva_Shenouda.ttf") format("truetype");
+  font-display: swap;
 }
+
 
 body {
     font-family: "Amiri", "Noto Naskh Arabic", serif;
