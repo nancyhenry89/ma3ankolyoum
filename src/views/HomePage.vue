@@ -2242,6 +2242,9 @@ onMounted(() => {
   padding-right: 0;
   padding-left: 18px;
 }
+.home.lang-en .training-text.alignRight {
+    text-align: center!important;
+}
 .home.lang-en .mini-list li::before{
   right: auto;
   left: 0;
