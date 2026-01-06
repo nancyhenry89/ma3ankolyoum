@@ -1639,7 +1639,7 @@ onMounted(() => {
   margin: 10px 0 6px;
   padding: 14px 16px;
   border-radius: 16px;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 800;
   text-align: center;
   font-family:"Noto Kufi Arabic", system-ui, sans-serif;
@@ -2204,8 +2204,7 @@ onMounted(() => {
   position: relative;
   cursor: pointer;
 
-  background:linear-gradient(
-    -45deg, rgb(17 255 242 / 67%), rgb(32 38 178 / 50%), rgb(0 255 254 / 53%), rgb(224 165 18 / 50%));
+  background:linear-gradient(-45deg, rgb(0 142 135 / 31%), rgb(32 38 178 / 31%), rgb(0 146 146 / 29%), rgb(224 165 18 / 36%));
   background-size: 300% 300%;
   animation: occasionalGlow 14s ease-in-out infinite;
 
@@ -2341,7 +2340,9 @@ onMounted(() => {
 .home.lang-en .card-title {
   font-family: "Merriweather", serif;
 }
-
+.announcement-card{
+  white-space: pre-line;
+}
 /* Fine-tuning some elements */
 .home.lang-en .meaning-word {
   font-family: "Inter", sans-serif;
