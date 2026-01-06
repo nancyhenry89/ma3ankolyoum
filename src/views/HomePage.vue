@@ -64,11 +64,20 @@
             <div class="dates" @click="showDatePicker = true">
               {{ gregorianDate }} – {{ copticDate }}
             </div>
+<!-- Announcement -->
+<div
+  v-if="hasAnnouncement"
+  class="announcement-card"
+  :class="{ hasOccasional: hasOccasional }"
+  role="button"
+  :tabindex="hasOccasional ? 0 : -1"
+  @click="hasOccasional && openOccasional()"
+  @keydown.enter.prevent="hasOccasional && openOccasional()"
+  @keydown.space.prevent="hasOccasional && openOccasional()"
+>
+  {{ announcement }}
+</div>
 
-            <!-- Announcement -->
-            <div v-if="hasAnnouncement" class="announcement-card">
-              {{ announcement }}
-            </div>
 
             <!-- Saint -->
             <div
@@ -862,6 +871,26 @@ const training = ref('')
 
 const announcement = ref('')
 const hasAnnouncement = computed(() => !!String(announcement.value).trim())
+// ===== Occasional (Announcement click -> audio page) =====
+const occasional = ref('')         // filename from sheet column: occasional
+const occasional_data = ref('')    // text from sheet column: occasional_data
+
+const hasOccasional = computed(() => !!String(occasional.value).trim())
+
+// render occasional_data with new lines + markdown support (same pipeline you use)
+const occasionalHtml = computed(() => mdToSafeHtml(occasional_data.value))
+
+function openOccasional() {
+  if (!hasOccasional.value) return
+
+  router.push({
+    path: `/occasional/${encodeURIComponent(occasional.value.trim())}`,
+    query: {
+      title: announcement.value || '',         // عنوان الصفحة
+      data: occasional_data.value || ''        // النص يظهر هناك
+    }
+  })
+}
 
 function applySpecialMarks(md: string) {
   md = md.replace(/\+\+([^\n]+?)\+\+/g, (_m, inner) => {
@@ -1041,6 +1070,8 @@ function applyCachedDay(c: any) {
   saint.value = c.saint || ''
   saintStory.value = c.saintStory || ''
   announcement.value = c.announcement || ''
+  occasional.value = c.occasional || ''
+occasional_data.value = c.occasional_data || ''
 
   title.value = c.title || ''
   story.value = c.story || ''
@@ -1089,6 +1120,8 @@ function clearData() {
   agbia_author.value = ''
   training.value = ''
   announcement.value = ''
+  occasional.value = ''
+occasional_data.value = ''
 
   bibleFromSheet.value = false
   bibleIsEmptyFromSheet.value = true
@@ -1154,6 +1187,9 @@ function applyRow(rowRaw: any) {
   const sheetHasBible = !!sheetBook || !!sheetChapterRaw || !!sheetTitle || !!sheetItems
   bibleFromSheet.value = sheetHasBible
   bibleIsEmptyFromSheet.value = !sheetHasBible
+// Occasional
+occasional.value = pick(row, 'occasional', 'occasion', 'audio')
+occasional_data.value = pick(row, 'occasional_data', 'occasion_data', 'occasional text', 'occasion_text')
 
   if (!sheetHasBible) {
     chapterPreview.value = null
@@ -1235,6 +1271,8 @@ async function refreshHomeFromNetwork(targetISO: string) {
     bibleItems: bibleItems.value,
     bibleFromSheet: bibleFromSheet.value,
     announcement: announcement.value,
+    occasional: occasional.value,
+occasional_data: occasional_data.value,
 
     baker: pick(normalizeKeys(found), 'baker') || '',
     third: pick(normalizeKeys(found), 'third') || '',
@@ -2161,6 +2199,52 @@ onMounted(() => {
   padding: 8px 10px;
   background: rgba(0,0,0,0.03);
   border: 1px solid rgba(0,0,0,0.06);
+}
+.announcement-card.hasOccasional{
+  position: relative;
+  cursor: pointer;
+
+  background:linear-gradient(
+    -45deg, rgb(17 255 242 / 67%), rgb(32 38 178 / 50%), rgb(0 255 254 / 53%), rgb(224 165 18 / 50%));
+  background-size: 300% 300%;
+  animation: occasionalGlow 14s ease-in-out infinite;
+
+  color: var(--mk-text);
+  box-shadow: -2px 0px 20px 0px rgba(0,147,255,0.28);
+}
+
+@keyframes occasionalGlow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Dark mode */
+.home.theme-dark .announcement-card.hasOccasional{
+  background: linear-gradient(
+    -45deg,
+    rgba(40,214,204,0.28),
+    rgba(32,178,170,0.22),
+    rgba(255,255,255,0.08),
+    rgba(40,214,204,0.28)
+  );
+  background-size: 300% 300%;
+  animation: occasionalGlowDark 16s ease-in-out infinite;
+
+  border-color: rgba(40,214,204,0.35);
+  color: var(--mk-text);
+  box-shadow: 0 0 24px rgba(40,214,204,0.22);
+}
+
+@keyframes occasionalGlowDark {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Press feedback */
+.announcement-card.hasOccasional:active{
+  transform: translateY(1px);
 }
 
 .home.theme-dark .storeBadge{

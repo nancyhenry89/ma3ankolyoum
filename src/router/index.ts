@@ -13,6 +13,11 @@ const routes: Array<RouteRecordRaw> = [
 
   { path: '/saint/:dateISO', name: 'Saint', component: () => import('@/views/SaintPage.vue') },
   { path: '/agbia-audio/:date', name: 'AgbiaAudio', component: () => import('@/views/AgbiaAudioPage.vue') },
+  {
+    path: '/occasional/:file',
+    component: () => import('@/views/OccasionalPage.vue')
+  }
+  
 ]
 
 const router = createRouter({
