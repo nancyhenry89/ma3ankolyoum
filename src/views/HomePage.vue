@@ -64,20 +64,20 @@
             <div class="dates" @click="showDatePicker = true">
               {{ gregorianDate }} – {{ copticDate }}
             </div>
-<!-- Announcement -->
-<div
-  v-if="hasAnnouncement"
-  class="announcement-card"
-  :class="{ hasOccasional: hasOccasional }"
-  role="button"
-  :tabindex="hasOccasional ? 0 : -1"
-  @click="hasOccasional && openOccasional()"
-  @keydown.enter.prevent="hasOccasional && openOccasional()"
-  @keydown.space.prevent="hasOccasional && openOccasional()"
->
-  {{ announcement }}
-</div>
 
+            <!-- Announcement -->
+            <div
+              v-if="hasAnnouncement"
+              class="announcement-card"
+              :class="{ hasOccasional: hasOccasional }"
+              role="button"
+              :tabindex="hasOccasional ? 0 : -1"
+              @click="hasOccasional && openOccasional()"
+              @keydown.enter.prevent="hasOccasional && openOccasional()"
+              @keydown.space.prevent="hasOccasional && openOccasional()"
+            >
+              {{ announcement }}
+            </div>
 
             <!-- Saint -->
             <div
@@ -117,6 +117,13 @@
             <p v-else class="text alignRight emptyMsg">
               {{ ui.noStory }}
             </p>
+
+            <!-- Reactions: Story -->
+            <div class="reactRow" v-if="hasStory">
+              <button class="heartBtn" type="button" @click="onHeart('story')">
+                ❤️ <span class="count">{{ reactCounts.story.heart }}</span>
+              </button>
+            </div>
           </div>
 
           <div class="card" v-else-if="isLoading">
@@ -133,6 +140,13 @@
             </template>
             <div v-else class="verse-empty">
               {{ ui.noVerse }}
+            </div>
+
+            <!-- Reactions: Verse -->
+            <div class="reactRow" v-if="hasVerse">
+              <button class="heartBtn" type="button" @click="onHeart('verse')">
+                ❤️ <span class="count">{{ reactCounts.verse.heart }}</span>
+              </button>
             </div>
           </div>
 
@@ -151,6 +165,13 @@
             <p v-else class="text alignRight emptyMsg">
               {{ ui.noReflection }}
             </p>
+
+            <!-- Reactions: Reflection -->
+            <div class="reactRow" v-if="hasReflection">
+              <button class="heartBtn" type="button" @click="onHeart('reflection')">
+                ❤️ <span class="count">{{ reactCounts.reflection.heart }}</span>
+              </button>
+            </div>
           </div>
 
           <div class="card" v-else-if="isLoading">
@@ -263,6 +284,13 @@
             </div>
             <div v-else class="training-text alignRight emptyMsg">
               {{ ui.noTraining }}
+            </div>
+
+            <!-- Reactions: Training -->
+            <div class="reactRow" v-if="hasTraining">
+              <button class="heartBtn" type="button" @click="onHeart('training')">
+                ❤️ <span class="count">{{ reactCounts.training.heart }}</span>
+              </button>
             </div>
           </div>
 
@@ -458,7 +486,7 @@ import {
   IonIcon
 } from '@ionic/vue'
 
-import { onMounted, ref, computed, watch } from 'vue'
+import { onMounted, onBeforeUnmount, ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Papa from 'papaparse'
 import html2canvas from 'html2canvas'
@@ -475,6 +503,8 @@ import StreakRewards from '@/components/StreakRewards.vue'
 import { shareOutline, volumeHighOutline, bookOutline } from 'ionicons/icons'
 import { readDayCache, writeDayCache } from '@/utils/dayCache'
 import { scheduleDailyReminder, disableDailyReminder, sendTestReminder } from '@/services/reminder'
+
+import { listenReactions, toggleHeart } from '@/services/reactions'
 
 type Lang = 'ar' | 'en'
 const lang = ref<Lang>((localStorage.getItem('mk_lang') as Lang) || 'ar')
@@ -770,6 +800,56 @@ function onDateChange(ev: any) {
   loadByDate(iso)
 }
 
+/* ============================
+   Reactions (FIXED + expanded)
+============================ */
+type ReactKey = 'story' | 'verse' | 'reflection' | 'training'
+
+const reactCounts = ref<Record<ReactKey, { heart: number }>>({
+  story: { heart: 0 },
+  verse: { heart: 0 },
+  reflection: { heart: 0 },
+  training: { heart: 0 }
+})
+
+let unSubs: Array<() => void> = []
+
+function makeItemId(kind: ReactKey) {
+  const iso = String(selectedDateISO.value).substring(0, 10)
+  return `${iso}:${kind}`
+}
+
+function resubscribeReactions() {
+  unSubs.forEach(fn => fn?.())
+  unSubs = []
+
+  const keys: ReactKey[] = ['story', 'verse', 'reflection', 'training']
+  keys.forEach((k) => {
+    const un = listenReactions(makeItemId(k), (counts: any) => {
+      reactCounts.value[k].heart = Number(counts?.heart || 0)
+    })
+    if (typeof un === 'function') unSubs.push(un)
+  })
+}
+
+watch(
+  () => selectedDateISO.value,
+  () => resubscribeReactions(),
+  { immediate: true }
+)
+
+onBeforeUnmount(() => {
+  unSubs.forEach(fn => fn?.())
+  unSubs = []
+})
+
+async function onHeart(kind: ReactKey) {
+  await toggleHeart(makeItemId(kind))
+}
+/* ============================
+   End reactions
+============================ */
+
 // ====== Reminders ======
 async function applyReminderSchedule() {
   if (isWeb.value) return
@@ -780,7 +860,7 @@ async function applyReminderSchedule() {
 
   const [h, m] = reminderTime.value.split(':').map(Number)
   if (Number.isNaN(h) || Number.isNaN(m)) return
-  await scheduleDailyReminder(h, m)
+  await scheduleDailyReminder(h, m, lang.value)
 }
 
 async function onReminderToggle(ev: any) {
@@ -795,7 +875,7 @@ watch(reminderTime, async () => {
 })
 
 async function testReminder() {
-  await sendTestReminder()
+  await sendTestReminder(lang.value)
 }
 
 // ====== Share as text ======
@@ -1071,7 +1151,7 @@ function applyCachedDay(c: any) {
   saintStory.value = c.saintStory || ''
   announcement.value = c.announcement || ''
   occasional.value = c.occasional || ''
-occasional_data.value = c.occasional_data || ''
+  occasional_data.value = c.occasional_data || ''
 
   title.value = c.title || ''
   story.value = c.story || ''
@@ -1121,7 +1201,7 @@ function clearData() {
   training.value = ''
   announcement.value = ''
   occasional.value = ''
-occasional_data.value = ''
+  occasional_data.value = ''
 
   bibleFromSheet.value = false
   bibleIsEmptyFromSheet.value = true
@@ -1187,9 +1267,10 @@ function applyRow(rowRaw: any) {
   const sheetHasBible = !!sheetBook || !!sheetChapterRaw || !!sheetTitle || !!sheetItems
   bibleFromSheet.value = sheetHasBible
   bibleIsEmptyFromSheet.value = !sheetHasBible
-// Occasional
-occasional.value = pick(row, 'occasional', 'occasion', 'audio')
-occasional_data.value = pick(row, 'occasional_data', 'occasion_data', 'occasional text', 'occasion_text')
+
+  // Occasional
+  occasional.value = pick(row, 'occasional', 'occasion', 'audio')
+  occasional_data.value = pick(row, 'occasional_data', 'occasion_data', 'occasional text', 'occasion_text')
 
   if (!sheetHasBible) {
     chapterPreview.value = null
@@ -1272,7 +1353,7 @@ async function refreshHomeFromNetwork(targetISO: string) {
     bibleFromSheet: bibleFromSheet.value,
     announcement: announcement.value,
     occasional: occasional.value,
-occasional_data: occasional_data.value,
+    occasional_data: occasional_data.value,
 
     baker: pick(normalizeKeys(found), 'baker') || '',
     third: pick(normalizeKeys(found), 'third') || '',
@@ -1368,8 +1449,6 @@ onMounted(() => {
   }
 })
 </script>
-
-
 
 <style scoped>
   /* =========================================================
@@ -2249,6 +2328,49 @@ onMounted(() => {
 .home.theme-dark .storeBadge{
   background: rgba(255,255,255,0.06);
   border-color: rgba(255,255,255,0.12);
+}
+/* ===== Reactions (Option F: glass chip) ===== */
+.reactRow{
+  display:flex;
+  justify-content:center;
+  margin-top: 12px;
+}
+
+.heartBtn{
+  appearance:none;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 10px 14px;
+  border-radius: 16px;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+  font-weight: 900;
+  font-size: 14px;
+  color: var(--mk-text);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.10);
+}
+
+.home.theme-dark .heartBtn{
+  border-color: rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.18);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.45);
+}
+
+.heartBtn:active{ transform: translateY(1px); }
+
+.heartBtn .count{
+  background: rgba(32,178,170,0.18);
+  border: 1px solid rgba(32,178,170,0.28);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.home.theme-dark .heartBtn .count{
+  background: rgba(40,214,204,0.14);
+  border-color: rgba(40,214,204,0.22);
 }
 
 .storeBadge img{
