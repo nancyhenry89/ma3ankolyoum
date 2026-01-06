@@ -1,7 +1,6 @@
 // src/services/reactions.ts
 import { db } from '@/lib/firebase'
-
-import { doc, getDoc, runTransaction, onSnapshot } from 'firebase/firestore'
+import { doc, runTransaction, onSnapshot } from 'firebase/firestore'
 
 type ReactionKey = 'heart'
 
@@ -15,11 +14,29 @@ function getAnonId() {
   return id
 }
 
-export function listenReactions(itemId: string, cb: (counts: Record<string, number>) => void) {
+/**
+ * Listen to reactions:
+ * - counts: public numbers
+ * - me: whether THIS anon user reacted
+ */
+export function listenReactions(
+  itemId: string,
+  cb: (payload: { counts: Record<ReactionKey, number>; me: Record<ReactionKey, boolean> }) => void
+) {
+  const anonId = getAnonId()
   const ref = doc(db, 'reactions', itemId)
+
   return onSnapshot(ref, snap => {
-    const data = snap.data() as any
-    cb(data?.counts || { heart: 0 })
+    const data = (snap.data() || {}) as any
+    const counts = data.counts || { heart: 0 }
+    const voters = data.voters || {}
+
+    cb({
+      counts,
+      me: {
+        heart: !!voters[anonId]
+      }
+    })
   })
 }
 
@@ -37,7 +54,6 @@ export async function toggleHeart(itemId: string) {
     const already = !!voters[anonId]
 
     if (already) {
-      // un-heart
       voters[anonId] = false
       counts.heart = Math.max(0, Number(counts.heart || 0) - 1)
     } else {

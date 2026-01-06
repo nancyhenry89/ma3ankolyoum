@@ -120,9 +120,15 @@
 
             <!-- Reactions: Story -->
             <div class="reactRow mkNoCapture" v-if="hasStory">
-              <button class="heartBtn" type="button" @click="onHeart('story')">
-                ❤️ <span class="count">{{ reactCounts.story.heart }}</span>
-              </button>
+              <button
+  class="heartBtn"
+  :class="{ active: reactMine.story.heart }"
+  @click="onHeart('story')"
+>
+  ❤️ <span class="count">{{ reactCounts.story.heart }}</span>
+</button>
+
+
             </div>
           </div>
 
@@ -144,9 +150,15 @@
 
             <!-- Reactions: Verse -->
             <div class="reactRow mkNoCapture" v-if="hasVerse">
-              <button class="heartBtn" type="button" @click="onHeart('verse')">
-                ❤️ <span class="count">{{ reactCounts.verse.heart }}</span>
-              </button>
+              <button
+  class="heartBtn"
+  :class="{ active: reactMine.verse.heart }"
+  @click="onHeart('verse')"
+>
+  ❤️ <span class="count">{{ reactCounts.verse.heart }}</span>
+</button>
+
+
             </div>
           </div>
 
@@ -168,9 +180,15 @@
 
             <!-- Reactions: Reflection -->
             <div class="reactRow mkNoCapture" v-if="hasReflection">
-              <button class="heartBtn" type="button" @click="onHeart('reflection')">
-                ❤️ <span class="count">{{ reactCounts.reflection.heart }}</span>
-              </button>
+              <button
+  class="heartBtn"
+  :class="{ active: reactMine.reflection.heart }"
+  @click="onHeart('reflection')"
+>
+  ❤️ <span class="count">{{ reactCounts.reflection.heart }}</span>
+</button>
+
+
             </div>
           </div>
 
@@ -288,9 +306,15 @@
 
             <!-- Reactions: Training -->
             <div class="reactRow mkNoCapture" v-if="hasTraining">
-              <button class="heartBtn" type="button" @click="onHeart('training')">
-                ❤️ <span class="count">{{ reactCounts.training.heart }}</span>
-              </button>
+              <button
+  class="heartBtn"
+  :class="{ active: reactMine.training.heart }"
+  @click="onHeart('training')"
+>
+  ❤️ <span class="count">{{ reactCounts.training.heart }}</span>
+</button>
+
+
             </div>
           </div>
 
@@ -813,7 +837,12 @@ const reactCounts = ref<Record<ReactKey, { heart: number }>>({
 })
 
 let unSubs: Array<() => void> = []
-
+const reactMine = ref<Record<ReactKey, { heart: boolean }>>({
+  story: { heart: false },
+  verse: { heart: false },
+  reflection: { heart: false },
+  training: { heart: false }
+})
 function makeItemId(kind: ReactKey) {
   const iso = String(selectedDateISO.value).substring(0, 10)
   return `${iso}:${kind}`
@@ -825,9 +854,11 @@ function resubscribeReactions() {
 
   const keys: ReactKey[] = ['story', 'verse', 'reflection', 'training']
   keys.forEach((k) => {
-    const un = listenReactions(makeItemId(k), (counts: any) => {
-      reactCounts.value[k].heart = Number(counts?.heart || 0)
-    })
+const un = listenReactions(makeItemId(k), (payload) => {
+  reactCounts.value[k].heart = Number(payload.counts.heart || 0)
+  reactMine.value[k].heart = !!payload.me.heart
+})
+
     if (typeof un === 'function') unSubs.push(un)
   })
 }
@@ -2329,13 +2360,15 @@ onMounted(() => {
   background: rgba(255,255,255,0.06);
   border-color: rgba(255,255,255,0.12);
 }
-/* ===== Reactions (Option F: glass chip) ===== */
+/* ===== Reactions – Spiritual Glow ===== */
+
 .reactRow{
   display:flex;
   justify-content:center;
   margin-top: 12px;
 }
 
+/* Base button */
 .heartBtn{
   appearance:none;
   border: 1px solid rgba(0,0,0,0.10);
@@ -2352,6 +2385,10 @@ onMounted(() => {
   font-size: 14px;
   color: var(--mk-text);
   box-shadow: 0 10px 24px rgba(0,0,0,0.10);
+  transition:
+    box-shadow 0.35s ease,
+    transform 0.18s ease,
+    border-color 0.35s ease;
 }
 
 .home.theme-dark .heartBtn{
@@ -2360,17 +2397,65 @@ onMounted(() => {
   box-shadow: 0 10px 24px rgba(0,0,0,0.45);
 }
 
-.heartBtn:active{ transform: translateY(1px); }
+/* ===== ACTIVE (glow) ===== */
+.heartBtn.active{
+  border-color: rgba(40,214,204,0.45);
+  box-shadow:
+    0 0 0 2px rgba(40,214,204,0.12),
+    0 12px 28px rgba(40,214,204,0.28),
+    0 0 18px rgba(40,214,204,0.25);
 
+  animation: heartGlow 3.6s ease-in-out infinite;
+}
+
+/* Dark mode glow tuning */
+.home.theme-dark .heartBtn.active{
+  box-shadow:
+    0 0 0 2px rgba(40,214,204,0.18),
+    0 14px 32px rgba(40,214,204,0.35),
+    0 0 22px rgba(40,214,204,0.30);
+}
+
+/* Count pill */
 .heartBtn .count{
   background: rgba(32,178,170,0.18);
   border: 1px solid rgba(32,178,170,0.28);
   padding: 2px 8px;
   border-radius: 999px;
 }
+
 .home.theme-dark .heartBtn .count{
   background: rgba(40,214,204,0.14);
   border-color: rgba(40,214,204,0.22);
+}
+
+/* Press feedback */
+.heartBtn:active{
+  transform: scale(0.96);
+}
+
+/* ===== Animations ===== */
+
+/* slow breathing glow */
+@keyframes heartGlow {
+  0%{
+    box-shadow:
+      0 0 0 2px rgba(40,214,204,0.10),
+      0 10px 22px rgba(40,214,204,0.22),
+      0 0 14px rgba(40,214,204,0.18);
+  }
+  50%{
+    box-shadow:
+      0 0 0 4px rgba(40,214,204,0.18),
+      0 16px 34px rgba(40,214,204,0.38),
+      0 0 26px rgba(40,214,204,0.32);
+  }
+  100%{
+    box-shadow:
+      0 0 0 2px rgba(40,214,204,0.10),
+      0 10px 22px rgba(40,214,204,0.22),
+      0 0 14px rgba(40,214,204,0.18);
+  }
 }
 
 .storeBadge img{
