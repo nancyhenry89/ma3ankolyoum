@@ -119,7 +119,7 @@
             </p>
 
             <!-- Reactions: Story -->
-            <div class="reactRow" v-if="hasStory">
+            <div class="reactRow mkNoCapture" v-if="hasStory">
               <button class="heartBtn" type="button" @click="onHeart('story')">
                 ❤️ <span class="count">{{ reactCounts.story.heart }}</span>
               </button>
@@ -143,7 +143,7 @@
             </div>
 
             <!-- Reactions: Verse -->
-            <div class="reactRow" v-if="hasVerse">
+            <div class="reactRow mkNoCapture" v-if="hasVerse">
               <button class="heartBtn" type="button" @click="onHeart('verse')">
                 ❤️ <span class="count">{{ reactCounts.verse.heart }}</span>
               </button>
@@ -167,7 +167,7 @@
             </p>
 
             <!-- Reactions: Reflection -->
-            <div class="reactRow" v-if="hasReflection">
+            <div class="reactRow mkNoCapture" v-if="hasReflection">
               <button class="heartBtn" type="button" @click="onHeart('reflection')">
                 ❤️ <span class="count">{{ reactCounts.reflection.heart }}</span>
               </button>
@@ -287,7 +287,7 @@
             </div>
 
             <!-- Reactions: Training -->
-            <div class="reactRow" v-if="hasTraining">
+            <div class="reactRow mkNoCapture" v-if="hasTraining">
               <button class="heartBtn" type="button" @click="onHeart('training')">
                 ❤️ <span class="count">{{ reactCounts.training.heart }}</span>
               </button>
