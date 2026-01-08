@@ -33,6 +33,7 @@
               </span>
             </ion-button>
 
+
             <!-- Share -->
             <ion-button class="shareBtn" fill="clear" size="small" @click="showShareSheet = true">
               <IonIcon :icon="shareOutline" />
@@ -64,6 +65,14 @@
             <div class="dates" @click="showDatePicker = true">
               {{ gregorianDate }} – {{ copticDate }}
             </div>
+<!-- Daily Audio CTA (Arabic only) -->
+<div v-if="isArabic && hasDailyAudio" class="audioCtaWrap mkNoCapture">
+  <button class="audioPill" type="button" @click="openDailyAudio()">
+    <span class="audioPillIcon">🎧</span>
+    <span class="audioPillText">اسمع رسالة اليوم</span>
+  </button>
+</div>
+
 
             <!-- Announcement -->
             <div
@@ -550,6 +559,17 @@ function setLang(v: Lang) {
   const iso = String(selectedDateISO.value).substring(0, 10)
   loadByDate(iso).catch(console.error)
 }
+function openDailyAudio() {
+  if (!isArabic.value || !hasDailyAudio.value) return
+  const iso = String(selectedDateISO.value).substring(0, 10)
+
+  router.push({
+    path: `/daily-audio/${iso}`,
+    query: {
+      url: daily_audio.value,
+    }
+  })
+}
 
 const ionRouter = useIonRouter()
 onMounted(() => {
@@ -985,6 +1005,8 @@ const hasAnnouncement = computed(() => !!String(announcement.value).trim())
 // ===== Occasional (Announcement click -> audio page) =====
 const occasional = ref('')         // filename from sheet column: occasional
 const occasional_data = ref('')    // text from sheet column: occasional_data
+const daily_audio = ref('')
+const hasDailyAudio = computed(() => !!String(daily_audio.value).trim())
 
 const hasOccasional = computed(() => !!String(occasional.value).trim())
 
@@ -1202,6 +1224,7 @@ function applyCachedDay(c: any) {
   agbia_ninth.value  = c.ninth  || ''
   agbia_sunset.value = c.sunset || ''
   agbia_sleep.value  = c.sleep  || ''
+  daily_audio.value = c.daily_audio || ''
 
   training.value = c.training || ''
 
@@ -1237,6 +1260,7 @@ function clearData() {
   bibleFromSheet.value = false
   bibleIsEmptyFromSheet.value = true
   chapterPreview.value = null
+  daily_audio.value = ''
 
   bibleBookKey.value = ''
   bibleChapter.value = 1
@@ -1280,6 +1304,7 @@ function applyRow(rowRaw: any) {
 
   reflection.value = pick(row, 'reflection')
   announcement.value = pick(row, 'announcement', 'إعلان', 'announcements')
+  daily_audio.value = pick(row, 'daily_audio', 'daily_message_audio', 'audio_daily')
 
   // Bible
   bibleBookKey.value = pick(row, 'bible_book', 'book_key') || 'Matthew'
@@ -1385,6 +1410,7 @@ async function refreshHomeFromNetwork(targetISO: string) {
     announcement: announcement.value,
     occasional: occasional.value,
     occasional_data: occasional_data.value,
+    daily_audio: daily_audio.value,
 
     baker: pick(normalizeKeys(found), 'baker') || '',
     third: pick(normalizeKeys(found), 'third') || '',
@@ -2559,6 +2585,113 @@ onMounted(() => {
 .home.lang-en .srHeroTitle {
   font-family: "Merriweather", serif;
   font-weight: 700;
+}
+.audioCtaWrap{
+  margin-top: 10px;
+  display:flex;
+  justify-content:center;
+}
+
+.audioPill{
+  position: relative;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background:
+    radial-gradient(520px 140px at 20% 0%, rgba(40,214,204,0.22), transparent 62%),
+    rgba(255,255,255,0.70);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  color: var(--mk-text);
+  font-weight: 1000;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.10),
+    0 0 0 2px rgba(40,214,204,0.08);
+  cursor:pointer;
+
+  transition: transform .16s ease, box-shadow .25s ease, border-color .25s ease;
+}
+
+.home.theme-dark .audioPill{
+  border-color: rgba(255,255,255,0.14);
+  background:
+    radial-gradient(520px 140px at 20% 0%, rgba(40,214,204,0.18), transparent 62%),
+    rgba(0,0,0,0.22);
+  box-shadow:
+    0 14px 30px rgba(0,0,0,0.50),
+    0 0 0 2px rgba(40,214,204,0.10);
+}
+
+.audioPill:hover{
+  border-color: rgba(40,214,204,0.30);
+  box-shadow:
+    0 12px 28px rgba(0,0,0,0.12),
+    0 0 0 3px rgba(40,214,204,0.12),
+    0 0 18px rgba(40,214,204,0.18);
+}
+
+.audioPill:active{ transform: scale(0.98); }
+
+.audioPillIcon{
+  font-size: 18px;
+  line-height: 1;
+}
+
+.audioPillText{
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.audioPillDur{
+  font-size: 12px;
+  opacity: 0.85;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.03);
+}
+
+.home.theme-dark .audioPillDur{
+  border-color: rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.06);
+}
+
+.audioPillArrow{
+  margin-inline-start: 2px;
+  font-size: 18px;
+  opacity: 0.65;
+  transform: translateY(-1px);
+}
+.audioPill{
+  animation: audioBreath 4.6s ease-in-out infinite;
+}
+
+@keyframes audioBreath{
+  0%,100%{
+    box-shadow:
+      0 10px 24px rgba(0,0,0,0.10),
+      0 0 0 2px rgba(40,214,204,0.08);
+  }
+  50%{
+    box-shadow:
+      0 14px 30px rgba(0,0,0,0.12),
+      0 0 0 4px rgba(40,214,204,0.14),
+      0 0 22px rgba(40,214,204,0.18);
+  }
+}
+
+.home.theme-dark .audioCtaDur{
+  border-color: rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.06);
+}
+
+.home.theme-dark .audioCtaDur{
+  border-color: rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.06);
 }
 
   /* =========================================================

@@ -493,9 +493,11 @@ watch(
   font-display: swap;
 }
 
-/* ✅ Apply ONLY to the Coptic word */
 .coptic-word{
-  font-family: "AvvaShenouda", serif;
+  font-family: "Antinoou", serif !important;
+  font-size: 24px;     /* عدّلي حسب ذوقك */
+  font-weight: 400;   /* Antinoou شكله أحلى regular */
+  letter-spacing: 0.02em;
 }
 
 </style>

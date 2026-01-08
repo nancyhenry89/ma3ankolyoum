@@ -16,6 +16,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/occasional/:file',
     component: () => import('@/views/OccasionalPage.vue')
+  },
+  {
+    path: '/daily-audio/:iso',
+    component: () => import('@/views/DailyAudioPage.vue')
   }
   
 ]
