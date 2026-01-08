@@ -60,7 +60,32 @@
                 <div class="abouna">Fr. Yohanna Baky</div>
               </template>
             </div>
+            <div class="storesSoon mkNoCapture" v-if="isWeb && !isLoading && !noData">
+  <div class="storesTitle">{{ ui.comingSoon }}</div>
 
+  <div class="storesRow mkNoCapture" aria-label="App Store and Google Play">
+    <!-- App Store – Coming Soon -->
+    <a
+      class="storeBadge disabled"
+      href="#"
+      aria-label="App Store (Coming soon)"
+      @click.prevent
+    >
+      <img src="/badges/appstore.png" alt="App Store" />
+    </a>
+
+    <!-- Google Play – Live -->
+    <a
+      class="storeBadge"
+      href="https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum&pcampaignid=web_share"
+      target="_blank"
+      rel="noopener"
+      aria-label="Download on Google Play"
+    >
+      <img src="/badges/googleplay.png" alt="Get it on Google Play" />
+    </a>
+  </div>
+</div>
             <!-- Dates -->
             <div class="dates" @click="showDatePicker = true">
               {{ gregorianDate }} – {{ copticDate }}
@@ -85,7 +110,8 @@
               @keydown.enter.prevent="hasOccasional && openOccasional()"
               @keydown.space.prevent="hasOccasional && openOccasional()"
             >
-              {{ announcement }}
+            <div class="md" v-html="announcementHtml"></div>
+
             </div>
 
             <!-- Saint -->
@@ -343,18 +369,32 @@
 
           <!-- Stores (Web only) -->
           <div class="storesSoon mkNoCapture" v-if="isWeb && !isLoading && !noData">
-            <div class="storesTitle">{{ ui.comingSoon }}</div>
+  <div class="storesTitle">{{ ui.comingSoon }}</div>
 
-            <div class="storesRow" aria-label="App Store and Google Play">
-              <a class="storeBadge" href="#" aria-label="App Store (Coming soon)" @click.prevent>
-                <img src="/badges/appstore.png" alt="App Store" />
-              </a>
+  <div class="storesRow" aria-label="App Store and Google Play">
+    <!-- App Store – Coming Soon -->
+    <a
+      class="storeBadge disabled"
+      href="#"
+      aria-label="App Store (Coming soon)"
+      @click.prevent
+    >
+      <img src="/badges/appstore.png" alt="App Store" />
+    </a>
 
-              <a class="storeBadge" href="#" aria-label="Google Play (Coming soon)" @click.prevent>
-                <img src="/badges/googleplay.png" alt="Google Play" />
-              </a>
-            </div>
-          </div>
+    <!-- Google Play – Live -->
+    <a
+      class="storeBadge"
+      href="https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum&pcampaignid=web_share"
+      target="_blank"
+      rel="noopener"
+      aria-label="Download on Google Play"
+    >
+      <img src="/badges/googleplay.png" alt="Get it on Google Play" />
+    </a>
+  </div>
+</div>
+
 
           <div class="space"></div>
         </div>
@@ -731,7 +771,7 @@ const ui = computed(() => {
       bible: 'Bible',
       agbia: 'Agpeya',
       training: 'A Step Forward',
-      comingSoon: 'Coming soon on',
+comingSoon: 'Available now on Google Play – Coming soon on the App Store',
 
       noData: 'No data available for this day.',
       noSaint: 'No Synaxarium for today.',
@@ -764,7 +804,7 @@ const ui = computed(() => {
     bible: 'الكتاب المقدس',
     agbia: 'الأجبية',
     training: 'خطوة لقدام',
-    comingSoon: 'قريباً علي',
+    comingSoon: 'متاح الآن على Google Play – قريبًا على App Store',
 
     noData: 'لا توجد بيانات متاحة لهذا اليوم.',
     noSaint: 'لا يوجد سنكسار لهذا اليوم.',
@@ -1012,6 +1052,7 @@ const hasOccasional = computed(() => !!String(occasional.value).trim())
 
 // render occasional_data with new lines + markdown support (same pipeline you use)
 const occasionalHtml = computed(() => mdToSafeHtml(occasional_data.value))
+const announcementHtml = computed(() => mdToSafeHtml(announcement.value))
 
 function openOccasional() {
   if (!hasOccasional.value) return
@@ -1761,6 +1802,12 @@ onMounted(() => {
     font-weight: 900;
     color: var(--mk-text);
   }
+  .storeBadge.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(100%);
+}
+
   .timeInput{
   padding: 10px 12px;
   border-radius: 12px;
