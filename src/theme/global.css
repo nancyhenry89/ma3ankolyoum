@@ -1,10 +1,16 @@
 @font-face {
-  font-family: "Antinoou";
-  src: url("/fonts/Antinoou.ttf") format("truetype");
+  font-family: "coptic";
+  src: url("/fonts/coptic.ttf") format("truetype");
   font-display: swap;
 }
 
-
+@font-face {
+  font-family: 'CopticForAll';
+  src: url('/fonts/copticforall.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 body {
     font-family: "Amiri", "Noto Naskh Arabic", serif;
   }
@@ -18,7 +24,6 @@ body {
     font-family: "Amiri", "Noto Naskh Arabic", serif;
   }
   .coptic-word {
-    font-family: 'AvvaShenouda', serif;
     font-size: 32px;
     line-height: 1.4;
     -webkit-font-smoothing: antialiased;

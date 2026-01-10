@@ -430,6 +430,7 @@ watch(
 .coptic-word{
   font-size: 22px;
   font-weight: 900;
+margin-top:-10px
 }
 
 .eq{
@@ -486,16 +487,9 @@ watch(
   border-radius: 12px;
   background: linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.10), rgba(0,0,0,0.06));
 }
-/* ✅ Load Avva font (GitHub Pages base is /ma3ankolyoum/) */
-@font-face{
-  font-family: "AvvaShenouda";
-  src: url("/ma3ankolyoum/fonts/Avva_Shenouda.ttf") format("truetype");
-  font-display: swap;
-}
-
 .coptic-word{
-  font-family: "Antinoou", serif !important;
-  font-size: 24px;     /* عدّلي حسب ذوقك */
+  font-family: 'CopticForAll', 'Antinoou', serif;
+    font-size: 24px;     /* عدّلي حسب ذوقك */
   font-weight: 400;   /* Antinoou شكله أحلى regular */
   letter-spacing: 0.02em;
 }
