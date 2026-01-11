@@ -797,7 +797,7 @@ const ui = computed(() => {
       bible: 'Bible',
       agbia: 'Agpeya',
       training: 'A Step Forward',
-comingSoon: 'Available now on Google Play – Coming soon on the App Store',
+comingSoon: 'Available now on Google Play and App Store',
 
       noData: 'No data available for this day.',
       noSaint: 'No Synaxarium for today.',
@@ -830,7 +830,7 @@ comingSoon: 'Available now on Google Play – Coming soon on the App Store',
     bible: 'الكتاب المقدس',
     agbia: 'الأجبية',
     training: 'خطوة لقدام',
-    comingSoon: 'متاح الآن على Google Play – قريبًا على App Store',
+    comingSoon: 'متاح الآن على Google Play و App Store',
 
     noData: 'لا توجد بيانات متاحة لهذا اليوم.',
     noSaint: 'لا يوجد سنكسار لهذا اليوم.',
@@ -2793,6 +2793,10 @@ onMounted(() => {
   /* =========================================================
      Mobile
   ========================================================= */
+  @media (max-width: 560px){
+  .row{ grid-template-columns: 1fr !important; }
+}
+
   @media (max-width: 420px) {
   .title { font-size: calc(34px * var(--mk-fontScale)); }
   .row { grid-template-columns: 1fr; }
