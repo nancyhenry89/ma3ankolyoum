@@ -44,7 +44,7 @@
 
         <!-- Saved open -->
         <button class="savedOpenBtn" type="button" @click="openSavedSheet">
-          ❤️ الآيات المحبوبة
+          🕊 صوت الله ⛪
           <span class="savedCount">{{ savedAll.length }}</span>
         </button>
 
@@ -122,7 +122,7 @@
 
 <ion-header class="savedHeader">
   <ion-toolbar>
-    <ion-title>❤️ الآيات المحبوبة</ion-title>
+    <ion-title> 🕊 صوت الله ⛪</ion-title>
     <ion-buttons slot="end">
       <ion-button fill="clear" @click="showSaved = false">إغلاق</ion-button>
     </ion-buttons>

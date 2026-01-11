@@ -5,8 +5,10 @@
     :dir="pageDir"
     :lang="lang"
   >
-    <ion-content :fullscreen="true" class="content">
-      <div
+
+
+<ion-content :fullscreen="true" class="content">
+  <div
         class="capture home"
         :class="[themeClass, { 'mk-capturing': isCapturing }]"
         ref="captureRef"
@@ -17,8 +19,13 @@
         <div class="wrap">
           <!-- Header: Data -->
           <div class="header" v-if="!isLoading && !noData">
-            <ion-menu-button class="burgerBtn mkNoCapture" :auto-hide="false" />
-
+<!-- Burger -->
+<ion-menu-button
+  class="burgerBtn mkNoCapture"
+  menu="main-menu"
+  auto-hide="false"
+  aria-label="Menu"
+/>
             <!-- Language switch -->
             <ion-button
               class="langBtn mkNoCapture"
@@ -554,7 +561,6 @@ import {
   IonButton,
   IonToggle,
   IonRange,
-  IonMenuButton,
   IonActionSheet,
   IonIcon
 } from '@ionic/vue'
@@ -565,6 +571,7 @@ import Papa from 'papaparse'
 import html2canvas from 'html2canvas'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+import { IonMenuButton } from '@ionic/vue'
 
 import { App } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
@@ -651,12 +658,28 @@ watch(
   { immediate: true }
 )
 
+
 function closeSettings() {
   showSettings.value = false
   const q = { ...route.query }
   delete (q as any).modal
   router.replace({ query: q })
 }
+function syncLangFromStorage() {
+  const v = (localStorage.getItem('mk_lang') as any) === 'en' ? 'en' : 'ar'
+  lang.value = v
+}
+
+onMounted(() => {
+  const handler = () => {
+    syncLangFromStorage()
+    const iso = String(selectedDateISO.value).substring(0, 10)
+    loadByDate(iso).catch(console.error)
+  }
+
+  window.addEventListener('mk:lang-changed', handler)
+  onBeforeUnmount(() => window.removeEventListener('mk:lang-changed', handler))
+})
 
 function closeAbout() {
   showAbout.value = false
@@ -935,8 +958,28 @@ onBeforeUnmount(() => {
 })
 
 async function onHeart(kind: ReactKey) {
-  await toggleHeart(makeItemId(kind))
+  // 1) optimistic toggle (instant UI)
+  const wasOn = !!reactMine.value[kind].heart
+  reactMine.value[kind].heart = !wasOn
+  reactCounts.value[kind].heart = Math.max(
+    0,
+    Number(reactCounts.value[kind].heart || 0) + (wasOn ? -1 : 1)
+  )
+
+  // 2) fire backend update
+  try {
+    await toggleHeart(makeItemId(kind))
+  } catch (e) {
+    // 3) revert if it fails
+    reactMine.value[kind].heart = wasOn
+    reactCounts.value[kind].heart = Math.max(
+      0,
+      Number(reactCounts.value[kind].heart || 0) + (wasOn ? +1 : -1)
+    )
+    console.error(e)
+  }
 }
+
 /* ============================
    End reactions
 ============================ */
@@ -2271,15 +2314,17 @@ onMounted(() => {
   
   /* Burger */
   .burgerBtn{
-    position: absolute;
-    top: -4px;
-    left: 0;
-    color: #fff;
-    background:#0f1b2f;
-    border-radius: 12px;
-    backdrop-filter: blur(8px);
-    padding: 6px;
-  }
+  position: absolute;
+  top: 0;        /* بدل -4 */
+  left: 0;
+  z-index: 5;    /* أعلى من الباقي */
+  color: #fff;
+  background:#0f1b2f;
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  padding: 6px;
+}
+
   .home.theme-dark .burgerBtn{
     background: rgba(0,0,0,0.30);
   }
@@ -2479,6 +2524,7 @@ onMounted(() => {
     0 0 18px rgba(40,214,204,0.25);
 
   animation: heartGlow 3.6s ease-in-out infinite;
+  background: #cdfffc;
 }
 
 /* Dark mode glow tuning */

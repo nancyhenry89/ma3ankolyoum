@@ -5,8 +5,9 @@ import HomePage from '../views/HomePage.vue'
 import ChapterPage from '@/views/ChapterPage.vue'
 
 const routes: Array<RouteRecordRaw> = [
-  { path: '/', redirect: '/home' },
-  { path: '/home', name: 'Home', component: HomePage },
+  { path: '/', name: 'HomeRoot', component: HomePage },
+  { path: '/home', redirect: '/' },
+  
 
   // ✅ مرة واحدة فقط
   { path: '/chapter/:bookKey/:chapter', name: 'Chapter', component: ChapterPage },
@@ -20,7 +21,11 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/daily-audio/:iso',
     component: () => import('@/views/DailyAudioPage.vue')
-  }
+  },
+  { path: '/bible-stories', name: 'BibleStories', component: () => import('@/views/BibleStoriesPage.vue') },
+{ path: '/bible-intros', name: 'BibleIntros', component: () => import('@/views/BibleIntrosPage.vue') },
+{ path: '/coptic-words', name: 'CopticWords', component: () => import('@/views/CopticWordsPage.vue') },
+
   
 ]
 
