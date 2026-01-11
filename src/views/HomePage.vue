@@ -23,7 +23,7 @@
 <ion-menu-button
   class="burgerBtn mkNoCapture"
   menu="main-menu"
-  auto-hide="false"
+  :auto-hide="false"
   aria-label="Menu"
 />
             <!-- Language switch -->
@@ -71,28 +71,30 @@
   <div class="storesTitle">{{ ui.comingSoon }}</div>
 
   <div class="storesRow mkNoCapture" aria-label="App Store and Google Play">
-    <!-- App Store – Coming Soon -->
+    <!-- ✅ App Store – Live -->
     <a
-      class="storeBadge disabled"
-      href="#"
-      aria-label="App Store (Coming soon)"
-      @click.prevent
+      class="storeBadge"
+      href="https://apps.apple.com/app/%D9%85%D8%B9%D8%A7-%D9%83%D9%84-%D9%8A%D9%88%D9%85/id6756967997"
+      target="_blank"
+      rel="noopener"
+      aria-label="Download on the App Store"
     >
-      <img src="/badges/appstore.png" alt="App Store" />
+      <img src="/badges/appstore.png" alt="Download on the App Store" />
     </a>
 
-    <!-- Google Play – Live -->
+    <!-- ✅ Google Play – Live -->
     <a
       class="storeBadge"
       href="https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum&pcampaignid=web_share"
       target="_blank"
       rel="noopener"
-      aria-label="Download on Google Play"
+      aria-label="Get it on Google Play"
     >
       <img src="/badges/googleplay.png" alt="Get it on Google Play" />
     </a>
   </div>
 </div>
+
             <!-- Dates -->
             <div class="dates" @click="showDatePicker = true">
               {{ gregorianDate }} – {{ copticDate }}
@@ -378,24 +380,25 @@
           <div class="storesSoon mkNoCapture" v-if="isWeb && !isLoading && !noData">
   <div class="storesTitle">{{ ui.comingSoon }}</div>
 
-  <div class="storesRow" aria-label="App Store and Google Play">
-    <!-- App Store – Coming Soon -->
+  <div class="storesRow mkNoCapture" aria-label="App Store and Google Play">
+    <!-- ✅ App Store – Live -->
     <a
-      class="storeBadge disabled"
-      href="#"
-      aria-label="App Store (Coming soon)"
-      @click.prevent
+      class="storeBadge"
+      href="https://apps.apple.com/app/%D9%85%D8%B9%D8%A7-%D9%83%D9%84-%D9%8A%D9%88%D9%85/id6756967997"
+      target="_blank"
+      rel="noopener"
+      aria-label="Download on the App Store"
     >
-      <img src="/badges/appstore.png" alt="App Store" />
+      <img src="/badges/appstore.png" alt="Download on the App Store" />
     </a>
 
-    <!-- Google Play – Live -->
+    <!-- ✅ Google Play – Live -->
     <a
       class="storeBadge"
       href="https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum&pcampaignid=web_share"
       target="_blank"
       rel="noopener"
-      aria-label="Download on Google Play"
+      aria-label="Get it on Google Play"
     >
       <img src="/badges/googleplay.png" alt="Get it on Google Play" />
     </a>

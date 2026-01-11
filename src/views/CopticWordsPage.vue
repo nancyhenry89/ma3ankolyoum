@@ -17,7 +17,9 @@
       </ion-header>
   
       <ion-content class="ion-padding">
-        <ion-searchbar v-model="q" :placeholder="ui.search" debounce="250" />
+        <ion-searchbar v-model="q" :placeholder="ui.search" :debounce="250" />
+
+
   
         <ion-card v-if="loading">
           <ion-card-content>{{ ui.loading }}</ion-card-content>
@@ -30,15 +32,14 @@
         <ion-list v-else>
           <ion-item
             v-for="(w, i) in filteredWords"
-            :key="String(w.date_iso || w.dateISO || i)"
+            :key="`${w.date_iso}-${i}`"
           >
             <ion-label class="ion-text-wrap">
-              <div style="font-weight: 900; opacity: 0.85">
-                {{ w.date_iso || w.dateISO }}
-              </div>
+   
   
               <div style="margin-top: 6px; font-size: 18px; font-weight: 900">
-                {{ w.coptic_word || w.coptic }}
+                {{ w.coptic_word }}
+
               </div>
   
               <div style="margin-top: 4px; font-size: 15px; opacity: 0.9">
@@ -47,10 +48,10 @@
             </ion-label>
   
             <ion-button
-              v-if="w.coptic_audio || w.audio"
+             v-if="w.coptic_audio"
               slot="end"
               fill="clear"
-              @click="play(w.coptic_audio || w.audio)"
+              @click="play(w.coptic_audio)"
               :aria-label="ui.play"
             >
               <ion-icon :icon="volumeHighOutline" />
@@ -104,8 +105,8 @@ const COPTIC_AUDIO_BASE = computed(() => `${CONTENT_BASE.value}/audio/coptic`)
   
   const ui = computed(() => {
     return isArabic.value
-      ? { title: 'كلمات قبطية حتى اليوم', search: 'ابحث…', loading: 'تحميل…', empty: 'لا توجد بيانات', play: 'تشغيل الصوت' }
-      : { title: 'Coptic Words (to date)', search: 'Search…', loading: 'Loading…', empty: 'No data', play: 'Play audio' }
+      ? { title: 'كلمات قبطية', search: 'ابحث…', loading: 'تحميل…', empty: 'لا توجد بيانات', play: 'تشغيل الصوت' }
+      : { title: 'Coptic Words', search: 'Search…', loading: 'Loading…', empty: 'No data', play: 'Play audio' }
   })
   
   const q = ref('')
@@ -130,25 +131,49 @@ const COPTIC_AUDIO_BASE = computed(() => `${CONTENT_BASE.value}/audio/coptic`)
     if (!needle) return rows.value
   
     return rows.value.filter((r: any) => {
-      const a = String(r.arabic_word || r.ar || '').toLowerCase()
-      const e = String(r.english_word || r.en || '').toLowerCase()
-      const c = String(r.coptic_word || r.coptic || '').toLowerCase()
-      const d = String(r.date_iso || r.dateISO || '').toLowerCase()
+        const a = String(r.arabic_word || '').toLowerCase()
+        const e = String(r.english_word || '').toLowerCase()
+      const c = String(r.coptic_word || '').toLowerCase()
+      const d = String(r.date_iso || '').toLowerCase()
       return a.includes(needle) || e.includes(needle) || c.includes(needle) || d.includes(needle)
     })
   })
-  
-  async function load(force = false) {
-    loading.value = true
-    try {
-      rows.value = await fetchCopticWords(force)
-    } catch (e) {
-      console.error('fetchCopticWords error', e)
-      rows.value = []
-    } finally {
-      loading.value = false
-    }
+  function todayISO10() {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function rowDateISO10(r: any) {
+  return String(r.date_iso || r.dateISO || '').trim().substring(0, 10)
+}
+
+async function load(force = false) {
+  loading.value = true
+  try {
+    const all = await fetchCopticWords(force)
+
+    const today = todayISO10()
+
+    // ✅ show only rows with date <= today
+    rows.value = all
+      .filter((r: any) => {
+        const iso = rowDateISO10(r)
+        return !!iso && iso <= today
+      })
+      // optional: newest first
+      .sort((a: any, b: any) => rowDateISO10(b).localeCompare(rowDateISO10(a)))
+
+  } catch (e) {
+    console.error('fetchCopticWords error', e)
+    rows.value = []
+  } finally {
+    loading.value = false
   }
+}
+
   
   async function refresh() {
     await load(true)
@@ -198,3 +223,143 @@ async function play(url: string) {
   })
   </script>
   
+
+  <style scoped>
+/* Use your theme vars (mk-*) */
+:global(ion-content){
+  --padding-top: 12px;
+  --padding-bottom: 18px;
+  color: var(--mk-text);
+}
+
+/* Searchbar styled with mk colors */
+:global(ion-searchbar){
+  --border-radius: 16px;
+  --background: var(--mk-card);
+  --box-shadow: var(--mk-shadow);
+  --placeholder-color: color-mix(in srgb, var(--mk-text) 55%, transparent);
+  --color: var(--mk-text);
+  margin-bottom: 12px;
+  border: 1px solid var(--mk-border);
+}
+
+/* List container */
+:global(ion-list){
+  background: transparent;
+  padding: 0;
+}
+
+/* Each item becomes a "card" using your system */
+:global(ion-item){
+  --background: var(--mk-card);
+  --padding-start: 12px;
+  --inner-padding-end: 10px;
+  --min-height: 82px;
+
+  margin: 10px 0;
+  border-radius: 18px;
+  border: 1px solid var(--mk-border);
+  box-shadow: var(--mk-shadow);
+  overflow: hidden;
+
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+:global(ion-item::part(native)){
+  border-radius: 18px;
+}
+
+/* Soft accent glow strip */
+:global(ion-item::before){
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: linear-gradient(to bottom, transparent, var(--mk-accent), transparent);
+  opacity: 0.55;
+}
+
+/* Hover lift (desktop) */
+@media (hover:hover){
+  :global(ion-item:hover){
+    transform: translateY(-1px);
+    box-shadow: var(--mk-shadow-strong);
+    border-color: var(--mk-soft-border);
+  }
+}
+
+/* Label spacing */
+:global(ion-label){
+  margin: 12px 0;
+}
+
+/* Coptic word line (your requested font) */
+:global(ion-item ion-label > div:nth-child(1)){
+  /* after removing date, this becomes the coptic word line */
+  margin-top: 0 !important;
+  font-size: 20px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0.2px;
+  color: var(--mk-text);
+  font-family: 'CopticForAll', 'Antinoou', serif !important;
+}
+
+/* Translation line (Arabic/English meaning) */
+:global(ion-item ion-label > div:nth-child(2)){
+  margin-top: 8px !important;
+  font-size: 15px !important;
+  line-height: 1.55;
+  opacity: 0.92 !important;
+  color: var(--mk-text);
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+}
+
+/* If you are in EN mode, you probably want Inter */
+:global(.lang-en ion-item ion-label > div:nth-child(2)){
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif !important;
+  font-weight: 700;
+}
+
+/* Audio button -> pill circle using mk-soft */
+:global(ion-item ion-button){
+  --padding-start: 10px;
+  --padding-end: 10px;
+  --border-radius: 999px;
+}
+
+/* Give the button a background bubble */
+:global(ion-item ion-button::part(native)){
+  background: var(--mk-soft);
+  border: 1px solid var(--mk-soft-border);
+  border-radius: 999px;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.10);
+  transition: transform 160ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+:global(ion-item ion-button:active::part(native)){
+  transform: scale(0.96);
+}
+
+:global(ion-item ion-button ion-icon){
+  font-size: 22px;
+  color: var(--mk-accent);
+  opacity: 0.95;
+}
+
+/* Optional: make the item more compact on small screens */
+@media (max-width: 360px){
+  :global(ion-item){
+    border-radius: 16px;
+  }
+  :global(ion-item::part(native)){
+    border-radius: 16px;
+  }
+}
+
+/* Dark mode: still uses your vars (mk-card already dark), just tweak shadow */
+:global(body.theme-dark) :global(ion-item){
+  box-shadow: var(--mk-shadow);
+}
+
+    </style>
+    

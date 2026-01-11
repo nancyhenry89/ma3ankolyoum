@@ -44,7 +44,7 @@
 
         <!-- Saved open -->
         <button class="savedOpenBtn" type="button" @click="openSavedSheet">
-          🕊 صوت الله ⛪
+          🕊 صوت الله 
           <span class="savedCount">{{ savedAll.length }}</span>
         </button>
 
@@ -720,6 +720,10 @@ onMounted(() => {
   font-weight: 1000;
   cursor:pointer;
   font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  background:
+  radial-gradient(600px 200px at 20% 0%, rgba(32,178,170,0.35), transparent 60%),
+  linear-gradient(135deg, #182a44, rgba(16,27,47,0.90));
+  color:#fff
 }
 
 /* خلي محتوى المودال ياخد ارتفاع الشاشة ويكون فيه سكرول */
@@ -750,7 +754,7 @@ onMounted(() => {
   padding: 2px 10px;
   border-radius: 999px;
   border: 1px solid var(--mk-border);
-  background: rgba(31,182,170,0.10);
+  background:rgb(31 182 170 / 92%);
 }
 
 /* Verses */
