@@ -858,6 +858,7 @@ onMounted(() => {
   white-space:pre-wrap;
   font-weight:800;
   font-family:"Noto Kufi Arabic", system-ui, sans-serif;
+  color:#0a0f14
 }
 
 .chev{
