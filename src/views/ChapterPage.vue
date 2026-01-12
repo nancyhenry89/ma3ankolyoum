@@ -1131,5 +1131,37 @@ font-family: "Amiri", "Noto Naskh Arabic", serif;
 :global(html[data-mk-theme="dark"]) .savedNote::placeholder{
   color: rgba(255,255,255,0.55);
 }
+/* ✅ خليه واضح في الدارك واللايت */
+.saveBtn{
+  color: var(--mk-text); /* default */
+}
+
+/* الأيقونة نفسها */
+.saveBtn :deep(ion-icon){
+  font-size: 20px;
+  color: currentColor;
+  opacity: 0.95;
+}
+
+/* Dark mode: زوّدي التباين للزرار */
+:global(html[data-mk-theme="dark"]) .saveBtn{
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.92);
+}
+
+/* ✅ لما تكون الآية محفوظة: خليها Accent واضحة */
+.saveBtn.isSaved{
+  color: var(--mk-accent);
+}
+
+.saveBtn.isSaved :deep(ion-icon){
+  opacity: 1;
+}
+
+/* Dark mode: accent أقوى */
+:global(html[data-mk-theme="dark"]) .saveBtn.isSaved{
+  color: #2fe6d8; /* أقوى شوية من mk-accent عشان يبان */
+}
 
 </style>
