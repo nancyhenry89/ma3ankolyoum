@@ -858,7 +858,6 @@ onMounted(() => {
   white-space:pre-wrap;
   font-weight:800;
   font-family:"Noto Kufi Arabic", system-ui, sans-serif;
-  color:#0a0f14
 }
 
 .chev{
@@ -1086,4 +1085,51 @@ font-family: "Amiri", "Noto Naskh Arabic", serif;
   background: rgba(255,255,255,0.06);
   border-color: rgba(255,255,255,0.18);
 }
+/* ✅ 1) ثبّت لون النصوص المهمة على --mk-text (عشان ما تتغمّقش في الدارك) */
+.introTitle,
+.chapterTitle,
+.txt,
+.savedText,
+.tafsirText,
+.savedRef,
+.savedBook,
+.savedLoc,
+.videoNote,
+.sectionInline{
+  color: var(--mk-text);
+}
+
+/* ✅ 2) Dark mode: حسّني التباين للـ sectionInline (كان واخد لون ثابت غامق) */
+:global(html[data-mk-theme="dark"]) .sectionInline{
+  background:
+    radial-gradient(700px 240px at 15% 0%, rgba(40,214,204,0.18), transparent 62%),
+    linear-gradient(135deg, rgba(40,214,204,0.14), rgba(255,255,255,0.06));
+  color: rgba(255,255,255,0.92);
+  box-shadow: 0 12px 22px rgba(0,0,0,0.45);
+}
+
+/* ✅ 3) Dark mode: خليه الـ hint والنوتات أوضح */
+:global(html[data-mk-theme="dark"]) .tafsirHint{
+  color: rgba(255,255,255,0.85);
+}
+
+/* ✅ 4) Dark mode: الـ videoNote (الأحمر كان بيبان ضعيف) */
+:global(html[data-mk-theme="dark"]) .videoNote{
+  background: rgba(255, 80, 80, 0.12);
+  border-color: rgba(255, 80, 80, 0.55);
+  color: rgba(255,255,255,0.92);
+}
+
+/* ✅ 5) Dark mode: زرار الحذف/الأزرار اللي لونها خفيف */
+:global(html[data-mk-theme="dark"]) .savedRemove{
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.92);
+}
+
+/* ✅ 6) لو placeholder باهت جدًا */
+:global(html[data-mk-theme="dark"]) .savedSearch::placeholder,
+:global(html[data-mk-theme="dark"]) .savedNote::placeholder{
+  color: rgba(255,255,255,0.55);
+}
+
 </style>
