@@ -1196,9 +1196,15 @@ const bookDisplayName = computed(() => {
 
 const previewLabel = computed(() => {
   const ch = bibleChapter.value || 1
-  const name = bookDisplayName.value
-  return name ? `${name} ${ch}` : ''   // if preview not loaded yet -> empty
+
+  const name = isArabic.value
+    ? String(chapterPreview.value?.bookName || '').trim()
+    : String(chapterPreview.value?.bookNameEn || '').trim()
+
+  // JSON-only (no code maps)
+  return name ? `${name} ${ch}` : ''
 })
+
 
 const previewTitle = computed(() => chapterPreview.value?.chapterTitle || bibleTitle.value)
 
