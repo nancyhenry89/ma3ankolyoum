@@ -1186,10 +1186,18 @@ const bibleLabel = computed(() => {
   return name ? `${name} ${ch}` : ''
 })
 
+const bookDisplayName = computed(() => {
+  const p = chapterPreview.value
+  if (!p) return '' // no fallback names from code
+  return isArabic.value
+    ? String(p.bookName || '').trim()
+    : String(p.bookNameEn || '').trim()
+})
+
 const previewLabel = computed(() => {
   const ch = bibleChapter.value || 1
-  const name = getBookName(bibleBookKey.value)
-  return name ? `${name} ${ch}` : ''
+  const name = bookDisplayName.value
+  return name ? `${name} ${ch}` : ''   // if preview not loaded yet -> empty
 })
 
 const previewTitle = computed(() => chapterPreview.value?.chapterTitle || bibleTitle.value)
