@@ -217,3 +217,77 @@ export function splitBibleVideos(rows: BibleVideoRow[]) {
   const stories = rows.filter((r) => r.type === 'story')
   return { intros, stories }
 }
+
+
+export type NourEpisodeRow = {
+  series: string
+  series_order: number
+  name: string
+  episode_number: number
+  youtube_id: string
+}
+
+// ✅ نور العالم CSV
+const NOUR_ALALAM_CSV =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQm5pbyhWQWnZTe-EviP4duw241zgPqNhpG1uJ6oV3mbD37QDKlJxHvaykfpazDEfO4FBLqBU-3e58-/pub?gid=0&single=true&output=csv'
+
+const NOUR_CACHE_KEY = 'mk_nour_alalam_v1'
+const NOUR_CACHE_TTL_MS = 1000 * 60 * 60 * 6 // 6 ساعات (عدّليها براحتك)
+
+function toNum(v: any) {
+  const n = Number(String(v ?? '').trim())
+  return Number.isFinite(n) ? n : 0
+}
+
+function cleanStr(v: any) {
+  return String(v ?? '').trim()
+}
+
+export async function fetchNourAlAlam(force = false): Promise<NourEpisodeRow[]> {
+  // ✅ cache (اختياري بس مفيد زي باقي الشيتات)
+  if (!force) {
+    try {
+      const raw = localStorage.getItem(NOUR_CACHE_KEY)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (parsed?.ts && Array.isArray(parsed?.data)) {
+          if (Date.now() - parsed.ts < NOUR_CACHE_TTL_MS) {
+            return parsed.data as NourEpisodeRow[]
+          }
+        }
+      }
+    } catch {}
+  }
+
+  const res = await fetch(NOUR_ALALAM_CSV, { cache: 'no-store' })
+  if (!res.ok) throw new Error(`Nour CSV fetch failed: ${res.status}`)
+  const csv = await res.text()
+
+  const parsed = Papa.parse(csv, {
+    header: true,
+    skipEmptyLines: true
+  })
+
+  const rows = (parsed.data as any[])
+    .map((r) => {
+      const series = cleanStr(r.series)
+      const name = cleanStr(r.name)
+      const youtube_id = cleanStr(r.youtube_id)
+
+      return {
+        series,
+        series_order: toNum(r.series_order),
+        name,
+        episode_number: toNum(r.episode_number),
+        youtube_id
+      } as NourEpisodeRow
+    })
+    .filter((r) => r.series && r.name && r.youtube_id)
+
+  // ✅ حفظ cache
+  try {
+    localStorage.setItem(NOUR_CACHE_KEY, JSON.stringify({ ts: Date.now(), data: rows }))
+  } catch {}
+
+  return rows
+}

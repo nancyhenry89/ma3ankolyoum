@@ -25,6 +25,10 @@ const routes: Array<RouteRecordRaw> = [
   { path: '/bible-stories', name: 'BibleStories', component: () => import('@/views/BibleStoriesPage.vue') },
 { path: '/bible-intros', name: 'BibleIntros', component: () => import('@/views/BibleIntrosPage.vue') },
 { path: '/coptic-words', name: 'CopticWords', component: () => import('@/views/CopticWordsPage.vue') },
+{
+  path: '/noor-alalam',
+  component: () => import('@/views/NourAlAlamPage.vue')
+}
 
   
 ]

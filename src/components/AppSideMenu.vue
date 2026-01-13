@@ -35,7 +35,11 @@
                 <ion-icon :icon="filmOutline" slot="end" class="mkMenuIcon" />
               </ion-item>
             </template>
-  
+            <ion-item button @click="go('/noor-alalam')" class="mkMenuItem mkMenuItem--ar">
+  <ion-label class="mkMenuLabel mkMenuLabel--ar">برنامج نور العالم</ion-label>
+  <ion-icon :icon="tvOutline" slot="end" class="mkMenuIcon" />
+</ion-item>
+
             <!-- ✅ Visible in AR + EN -->
             <ion-item button @click="go('/coptic-words')" :class="['mkMenuItem', isArabic ? 'mkMenuItem--ar' : 'mkMenuItem--en']">
               <ion-label :class="['mkMenuLabel', isArabic ? 'mkMenuLabel--ar' : 'mkMenuLabel--en']">
@@ -86,13 +90,14 @@
   
   import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
   import { useRouter } from 'vue-router'
-  
+
   import {
     bookOutline,
     filmOutline,
     chatbubbleEllipsesOutline,
     settingsOutline,
-    informationCircleOutline
+    informationCircleOutline,
+    tvOutline
   } from 'ionicons/icons'
   
   type Lang = 'ar' | 'en'
