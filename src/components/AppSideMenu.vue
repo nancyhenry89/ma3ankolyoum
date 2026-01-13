@@ -20,54 +20,57 @@
       </ion-header>
   
       <ion-content>
-        <ion-list class="mkMenuList">
-          <ion-menu-toggle :auto-hide="true">
-  
-            <!-- ✅ Arabic only -->
-            <template v-if="isArabic">
-              <ion-item button @click="go('/bible-intros')" class="mkMenuItem mkMenuItem--ar">
-                <ion-label class="mkMenuLabel mkMenuLabel--ar">مقدمات أسفار الكتاب المقدس</ion-label>
-                <ion-icon :icon="bookOutline" slot="end" class="mkMenuIcon" />
-              </ion-item>
-  
-              <ion-item button @click="go('/bible-stories')" class="mkMenuItem mkMenuItem--ar">
-                <ion-label class="mkMenuLabel mkMenuLabel--ar">حكايات الكتاب المقدس</ion-label>
-                <ion-icon :icon="filmOutline" slot="end" class="mkMenuIcon" />
-              </ion-item>
-            </template>
-            <ion-item button @click="go('/noor-alalam')" class="mkMenuItem mkMenuItem--ar">
-  <ion-label class="mkMenuLabel mkMenuLabel--ar">برنامج نور العالم</ion-label>
-  <ion-icon :icon="tvOutline" slot="end" class="mkMenuIcon" />
-</ion-item>
+        <div :class="['home', themeClass, 'mkMenuSurface']">
+    <ion-menu-toggle :auto-hide="true">
 
-            <!-- ✅ Visible in AR + EN -->
-            <ion-item button @click="go('/coptic-words')" :class="['mkMenuItem', isArabic ? 'mkMenuItem--ar' : 'mkMenuItem--en']">
-              <ion-label :class="['mkMenuLabel', isArabic ? 'mkMenuLabel--ar' : 'mkMenuLabel--en']">
-                {{ isArabic ? 'كلمات قبطية حتى اليوم' : 'Coptic words up to today' }}
-              </ion-label>
-  
-              <!-- icon on right for AR, on left for EN -->
-              <ion-icon
-                :icon="chatbubbleEllipsesOutline"
-                :slot="isArabic ? 'end' : 'start'"
-                class="mkMenuIcon"
-              />
-            </ion-item>
-  
-            <!-- Existing -->
-            <ion-item button @click="openModal('settings')" :class="['mkMenuItem', isArabic ? 'mkMenuItem--ar' : 'mkMenuItem--en']">
-              <ion-label :class="['mkMenuLabel', isArabic ? 'mkMenuLabel--ar' : 'mkMenuLabel--en']">{{ ui.settings }}</ion-label>
-              <ion-icon :icon="settingsOutline" :slot="isArabic ? 'end' : 'start'" class="mkMenuIcon" />
-            </ion-item>
-  
-            <ion-item button @click="openModal('about')" :class="['mkMenuItem', isArabic ? 'mkMenuItem--ar' : 'mkMenuItem--en']">
-              <ion-label :class="['mkMenuLabel', isArabic ? 'mkMenuLabel--ar' : 'mkMenuLabel--en']">{{ ui.about }}</ion-label>
-              <ion-icon :icon="informationCircleOutline" :slot="isArabic ? 'end' : 'start'" class="mkMenuIcon" />
-            </ion-item>
-  
-          </ion-menu-toggle>
-        </ion-list>
-      </ion-content>
+      <!-- TOP: cards (AR only) -->
+      <div v-if="isArabic" class="mkQuickWrap">
+        <div class="mkQuickGrid">
+          <ion-item button :detail="false" lines="none" @click="go('/bible-intros')" class="mkQuickCard">
+            <ion-icon :icon="bookOutline" class="mkQuickIcon" />
+            <ion-label class="mkQuickLabel">مقدمات الأسفار</ion-label>
+          </ion-item>
+
+          <ion-item button :detail="false" lines="none" @click="go('/bible-stories')" class="mkQuickCard">
+            <ion-icon :icon="filmOutline" class="mkQuickIcon" />
+            <ion-label class="mkQuickLabel">حكايات الكتاب</ion-label>
+          </ion-item>
+
+          <ion-item button :detail="false" lines="none" @click="go('/noor-alalam')" class="mkQuickCard">
+            <ion-icon :icon="tvOutline" class="mkQuickIcon" />
+            <ion-label class="mkQuickLabel">نور العالم</ion-label>
+          </ion-item>
+
+          <ion-item button :detail="false" lines="none" @click="go('/coptic-words')" class="mkQuickCard">
+            <ion-icon :icon="chatbubbleEllipsesOutline" class="mkQuickIcon" />
+            <ion-label class="mkQuickLabel">كلمات قبطية</ion-label>
+          </ion-item>
+        </div>
+      </div>
+
+      <!-- Bottom list -->
+      <ion-list class="mkMenuList">
+        <ion-item v-if="!isArabic" button @click="go('/coptic-words')" class="mkMenuItem mkMenuItem--en">
+          <ion-icon :icon="chatbubbleEllipsesOutline" slot="start" class="mkMenuIcon" />
+          <ion-label class="mkMenuLabel mkMenuLabel--en">Coptic words up to today</ion-label>
+        </ion-item>
+
+        <ion-item button @click="openModal('settings')" :class="['mkMenuItem', isArabic ? 'mkMenuItem--ar' : 'mkMenuItem--en']">
+          <ion-label :class="['mkMenuLabel', isArabic ? 'mkMenuLabel--ar' : 'mkMenuLabel--en']">{{ ui.settings }}</ion-label>
+          <ion-icon :icon="settingsOutline" :slot="isArabic ? 'end' : 'start'" class="mkMenuIcon" />
+        </ion-item>
+
+        <ion-item button @click="openModal('about')" :class="['mkMenuItem', isArabic ? 'mkMenuItem--ar' : 'mkMenuItem--en']">
+          <ion-label :class="['mkMenuLabel', isArabic ? 'mkMenuLabel--ar' : 'mkMenuLabel--en']">{{ ui.about }}</ion-label>
+          <ion-icon :icon="informationCircleOutline" :slot="isArabic ? 'end' : 'start'" class="mkMenuIcon" />
+        </ion-item>
+      </ion-list>
+
+    </ion-menu-toggle>
+  </div>
+</ion-content>
+
+
     </ion-menu>
   </template>
   
@@ -105,7 +108,10 @@
   
   const lang = ref<Lang>((localStorage.getItem('mk_lang') as Lang) || 'ar')
   const isArabic = computed(() => lang.value === 'ar')
-  
+  const themeClass = computed(() =>
+  document.body.classList.contains('theme-dark') ? 'theme-dark' : 'theme-light'
+)
+
   function syncLangFromStorage() {
     const v = (localStorage.getItem('mk_lang') as Lang) || 'ar'
     lang.value = v === 'en' ? 'en' : 'ar'
@@ -156,49 +162,252 @@
   </script>
   
   <style scoped>
-  /* --- Icon color: choose ONE behavior by editing below --- */
-  
-  /* Option 1: always teal */
-  .mkMenuIcon{
-    color: var(--ion-color-primary);
-    font-size: 20px;
-    opacity: 0.95;
+  /* =========================================================
+   mk vars available inside menu (HomePage vars are scoped)
+========================================================= */
+:global(.mkMenu .home.theme-light){
+  --mk-bg1: #f4f7fb;
+  --mk-bg2: #ffffff;
+  --mk-text: #0b1f33;
+  --mk-card: #ffffff;
+
+  --mk-accent: #20b2aa;
+  --mk-danger: #ff2a00;
+
+  --mk-border: rgba(24,42,68,0.10);
+  --mk-shadow: 0 8px 18px rgba(10,20,30,0.07);
+  --mk-shadow-strong: 0 14px 28px rgba(10,20,30,0.10);
+
+  --mk-soft-border: rgba(32,178,170,0.28);
+}
+
+:global(.mkMenu .home.theme-dark){
+  --mk-bg1: #060b12;
+  --mk-bg2: #0b1220;
+  --mk-text: #f5f7fa;
+  --mk-card: rgba(255,255,255,0.08);
+
+  --mk-accent: #28d6cc;
+  --mk-danger: #ff7a7a;
+
+  --mk-border: rgba(255,255,255,0.14);
+  --mk-shadow: 0 14px 28px rgba(0,0,0,0.45);
+  --mk-shadow-strong: 0 18px 34px rgba(0,0,0,0.60);
+
+  --mk-soft-border: rgba(40,214,204,0.35);
+}
+
+/* =========================================================
+   Surface / background inside the menu
+========================================================= */
+.mkMenuSurface{
+  min-height: 100%;
+  padding-bottom: 14px;
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(32,178,170,0.16), transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, rgba(24,42,68,0.10), transparent 55%),
+    linear-gradient(to bottom, var(--mk-bg1), var(--mk-bg2));
+}
+
+/* Optional: fix menu width on tablets (uncomment if needed)
+:global(.mkMenu){ --width: 360px; }
+*/
+
+/* =========================================================
+   Header title font
+========================================================= */
+.menu-title{
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+}
+
+/* =========================================================
+   Center container on wide menus
+========================================================= */
+.mkQuickWrap,
+.mkMenuList{
+  max-width: 420px;
+  margin-inline: auto;
+}
+
+/* =========================================================
+   Quick cards (Top)
+========================================================= */
+.mkQuickWrap{
+  padding: 12px 12px 6px;
+}
+
+.mkQuickGrid{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 360px){
+  .mkQuickGrid{ grid-template-columns: 1fr; }
+}
+
+/* host */
+.mkQuickCard{
+  --min-height: 104px;
+}
+
+/* actual card */
+.mkQuickCard::part(native){
+  min-height: 104px;
+  padding: 12px 10px !important;
+  border-radius: 18px !important;
+
+  border: 1px solid color-mix(in srgb, var(--mk-border) 85%, transparent) !important;
+
+  background:
+    radial-gradient(
+      720px 240px at 20% 0%,
+      color-mix(in srgb, var(--mk-accent) 14%, transparent),
+      transparent 62%
+    ),
+    var(--mk-card) !important;
+
+  box-shadow: var(--mk-shadow) !important;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  text-align: center;
+  align-content: center;
+
+  transition: transform .16s ease, box-shadow .22s ease, border-color .22s ease;
+}
+
+.mkQuickIcon{
+  font-size: 30px;
+  color: var(--mk-accent) !important;
+  opacity: 0.98;
+}
+
+.mkQuickLabel{
+  margin: 0;
+  width: 100%;
+  text-align: center;
+
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  font-weight: 1000;
+  font-size: 15px;
+  line-height: 2;
+  color: var(--mk-text) !important;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  padding: 0 6px;
+}
+
+/* press */
+.mkQuickCard:active::part(native){
+  transform: translateY(1px) scale(0.985);
+}
+
+/* hover */
+@media (hover:hover){
+  .mkQuickCard:hover::part(native){
+    border-color: var(--mk-soft-border) !important;
+    box-shadow: var(--mk-shadow-strong) !important;
+    transform: translateY(-1px);
   }
-  
-  /* Option 2: black in light / teal in dark (uncomment to use)
-  :global(body:not(.theme-dark)) .mkMenuIcon{ color: #000; }
-  :global(body.theme-dark) .mkMenuIcon{ color: var(--ion-color-primary); }
-  */
-  
-  .mkMenuItem{
-    --padding-start: 14px;
-    --inner-padding-end: 14px;
-    --min-height: 48px;
-  }
-  
-  .mkMenuLabel{
-    font-size: 15px;
-    line-height: 1.25;
-    font-family: "Noto Kufi Arabic", system-ui, sans-serif;
-  }
-  .menu-title{
-    font-family: "Noto Kufi Arabic", system-ui, sans-serif;
-  }
-  
-  /* ✅ Arabic: keep RTL page but left-align text inside label */
-  .mkMenuLabel--ar{
-    text-align: right;
-  }
-  
-  /* (Optional) make Arabic labels not stick to icon too close */
-  .mkMenuItem--ar ion-label{
-    margin-right: 0;
-    margin-left: 8px;
-  }
-  
-  /* English labels normal */
-  .mkMenuLabel--en{
-    text-align: left;
-  }
+}
+
+/* =========================================================
+   Divider between cards and list
+========================================================= */
+.mkDivider{
+  height: 1px;
+  margin: 8px 14px 4px;
+  background: color-mix(in srgb, var(--mk-border) 80%, transparent);
+}
+
+/* =========================================================
+   Bottom list styling (Settings / About)
+========================================================= */
+.mkMenuList{
+  margin-top: 6px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* remove Ionic default list padding (reliable) */
+:global(.mkMenu ion-list){
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.mkMenuItem{
+  --padding-start: 14px;
+  --inner-padding-end: 14px;
+  --min-height: 54px;
+}
+
+/* make rows match cards width */
+.mkMenuItem::part(native){
+  max-width: 420px;
+  margin-inline: auto;
+}
+
+.mkMenuLabel{
+  font-size: 16px;
+  line-height: 1.25;
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+}
+
+.mkMenuLabel--ar{ text-align: right; }
+.mkMenuLabel--en{ text-align: left; }
+
+.mkMenuItem--ar ion-label{
+  margin-right: 0;
+  margin-left: 8px;
+}
+
+/* single source of truth for icons */
+.mkMenuIcon{
+  color: var(--mk-accent);
+  font-size: 22px;
+  opacity: 0.95;
+}
+/* ==========================================
+   FIX: kill ion-item inner padding via vars
+   (works with Shadow DOM)
+========================================== */
+.mkQuickCard{
+  /* remove all item paddings that push content in RTL */
+  --padding-start: 0px;
+  --padding-end: 0px;
+
+  /* for some modes/versions */
+  --inner-padding-start: 0px;
+  --inner-padding-end: 0px;
+
+  /* kill iOS safe area that sometimes gets added */
+  --ion-safe-area-right: 0px;
+  --ion-safe-area-left: 0px;
+}
+
+/* keep our custom padding on the actual native button */
+.mkQuickCard::part(native){
+  padding: 12px 10px !important;
+}
+
+/* ensure label/icon don't get extra spacing */
+.mkQuickCard ion-label{
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100%;
+  text-align: center;
+  width:72px
+}
+
+
   </style>
   
