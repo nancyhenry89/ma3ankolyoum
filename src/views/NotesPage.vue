@@ -313,7 +313,7 @@
   
         statsTitle: "Stats",
         statsHint: "Weekly / Monthly / Yearly summary",
-        shareHint: "Download the image, then share it with your father of confession or a friend.",
+        shareHint: "Download the image, then share it with your father of confession.",
   
         morningTitle: "Morning prayer",
         bibleTitle: "Bible",
