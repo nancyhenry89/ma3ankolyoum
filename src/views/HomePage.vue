@@ -366,6 +366,12 @@
             <div class="skeleton-line"></div>
             <div class="skeleton-line short"></div>
           </div>
+          <div class="space"></div>
+          <SpiritualNotesCard             class="mkNoCapture"
+            v-if="!isLoading && !noData && isTodaySelected"
+            :todayISO="todayISO()"
+            :lang="lang" />
+
 
           <div class="space"></div>
 
@@ -575,6 +581,7 @@ import html2canvas from 'html2canvas'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { IonMenuButton } from '@ionic/vue'
+import SpiritualNotesCard from "@/components/SpiritualNotesCard.vue";
 
 import { App } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
