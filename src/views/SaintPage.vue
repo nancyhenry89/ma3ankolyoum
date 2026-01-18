@@ -152,7 +152,7 @@
         await refreshSaintFromNetwork(targetISO)
       } catch (e) {
         console.error(e)
-        errorMsg.value = 'حصلت مشكلة في تحميل السنكسار. تأكدي من الإنترنت.'
+        errorMsg.value = 'حصلت مشكلة في تحميل السنكسار. تأكد من الإنترنت.'
       } finally {
         isLoading.value = false
       }

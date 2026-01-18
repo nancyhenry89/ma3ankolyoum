@@ -42,11 +42,18 @@
 
         <div class="chapterTitle">{{ chapterTitle }}</div>
 
-        <!-- Saved open -->
+        <!-- Saved open (old functionality stays) -->
         <button class="savedOpenBtn" type="button" @click="openSavedSheet">
-          🕊 صوت الله 
+          🕊 صوت الله
           <span class="savedCount">{{ savedAll.length }}</span>
         </button>
+
+        <button class="topCtaBtn" type="button" @click="openTopModal">
+  🔥 الآيات الأكثر حفظًا في هذا الأصحاح
+  <span class="topCtaHint">اضغط للعرض</span>
+</button>
+
+
 
         <div class="verses">
           <div
@@ -74,14 +81,30 @@
                 </div>
               </button>
 
-              <button
-                class="saveBtn"
-                type="button"
-                @click.stop="toggleSaveVerse(v.n, v.t)"
-                aria-label="Save verse"
-              >
-                <IonIcon :icon="savedIcon(v.n)" />
-              </button>
+              <!-- Firebase bookmark button -->
+              <div class="bmWrap">
+                <button
+  class="saveBtn"
+  :class="{ isSaved: isVerseBookmarked(v.n) }"
+  type="button"
+  :disabled="!!bmBusy[v.n]"
+  @click.stop="toggleFirebaseBookmark(v.n, v.t)"
+>
+
+                  <IonIcon :icon="savedIconFirebase(v.n)" />
+                </button>
+
+                <!-- Count badge (separate button, not nested) -->
+                <button
+                  v-if="bmCounts[v.n] != null && bmCounts[v.n] > 0"
+                  class="bmCount"
+                  type="button"
+                  @click.stop="openBmTooltip($event, v.n)"
+                  aria-label="Bookmark count"
+                >
+                  {{ bmCounts[v.n] }}
+                </button>
+              </div>
             </div>
 
             <!-- Tafsir -->
@@ -100,112 +123,167 @@
 
         <div class="space"></div>
       </div>
-
-      <!-- Saved Sheet -->
-
     </ion-content>
+
+    <!-- ✅ Saved Sheet (old functionality stays) -->
     <ion-modal
       dir="rtl"
-  :is-open="showSaved"
-  @didDismiss="showSaved = false"
-  :backdrop-dismiss="false"
-  class="savedSheet"
->
-<ion-toast
-  :is-open="showSavedToast"
-  message="✓ تم الحفظ"
-  duration="1000"
-  position="bottom"
-  css-class="savedToast"
-  @didDismiss="showSavedToast = false"
-/>
-
-<ion-header class="savedHeader">
-  <ion-toolbar>
-    <ion-title> 🕊 صوت الله ⛪</ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" @click="showSaved = false">إغلاق</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-
-  <!-- search (برا الـ toolbar) -->
-  <div class="savedSearchWrap">
-    <input
-      class="savedSearch"
-      type="search"
-      v-model="savedQuery"
-      inputmode="search"
-      placeholder="🔎 ابحث في الآيات أو اسم السفر…"
-      @click.stop
-      @mousedown.stop
-      @touchstart.stop
-    />
-    <button
-      v-if="savedQuery"
-      class="savedClear"
-      type="button"
-      @click.stop="savedQuery = ''"
-      aria-label="Clear search"
+      :is-open="showSaved"
+      @didDismiss="showSaved = false"
+      :backdrop-dismiss="false"
+      class="savedSheet"
     >
-      ✕
-    </button>
-  </div>
-</ion-header>
+      <ion-toast
+        :is-open="showSavedToast"
+        message="✓ تم الحفظ"
+        duration="1000"
+        position="bottom"
+        css-class="savedToast"
+        @didDismiss="showSavedToast = false"
+      />
 
-        <ion-content class="savedBody" :scroll-y="true" :scroll-events="true">
-          <div v-if="!filteredSaved.length" class="savedEmpty">
-            لا توجد آيات محفوظة.
+      <ion-header class="savedHeader">
+        <ion-toolbar>
+          <ion-title> 🕊 صوت الله ⛪</ion-title>
+          <ion-buttons slot="end">
+            <ion-button fill="clear" @click="showSaved = false">إغلاق</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+
+        <div class="savedSearchWrap">
+          <input
+            class="savedSearch"
+            type="search"
+            v-model="savedQuery"
+            inputmode="search"
+            placeholder="🔎 ابحث في الآيات أو اسم السفر…"
+            @click.stop
+            @mousedown.stop
+            @touchstart.stop
+          />
+          <button
+            v-if="savedQuery"
+            class="savedClear"
+            type="button"
+            @click.stop="savedQuery = ''"
+            aria-label="Clear search"
+          >
+            ✕
+          </button>
+        </div>
+      </ion-header>
+
+      <ion-content class="savedBody" :scroll-y="true" :scroll-events="true">
+        <div v-if="!filteredSaved.length" class="savedEmpty">
+          لا توجد آيات محفوظة.
+        </div>
+
+        <div v-else class="savedList">
+          <div
+            v-for="item in filteredSaved"
+            :key="`${item.bookKey}-${item.chapter}-${item.verse}`"
+            class="savedCard"
+          >
+            <div class="savedTopRow">
+              <button class="savedOpen" type="button" @click="openSavedVerse(item)">
+                <div class="savedRef">
+                  <span class="savedBook">{{ item.bookName }}</span>
+                  <span class="savedLoc">{{ item.chapter }} • {{ item.verse }}</span>
+                </div>
+              </button>
+
+              <button
+                class="savedRemove"
+                type="button"
+                @click="removeSaved(item)"
+                aria-label="Remove saved verse"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div class="savedText">{{ item.text }}</div>
+
+            <textarea
+              class="savedNote"
+              :value="item.note || ''"
+              @input="onNoteInput(item, $event)"
+              placeholder="✍️ اكتب ملاحظتك أو تأملك على هذه الآية…"
+              @click.stop
+              @mousedown.stop
+              @touchstart.stop
+            />
+
+            <button class="saveNoteBtn" type="button" @click.stop="saveNoteManual(item)">
+              💾 حفظ
+            </button>
+          </div>
+        </div>
+      </ion-content>
+    </ion-modal>
+    <ion-modal
+  dir="rtl"
+  :is-open="showTopModal"
+  @didDismiss="closeTopModal"
+  class="topModal"
+>
+
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>🔥 الآيات الأكثر حفظًا</ion-title>
+      <ion-buttons slot="end">
+        <ion-button fill="clear" @click="showTopModal = false">إغلاق</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="ion-padding">
+    <div v-if="!topBookmarkedWithText.length" class="topEmpty">
+      لا توجد بيانات حاليًا.
+    </div>
+
+    <div v-else class="topModalList">
+      <div v-for="x in topBookmarkedWithText" :key="x.verse" class="topModalCard">
+        <div class="topModalHead">
+          <div class="topModalMeta">
+            <span class="topModalVerse">آية {{ x.verse }}</span>
+            <button
+              class="topModalCount"
+              type="button"
+              @click.stop="openBmTooltip($event, x.verse)"
+            >
+              ⭐ {{ x.count }}
+            </button>
           </div>
 
-          <div v-else class="savedList">
-            <div
-              v-for="item in filteredSaved"
-              :key="`${item.bookKey}-${item.chapter}-${item.verse}`"
-              class="savedCard"
-            >
-              <div class="savedTopRow">
-                <!-- clickable ref only -->
-                <button class="savedOpen" type="button" @click="openSavedVerse(item)">
-                  <div class="savedRef">
-                    <span class="savedBook">{{ item.bookName }}</span>
-                    <span class="savedLoc">{{ item.chapter }} • {{ item.verse }}</span>
-                  </div>
-                </button>
+          <button
+            class="topModalSave"
+            :class="{ isSaved: isVerseBookmarked(x.verse) }"
+            type="button"
+            @click.stop="toggleFirebaseBookmark(x.verse, x.text)"
+            aria-label="Bookmark"
+          >
+            <IonIcon :icon="savedIconFirebase(x.verse)" />
+          </button>
+        </div>
 
-                <button
-                  class="savedRemove"
-                  type="button"
-                  @click="removeSaved(item)"
-                  aria-label="Remove saved verse"
-                >
-                  ✕
-                </button>
-              </div>
+        <button class="topModalOpen" type="button" @click="toggleVerse(x.verse)">
+          {{ x.text }}
+        </button>
+      </div>
+    </div>
+  </ion-content>
+</ion-modal>
 
-              <div class="savedText">{{ item.text }}</div>
-
-              <textarea
-  class="savedNote"
-  :value="item.note || ''"
-  @input="onNoteInput(item, $event)"
-  placeholder="✍️ اكتب ملاحظتك أو تأملك على هذه الآية…"
-  @click.stop
-  @mousedown.stop
-  @touchstart.stop
+    <ion-toast
+  :is-open="bmPopoverOpen"
+  :message="bmPopoverText"
+  duration="1200"
+  position="middle"
+  css-class="bmToast"
+  @didDismiss="bmPopoverOpen = false"
 />
 
-<button
-  class="saveNoteBtn"
-  type="button"
-  @click.stop="saveNoteManual(item)"
->
-  💾 حفظ 
-</button>
-
-            </div>
-          </div>
-        </ion-content>
-      </ion-modal>
   </ion-page>
 </template>
 
@@ -220,7 +298,8 @@ import {
   IonBackButton,
   IonModal,
   IonButton,
-  IonIcon
+  IonIcon,
+  IonToast
 } from '@ionic/vue'
 import { computed, onMounted, ref, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -228,20 +307,27 @@ import Papa from 'papaparse'
 import { chevronForwardOutline, bookmarkOutline, bookmark } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
 import { Browser } from '@capacitor/browser'
+
 import {
   readChapterCache,
   writeChapterCache,
   readTafsirCache,
   writeTafsirCache
 } from '@/utils/chapterCache'
+
 import {
   listSavedVerses,
   toggleVerseSaved,
-  isVerseSaved,
   type SavedVerse,
   upsertVerseNote
 } from '@/services/verseSaves'
-import { IonToast } from '@ionic/vue'
+
+import {
+  listenChapterBookmarkCounts,
+  listenTopBookmarkedVerses,
+  toggleVerseBookmark,
+  peopleText
+} from '@/services/verseBookmarks'
 
 const showSavedToast = ref(false)
 
@@ -251,6 +337,14 @@ const router = useRouter()
 const isIOSNative = computed(
   () => Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios'
 )
+const showTopModal = ref(false)
+
+const topBookmarkedWithText = computed(() => {
+  return topBookmarked.value.map(x => ({
+    ...x,
+    text: verseTextByNum(x.verse)
+  }))
+})
 
 type ChapterJSON = {
   bookKey: string
@@ -261,19 +355,29 @@ type ChapterJSON = {
   sections: { title: string; fromVerse: number; toVerse: number }[]
   verses: { n: number; t: string }[]
 }
+async function openTopModal() {
+  showTopModal.value = true
+
+  // start listening only when opened
+  unsubTop?.()
+  unsubTop = listenTopBookmarkedVerses(bookKey.value, chapterNum.value, 5, (items) => {
+    topBookmarked.value = items
+  })
+}
+function closeTopModal() {
+  showTopModal.value = false
+  unsubTop?.()
+  unsubTop = null
+}
+
+
 function normalizeArabic(s: string) {
   return String(s || '')
-    // إزالة التشكيل + العلامات القرآنية الشائعة
     .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
-    // تطبيع الألف/الهمزات
     .replace(/[إأآٱ]/g, 'ا')
-    // تطبيع ياء/ألف مقصورة
     .replace(/[ى]/g, 'ي')
-    // تطبيع تاء مربوطة (اختياري لكن مفيد للبحث)
     .replace(/ة/g, 'ه')
-    // إزالة التطويل
     .replace(/ـ/g, '')
-    // مسافات
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -285,6 +389,10 @@ function matchesQuery(haystack: string, q: string) {
   return hh.includes(qq)
 }
 
+function verseTextByNum(n: number) {
+  const vv = verses.value.find(x => Number(x.n) === n)
+  return vv?.t || ''
+}
 
 type TafsirRow = {
   bookKey: string
@@ -323,36 +431,16 @@ const bookSlugMap: Record<string, string> = {
   Luke: 'luke',
   John: 'john'
 }
-function saveNoteManual(item: SavedVerse) {
-  const idx = savedAll.value.findIndex(x =>
-    x.bookKey === item.bookKey &&
-    x.chapter === item.chapter &&
-    x.verse === item.verse
-  )
-  const note = idx >= 0 ? (savedAll.value[idx].note || '') : (item.note || '')
-
-  upsertVerseNote({
-    bookKey: item.bookKey,
-    bookName: item.bookName,
-    chapter: item.chapter,
-    verse: item.verse,
-    text: item.text,
-    note
-  })
-
-  // ✅ feedback
-  showSavedToast.value = true
-}
-
 
 // ✅ Tafsir CSV
 const TAFSIR_CSV_URL =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vQUoB2kNCIAvyniIzgd0mm8gmkTJRMTOu_KqELNFCuOexpimx4C12-J4zyenmRmjmXm50T1O1t-fGw2/pub?gid=0&single=true&output=csv'
 
-// ===== Saved verses =====
+// ===== Saved verses (OLD - stays) =====
 const showSaved = ref(false)
 const savedAll = ref<SavedVerse[]>([])
 const savedQuery = ref('')
+const bmBusy = ref<Record<number, boolean>>({})
 
 function refreshSavedList() {
   savedAll.value = listSavedVerses()
@@ -378,22 +466,24 @@ const filteredSaved = computed(() => {
   })
 })
 
-function savedIcon(n: number) {
-  return isVerseSaved(bookKey.value, chapterNum.value, n) ? bookmark : bookmarkOutline
-}
+function saveNoteManual(item: SavedVerse) {
+  const idx = savedAll.value.findIndex(x =>
+    x.bookKey === item.bookKey &&
+    x.chapter === item.chapter &&
+    x.verse === item.verse
+  )
+  const note = idx >= 0 ? (savedAll.value[idx].note || '') : (item.note || '')
 
-function toggleSaveVerse(n: number, text: string) {
-  if (!data.value) return
-
-  toggleVerseSaved({
-    bookKey: bookKey.value,
-    bookName: data.value.bookName,
-    chapter: chapterNum.value,
-    verse: n,
-    text
+  upsertVerseNote({
+    bookKey: item.bookKey,
+    bookName: item.bookName,
+    chapter: item.chapter,
+    verse: item.verse,
+    text: item.text,
+    note
   })
 
-  refreshSavedList()
+  showSavedToast.value = true
 }
 
 function removeSaved(item: SavedVerse) {
@@ -415,45 +505,18 @@ async function openSavedVerse(item: SavedVerse) {
   })
 }
 
-// ✅ typing (keep UI synced)
 function onNoteInput(item: SavedVerse, ev: any) {
   const v = String(ev?.target?.value ?? '')
 
-  // update list item
   const idx = savedAll.value.findIndex(x =>
     x.bookKey === item.bookKey &&
     x.chapter === item.chapter &&
     x.verse === item.verse
   )
   if (idx >= 0) savedAll.value[idx].note = v
-
-  // update passed item so it shows immediately
   ;(item as any).note = v
 }
 
-// ✅ save on blur with the REAL textarea value
-function saveNoteDirect(item: SavedVerse, ev: any) {
-  const v = String(ev?.target?.value ?? '')
-
-  upsertVerseNote({
-    bookKey: item.bookKey,
-    bookName: item.bookName,
-    chapter: item.chapter,
-    verse: item.verse,
-    text: item.text,
-    note: v
-  })
-
-  // ensure in-memory matches
-  const idx = savedAll.value.findIndex(x =>
-    x.bookKey === item.bookKey &&
-    x.chapter === item.chapter &&
-    x.verse === item.verse
-  )
-  if (idx >= 0) savedAll.value[idx].note = v
-}
-
-// keep list fresh when opening
 watch(showSaved, (v) => {
   if (v) refreshSavedList()
 })
@@ -487,7 +550,6 @@ async function loadTafsirOnce() {
   try {
     const res = await fetch(TAFSIR_CSV_URL, { cache: 'no-store' })
     const csv = await res.text()
-
     const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true })
 
     const all = (parsed.data as any[])
@@ -519,9 +581,7 @@ async function toggleVerse(n: number) {
     openVerse.value = null
     return
   }
-
   openVerse.value = n
-
   if (!tafsirRows.value.length) {
     await loadTafsirOnce()
   }
@@ -554,7 +614,6 @@ async function loadChapter() {
   const b = bookKey.value
   const ch = chapterNum.value
 
-  // cache first
   const cached = readChapterCache(b, ch)
   if (cached) {
     data.value = cached
@@ -590,10 +649,118 @@ async function jumpToVerseFromQuery() {
   el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
+// ===== Firebase Bookmarks (NEW) =====
+const bmCounts = ref<Record<number, number>>({})
+const bmMe = ref<Record<number, boolean>>({})
+const topBookmarked = ref<{ verse: number; count: number }[]>([])
+
+// tooltip
+const bmPopoverOpen = ref(false)
+const bmPopoverText = ref('')
+
+function isVerseBookmarked(n: number) {
+  return !!bmMe.value[n]
+}
+
+function savedIconFirebase(n: number) {
+  return isVerseBookmarked(n) ? bookmark : bookmarkOutline
+}
+
+async function toggleFirebaseBookmark(n: number, text: string) {
+  if (!data.value) return
+  if (bmBusy.value[n]) return
+  bmBusy.value = { ...bmBusy.value, [n]: true }
+
+  // ✅ optimistic (instant UI)
+  const was = !!bmMe.value[n]
+  const prevCount = Number(bmCounts.value[n] || 0)
+
+  bmMe.value = { ...bmMe.value, [n]: !was }
+  bmCounts.value = {
+    ...bmCounts.value,
+    [n]: Math.max(0, prevCount + (was ? -1 : 1))
+  }
+
+  // ✅ local "صوت الله" instant as well
+  toggleVerseSaved({
+    bookKey: bookKey.value,
+    bookName: data.value.bookName,
+    chapter: chapterNum.value,
+    verse: n,
+    text
+  })
+  refreshSavedList()
+  showSavedToast.value = true
+
+  try {
+    await toggleVerseBookmark({
+      bookKey: bookKey.value,
+      bookName: data.value.bookName,
+      chapter: chapterNum.value,
+      verse: n,
+      text
+    })
+  } catch (e) {
+    // ❌ rollback if Firestore failed
+    bmMe.value = { ...bmMe.value, [n]: was }
+    bmCounts.value = { ...bmCounts.value, [n]: prevCount }
+
+    // rollback local save too
+    toggleVerseSaved({
+      bookKey: bookKey.value,
+      bookName: data.value.bookName,
+      chapter: chapterNum.value,
+      verse: n,
+      text
+    })
+    refreshSavedList()
+
+    console.error(e)
+  } finally {
+    bmBusy.value = { ...bmBusy.value, [n]: false }
+  }
+}
+
+
+async function toggleBmFromTop(verseNum: number) {
+  await toggleFirebaseBookmark(verseNum, verseTextByNum(verseNum))
+}
+
+function openBmTooltip(_ev: any, verseNum: number) {
+  const c = Number(bmCounts.value[verseNum] || 0)
+  bmPopoverText.value = peopleText(c)
+  bmPopoverOpen.value = true
+}
+
+
+let unsubBm: any = null
+let unsubTop: any = null
+
+function attachBmListeners() {
+  unsubBm?.()
+  unsubBm = listenChapterBookmarkCounts(bookKey.value, chapterNum.value, ({ countsByVerse, meByVerse }) => {
+    bmCounts.value = countsByVerse
+    bmMe.value = meByVerse
+  })
+}
+
+function isSavedLocal(n: number) {
+  return savedAll.value.some(x =>
+    x.bookKey === bookKey.value &&
+    x.chapter === chapterNum.value &&
+    x.verse === n
+  )
+}
+
+watch([bookKey, chapterNum], () => {
+  attachBmListeners()
+})
+
 onMounted(() => {
   loadChapter().catch(console.error)
   refreshSavedList()
   jumpToVerseFromQuery().catch(console.error)
+  attachBmListeners()
 })
 </script>
 
@@ -699,6 +866,12 @@ onMounted(() => {
   text-align:center;
 }
 
+:global(html[data-mk-theme="dark"]) .videoNote{
+  background: rgba(255, 80, 80, 0.12);
+  border-color: rgba(255, 80, 80, 0.55);
+  color: rgba(255,255,255,0.92);
+}
+
 /* Title */
 .chapterTitle{
   font-size:22px;
@@ -726,28 +899,6 @@ onMounted(() => {
   color:#fff
 }
 
-/* خلي محتوى المودال ياخد ارتفاع الشاشة ويكون فيه سكرول */
-.savedSheet::part(content){
-  height: 90vh;
-  max-height: 90vh;
-  border-radius: 22px 22px 0 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* خلي ion-content جوه المودال يتمدد وياخد السكرول */
-.savedSheet :deep(ion-content){
-  flex: 1;
-  --overflow: auto;
-}
-
-/* لو عندك padding في ion-content */
-.savedBody{
-  --padding-top: 10px;
-  --padding-bottom: 18px;
-}
-
 .savedCount{
   display:inline-block;
   margin-inline-start: 8px;
@@ -767,44 +918,6 @@ onMounted(() => {
 }
 .verseBlock{ border-bottom:1px solid var(--mk-border); }
 .verseBlock:last-child{ border-bottom:0; }
-.savedSearchWrap{
-  padding: 10px 12px 12px;
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-
-.savedSearch{
-  flex:1;
-  height: 42px;
-  border-radius: 14px;
-  border: 1px solid var(--mk-border);
-  padding: 0 12px;
-  font-weight: 800;
-  background: rgba(0,0,0,0.03);
-  color: var(--mk-text);
-  outline: none;
-}
-
-:global(html[data-mk-theme="dark"]) .savedSearch{
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.14);
-}
-
-.savedClear{
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  border: 1px solid var(--mk-border);
-  background: rgba(0,0,0,0.06);
-  color: var(--mk-text);
-  font-weight: 1000;
-  cursor:pointer;
-}
-
-:global(html[data-mk-theme="dark"]) .savedClear{
-  background: rgba(255,255,255,0.08);
-}
 
 .sectionInline{
   margin: 10px 8px 0;
@@ -817,10 +930,18 @@ onMounted(() => {
   text-align: center;
   box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
 }
+:global(html[data-mk-theme="dark"]) .sectionInline{
+  background:
+    radial-gradient(700px 240px at 15% 0%, rgba(40,214,204,0.18), transparent 62%),
+    linear-gradient(135deg, rgba(40,214,204,0.14), rgba(255,255,255,0.06));
+  color: rgba(255,255,255,0.92);
+  box-shadow: 0 12px 22px rgba(0,0,0,0.45);
+}
 
 .verseRow{
+  position: relative;
   display:grid;
-  grid-template-columns: 1fr 44px;
+  grid-template-columns: 1fr 52px;
   gap: 10px;
   align-items: start;
   padding:12px 8px;
@@ -848,9 +969,6 @@ onMounted(() => {
   padding:6px 0;
   height:fit-content;
 }
-.savedSheet ion-content{
-  -webkit-overflow-scrolling: touch;
-}
 
 .txt{
   font-size:18px;
@@ -874,6 +992,17 @@ onMounted(() => {
   transform: rotate(90deg);
 }
 
+/* Firebase bookmark wrap */
+.bmWrap{
+  position: relative;
+  width: 52px;
+  height: 52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* Bookmark button */
 .saveBtn{
   height: 44px;
   width: 44px;
@@ -884,6 +1013,49 @@ onMounted(() => {
   align-items:center;
   justify-content:center;
   cursor:pointer;
+  color: var(--mk-text);
+}
+.saveBtn :deep(ion-icon){
+  font-size: 20px;
+  color: currentColor;
+  opacity: 0.95;
+}
+:global(html[data-mk-theme="dark"]) .saveBtn{
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.92);
+}
+.saveBtn.isSaved{
+  color: var(--mk-accent);
+}
+:global(html[data-mk-theme="dark"]) .saveBtn.isSaved{
+  color: #2fe6d8;
+}
+
+/* Count badge */
+.bmCount{
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--mk-border);
+  background: var(--mk-card);
+  color: var(--mk-text);
+  font-size: 12px;
+  font-weight: 1000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--mk-shadow);
+}
+:global(html[data-mk-theme="dark"]) .bmCount{
+  background: rgba(0,0,0,0.60);
+  border-color: rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.95);
 }
 
 /* Tafsir */
@@ -901,6 +1073,7 @@ onMounted(() => {
   text-align:right;
   white-space:pre-wrap;
   opacity: 0.95;
+  color: var(--mk-text);
 }
 .tafsirHint{
   font-size:14px;
@@ -908,29 +1081,80 @@ onMounted(() => {
   text-align:center;
 }
 :global(html[data-mk-theme="dark"]) .tafsirHint{
-  color: rgba(255,255,255,0.75);
+  color: rgba(255,255,255,0.85);
 }
 
 .space{ height: 20px; }
 
-/* Saved sheet */
+/* Saved sheet (old styles kept) */
 .savedSheet::part(content){
+  height: 90vh;
+  max-height: 90vh;
   border-radius: 22px 22px 0 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
-.savedHeader{
-  --background: transparent;
+.savedSheet :deep(ion-content){
+  flex: 1;
+  --overflow: auto;
 }
 .savedBody{
   --padding-top: 10px;
   --padding-bottom: 18px;
 }
+.savedHeader{
+  --background: transparent;
+}
+:global(.bmToast){
+  --background: rgba(0,0,0,0.78);
+  --color: #fff;
+  font-weight: 900;
+  text-align: center;
+  direction: rtl;
+}
+
 .savedEmpty{
   padding: 18px;
   text-align:center;
   font-weight: 900;
   opacity: 0.75;
 }
+.savedSearchWrap{
+  padding: 10px 12px 12px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.savedSearch{
+  flex:1;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid var(--mk-border);
+  padding: 0 12px;
+  font-weight: 800;
+  background: rgba(0,0,0,0.03);
+  color: var(--mk-text);
+  outline: none;
+}
+:global(html[data-mk-theme="dark"]) .savedSearch{
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+}
+.savedClear{
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid var(--mk-border);
+  background: rgba(0,0,0,0.06);
+  color: var(--mk-text);
+  font-weight: 1000;
+  cursor:pointer;
+}
+:global(html[data-mk-theme="dark"]) .savedClear{
+  background: rgba(255,255,255,0.08);
+}
+
 .savedList{
   padding: 0 12px 18px;
   display:flex;
@@ -944,62 +1168,8 @@ onMounted(() => {
   padding: 12px 12px 14px;
   background: var(--mk-card);
   box-shadow: var(--mk-shadow);
-  cursor: default; /* مهم عشان الكتابة تحسها طبيعية */
+  cursor: default;
 }
-/* خليه ياخد ارتفاع واضح */
-.savedSheet::part(content){
-  height: 100%;
-  max-height: 95vh;
-  border-radius: 22px 22px 0 0;
-  overflow: hidden;
-}
-
-/* امنعي أي overflow غلط من اللي فوق */
-.savedBody{
-  height: 100%;
-}
-
-/* خلي الليست يتمرّر جوه */
-.savedList{
-  padding: 0 12px 18px;
-  display:flex;
-  flex-direction:column;
-  gap: 10px;
-  /* اختياري: لو حسيتي ion-content مش بيمسك */
-  /* overflow: auto; */
-}
-:global(.savedToast){
-  --background: rgba(0,0,0,0.75);
-  --color: #fff;
-  font-weight: 900;
-  text-align: center;
-}
-
-.saveNoteBtn{
-  margin-top: 8px;
-  width: 100%;
-  padding: 10px 12px;
-  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
-
-  border-radius: 14px;
-  border: 1px solid var(--mk-border);
-  background: rgba(31,182,170,0.14);
-
-  font-size: 14px;
-  font-weight: 900;
-  color: var(--mk-text);
-
-  cursor: pointer;
-}
-
-.saveNoteBtn:active{
-  transform: translateY(1px);
-}
-
-:global(html[data-mk-theme="dark"]) .saveNoteBtn{
-  background: rgba(40,214,204,0.18);
-}
-
 .savedTopRow{
   display:flex;
   align-items:center;
@@ -1021,6 +1191,7 @@ onMounted(() => {
   gap:10px;
   font-weight: 1000;
   opacity: 0.95;
+  color: var(--mk-text);
 }
 .savedBook{
   font-size: 15px;
@@ -1038,7 +1209,6 @@ onMounted(() => {
   background: rgba(40,214,204,0.16);
   border-color: rgba(40,214,204,0.28);
 }
-
 .savedRemove{
   border: 0;
   background: rgba(0,0,0,0.06);
@@ -1050,32 +1220,29 @@ onMounted(() => {
   color: var(--mk-text);
 }
 :global(html[data-mk-theme="dark"]) .savedRemove{
-  background: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.92);
 }
-
 .savedText{
   white-space: pre-wrap;
   line-height: 1.95;
   font-weight: 800;
   opacity: 0.95;
   font-family: "Noto Kufi Arabic", system-ui, sans-serif;
-
+  color: var(--mk-text);
 }
-
 .savedNote{
   margin-top: 10px;
   width: 100%;
   min-height: 64px;
   resize: vertical;
-
   border-radius: 14px;
   border: 1px dashed var(--mk-border);
   padding: 10px 12px;
-font-family: "Amiri", "Noto Naskh Arabic", serif;
+  font-family: "Amiri", "Noto Naskh Arabic", serif;
   font-size: 14px;
   line-height: 1.8;
   font-weight: 700;
-
   background: rgba(31,182,170,0.06);
   color: var(--mk-text);
   outline: none;
@@ -1085,83 +1252,268 @@ font-family: "Amiri", "Noto Naskh Arabic", serif;
   background: rgba(255,255,255,0.06);
   border-color: rgba(255,255,255,0.18);
 }
-/* ✅ 1) ثبّت لون النصوص المهمة على --mk-text (عشان ما تتغمّقش في الدارك) */
-.introTitle,
-.chapterTitle,
-.txt,
-.savedText,
-.tafsirText,
-.savedRef,
-.savedBook,
-.savedLoc,
-.videoNote,
-.sectionInline{
+.saveNoteBtn{
+  margin-top: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  border-radius: 14px;
+  border: 1px solid var(--mk-border);
+  background: rgba(31,182,170,0.14);
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--mk-text);
+  cursor: pointer;
+}
+:global(html[data-mk-theme="dark"]) .saveNoteBtn{
+  background: rgba(40,214,204,0.18);
+}
+.saveNoteBtn:active{ transform: translateY(1px); }
+
+:global(.savedToast){
+  --background: rgba(0,0,0,0.75);
+  --color: #fff;
+  font-weight: 900;
+  text-align: center;
+}
+
+/* Popover */
+.bmPopover::part(content){
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--mk-border);
+  background: var(--mk-card);
+  box-shadow: var(--mk-shadow-strong);
+}
+.bmTip{
+  padding: 10px 12px;
+  font-weight: 1000;
+  font-size: 13px;
+  color: var(--mk-text);
+  white-space: nowrap;
+}
+:global(html[data-mk-theme="dark"]) .bmPopover::part(content){
+  background: rgba(12,18,26,0.92);
+  border-color: rgba(255,255,255,0.16);
+}
+
+/* Top box */
+.topBox{
+  margin-top: 10px;
+  background: var(--mk-card);
+  border: 1px solid var(--mk-border);
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: var(--mk-shadow);
+}
+.topTitle{
+  font-weight: 1000;
+  text-align: center;
+  margin-bottom: 10px;
+  color: var(--mk-text);
+}
+.topList{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.topRow{
+  display: grid;
+  grid-template-columns: 1fr 44px;
+  gap: 10px;
+  align-items: center;
+}
+.topOpen{
+  border: 1px solid var(--mk-border);
+  background: rgba(31,182,170,0.08);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  color: var(--mk-text);
+  font-weight: 900;
+}
+:global(html[data-mk-theme="dark"]) .topOpen{
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+}
+.topSave{
+  height: 44px;
+  width: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--mk-border);
+  background: rgba(31,182,170,0.10);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  color: var(--mk-text);
+}
+:global(html[data-mk-theme="dark"]) .topSave{
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.92);
+}
+.topSave.isSaved{
+  color: var(--mk-accent);
+}
+:global(html[data-mk-theme="dark"]) .topSave.isSaved{
+  color: #2fe6d8;
+}
+.topCount{
+  font-size: 12px;
+  opacity: 0.9;
+}
+.topCtaBtn{
+  width: 100%;
+  margin: 8px 0 10px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--mk-border);
+  background: var(--mk-card);
+  box-shadow: var(--mk-shadow);
+  font-weight: 1000;
+  cursor: pointer;
+  color: var(--mk-text);
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+
+}
+.topCtaBtn{
+  font-family: "Noto Kufi Arabic","Noto Naskh Arabic",system-ui,sans-serif !important;
+}
+
+.topCtaBtn *{
+  font-family: inherit !important;
+}
+.topCtaHint{
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.75;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--mk-border);
+  background: rgba(31,182,170,0.10);
+}
+
+:global(html[data-mk-theme="dark"]) .topCtaHint{
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.18);
+}
+
+.topModal::part(content){
+  height: 85vh;
+  max-height: 85vh;
+  border-radius: 22px 22px 0 0;
+  overflow: hidden;
+}
+
+.topModalList{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+  padding-bottom: 18px;
+}
+
+.topModalCard{
+  border: 1px solid var(--mk-border);
+  border-radius: 18px;
+  background: var(--mk-card);
+  box-shadow: var(--mk-shadow);
+  padding: 12px;
+}
+
+.topModalHead{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.topModalMeta{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  font-weight: 1000;
   color: var(--mk-text);
 }
 
-/* ✅ 2) Dark mode: حسّني التباين للـ sectionInline (كان واخد لون ثابت غامق) */
-:global(html[data-mk-theme="dark"]) .sectionInline{
-  background:
-    radial-gradient(700px 240px at 15% 0%, rgba(40,214,204,0.18), transparent 62%),
-    linear-gradient(135deg, rgba(40,214,204,0.14), rgba(255,255,255,0.06));
-  color: rgba(255,255,255,0.92);
-  box-shadow: 0 12px 22px rgba(0,0,0,0.45);
+.topModalVerse{
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--mk-border);
+  background: rgba(31,182,170,0.10);
 }
 
-/* ✅ 3) Dark mode: خليه الـ hint والنوتات أوضح */
-:global(html[data-mk-theme="dark"]) .tafsirHint{
-  color: rgba(255,255,255,0.85);
+.topModalCount{
+  border: 0;
+  background: transparent;
+  color: var(--mk-text);
+  font-weight: 1000;
+  cursor: pointer;
+  opacity: 0.9;
 }
 
-/* ✅ 4) Dark mode: الـ videoNote (الأحمر كان بيبان ضعيف) */
-:global(html[data-mk-theme="dark"]) .videoNote{
-  background: rgba(255, 80, 80, 0.12);
-  border-color: rgba(255, 80, 80, 0.55);
-  color: rgba(255,255,255,0.92);
+.topModalSave{
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--mk-border);
+  background: rgba(31,182,170,0.10);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  color: var(--mk-text);
 }
 
-/* ✅ 5) Dark mode: زرار الحذف/الأزرار اللي لونها خفيف */
-:global(html[data-mk-theme="dark"]) .savedRemove{
-  background: rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.92);
-}
-
-/* ✅ 6) لو placeholder باهت جدًا */
-:global(html[data-mk-theme="dark"]) .savedSearch::placeholder,
-:global(html[data-mk-theme="dark"]) .savedNote::placeholder{
-  color: rgba(255,255,255,0.55);
-}
-/* ✅ خليه واضح في الدارك واللايت */
-.saveBtn{
-  color: var(--mk-text); /* default */
-}
-
-/* الأيقونة نفسها */
-.saveBtn :deep(ion-icon){
-  font-size: 20px;
-  color: currentColor;
-  opacity: 0.95;
-}
-
-/* Dark mode: زوّدي التباين للزرار */
-:global(html[data-mk-theme="dark"]) .saveBtn{
+:global(html[data-mk-theme="dark"]) .topModalSave{
   background: rgba(255,255,255,0.10);
   border-color: rgba(255,255,255,0.18);
   color: rgba(255,255,255,0.92);
 }
 
-/* ✅ لما تكون الآية محفوظة: خليها Accent واضحة */
-.saveBtn.isSaved{
+.topModalSave.isSaved{
   color: var(--mk-accent);
 }
-
-.saveBtn.isSaved :deep(ion-icon){
-  opacity: 1;
+:global(html[data-mk-theme="dark"]) .topModalSave.isSaved{
+  color: #2fe6d8;
 }
 
-/* Dark mode: accent أقوى */
-:global(html[data-mk-theme="dark"]) .saveBtn.isSaved{
-  color: #2fe6d8; /* أقوى شوية من mk-accent عشان يبان */
+.topModalOpen{
+  width: 100%;
+  border: 1px solid var(--mk-border);
+  background: rgba(0,0,0,0.03);
+  color: var(--mk-text);
+  border-radius: 14px;
+  padding: 10px 12px;
+  text-align: right;
+  cursor: pointer;
+  font-weight: 900;
+  line-height: 1.9;
+  white-space: pre-wrap;
+}
+
+:global(html[data-mk-theme="dark"]) .topModalOpen{
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+}
+
+.topEmpty{
+  text-align:center;
+  font-weight: 900;
+  opacity: 0.75;
+  padding: 16px 0;
+}
+.saveBtn:disabled{
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 </style>
