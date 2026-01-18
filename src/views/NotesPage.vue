@@ -155,7 +155,7 @@
         </div>
   
         <!-- Today note -->
-        <div class="card">
+        <div class="card today-note">
           <div class="cardHead">
             <div>
               <div class="hTitle">{{ ui.todayNote }}</div>
@@ -813,7 +813,7 @@
     color: inherit;
   }
   .row.readOnly { cursor: default; user-select: text; }
-  
+  .today-note{display: none;}
   .rowLeft { display: flex; gap: 10px; align-items: center; }
   .dot {
     width: 26px;

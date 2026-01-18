@@ -275,14 +275,17 @@
   </ion-content>
 </ion-modal>
 
-    <ion-toast
+<ion-popover
   :is-open="bmPopoverOpen"
-  :message="bmPopoverText"
-  duration="1200"
-  position="middle"
-  css-class="bmToast"
+  :event="bmPopoverEvent"
   @didDismiss="bmPopoverOpen = false"
-/>
+  class="bmPopover"
+  translucent
+  side="top"
+  alignment="center"
+>
+  <div class="bmTip">{{ bmPopoverText }}</div>
+</ion-popover>
 
   </ion-page>
 </template>
@@ -299,7 +302,7 @@ import {
   IonModal,
   IonButton,
   IonIcon,
-  IonToast
+  IonPopover
 } from '@ionic/vue'
 import { computed, onMounted, ref, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -657,6 +660,7 @@ const topBookmarked = ref<{ verse: number; count: number }[]>([])
 // tooltip
 const bmPopoverOpen = ref(false)
 const bmPopoverText = ref('')
+const bmPopoverEvent = ref<any>(null)
 
 function isVerseBookmarked(n: number) {
   return !!bmMe.value[n]
@@ -726,11 +730,13 @@ async function toggleBmFromTop(verseNum: number) {
   await toggleFirebaseBookmark(verseNum, verseTextByNum(verseNum))
 }
 
-function openBmTooltip(_ev: any, verseNum: number) {
+function openBmTooltip(ev: any, verseNum: number) {
   const c = Number(bmCounts.value[verseNum] || 0)
-  bmPopoverText.value = peopleText(c)
+  bmPopoverText.value = peopleText(c) // عندك already bidi fixed
+  bmPopoverEvent.value = ev
   bmPopoverOpen.value = true
 }
+
 
 
 let unsubBm: any = null
@@ -1289,9 +1295,26 @@ onMounted(() => {
   padding: 10px 12px;
   font-weight: 1000;
   font-size: 13px;
-  color: var(--mk-text);
   white-space: nowrap;
+  background: #000000;
+  color: #fff;
 }
+.bmTip{
+  padding: 10px 12px;
+  font-weight: 1000;
+  font-size: 13px;
+  white-space: nowrap;
+
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: plaintext;
+}
+:global(html[data-mk-theme="dark"]) .bmPopover::part(content){
+  background: rgba(12,18,26,0.92);
+  border-color: rgba(255,255,255,0.16);
+  box-shadow: 0 18px 42px rgba(0,0,0,0.55);
+}
+
 :global(html[data-mk-theme="dark"]) .bmPopover::part(content){
   background: rgba(12,18,26,0.92);
   border-color: rgba(255,255,255,0.16);
