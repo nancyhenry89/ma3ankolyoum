@@ -156,7 +156,7 @@
           </div>
 
           <!-- Story -->
-          <div class="card" v-if="!isLoading && !noData">
+          <div class="card shareable" v-if="!isLoading && !noData"   :ref="(el) => setSectionEl('story', el)">
             <div v-if="hasStory" class="text alignRight md" v-html="storyHtml"></div>
             <p v-else class="text alignRight emptyMsg">
               {{ ui.noStory }}
@@ -174,6 +174,15 @@
 
 
             </div>
+            <ion-button
+    class="sectionShareBtn mkNoCapture"
+    fill="clear"
+    size="small"
+    @click.stop="shareSectionImage('story')"
+    aria-label="Share story as image"
+  >
+    <IonIcon :icon="shareSocial" />
+  </ion-button>
           </div>
 
           <div class="card" v-else-if="isLoading">
@@ -183,7 +192,11 @@
           </div>
 
           <!-- Verse -->
-          <div class="verse" v-if="!isLoading && !noData">
+          <div
+  class="verse shareable"
+  v-if="!isLoading && !noData"
+  :ref="(el) => setSectionEl('verse', el)"
+>
             <template v-if="hasVerse">
               <div class="verse-text">"{{ verseText }}"</div>
               <div class="verse-ref">{{ verseRef }}</div>
@@ -204,6 +217,15 @@
 
 
             </div>
+            <ion-button
+    class="sectionShareBtn mkNoCapture"
+    fill="clear"
+    size="small"
+    @click.stop="shareSectionImage('verse')"
+    aria-label="Share verse as image"
+  >
+    <IonIcon :icon="shareSocial" />
+  </ion-button>
           </div>
 
           <div class="card" v-else-if="isLoading">
@@ -212,7 +234,12 @@
           </div>
 
           <!-- Reflection -->
-          <div class="card" v-if="!isLoading && !noData">
+          <div
+  class="card shareable"
+  v-if="!isLoading && !noData"
+  :ref="(el) => setSectionEl('reflection', el)"
+>
+
             <div v-if="hasReflection" class="text alignRight">
               <div class="card-title">{{ ui.reflection }}</div>
               <div class="md" v-html="reflectionHtml"></div>
@@ -234,6 +261,15 @@
 
 
             </div>
+            <ion-button
+    class="sectionShareBtn mkNoCapture"
+    fill="clear"
+    size="small"
+    @click.stop="shareSectionImage('reflection')"
+    aria-label="Share verse as image"
+  >
+    <IonIcon :icon="shareSocial" />
+  </ion-button>
           </div>
 
           <div class="card" v-else-if="isLoading">
@@ -338,7 +374,11 @@
           />
 
           <!-- Training -->
-          <div class="training" v-if="!isLoading && !noData">
+          <div
+  class="training shareable"
+  v-if="!isLoading && !noData"
+  :ref="(el) => setSectionEl('training', el)"
+>
             <div class="training-pill">{{ ui.training }}</div>
 
             <div v-if="hasTraining" class="training-text alignRight">
@@ -360,6 +400,15 @@
 
 
             </div>
+            <ion-button
+    class="sectionShareBtn mkNoCapture"
+    fill="clear"
+    size="small"
+    @click.stop="shareSectionImage('training')"
+    aria-label="Share verse as image"
+  >
+    <IonIcon :icon="shareSocial" />
+  </ion-button>
           </div>
 
           <div class="card" v-else-if="isLoading">
@@ -590,11 +639,13 @@ import { useIonRouter } from '@ionic/vue'
 import CopticSection from '@/components/CopticSection.vue'
 import StreakRewards from '@/components/StreakRewards.vue'
 
-import { shareOutline, volumeHighOutline, bookOutline } from 'ionicons/icons'
+import { shareOutline, volumeHighOutline, bookOutline, shareSocial } from 'ionicons/icons'
 import { readDayCache, writeDayCache } from '@/utils/dayCache'
 import { scheduleDailyReminder, disableDailyReminder, sendTestReminder } from '@/services/reminder'
 
 import { listenReactions, toggleHeart } from '@/services/reactions'
+import { Share } from '@capacitor/share'
+import { Filesystem, Directory } from '@capacitor/filesystem'
 
 type Lang = 'ar' | 'en'
 const lang = ref<Lang>((localStorage.getItem('mk_lang') as Lang) || 'ar')
@@ -702,6 +753,21 @@ function closeAbout() {
 const showShareSheet = ref(false)
 const captureRef = ref<HTMLElement | null>(null)
 const isCapturing = ref(false)
+type ShareKind = 'story' | 'verse' | 'reflection' | 'bible' | 'agbia' | 'coptic' | 'training'
+
+const sectionEls = ref<Record<ShareKind, HTMLElement | null>>({
+  story: null,
+  verse: null,
+  reflection: null,
+  bible: null,
+  agbia: null,
+  coptic: null,
+  training: null
+})
+
+function setSectionEl(kind: ShareKind, el: Element | null) {
+  sectionEls.value[kind] = (el as HTMLElement) || null
+}
 
 const isWeb = computed(() => !Capacitor.isNativePlatform())
 
@@ -755,6 +821,63 @@ async function shareAsImageWeb() {
     isCapturing.value = false
   }
 }
+async function shareSectionImage(kind: ShareKind) {
+  if (noData.value || isLoading.value) return
+
+  const el = sectionEls.value[kind]
+  if (!el) return
+
+  isCapturing.value = true
+  await new Promise(requestAnimationFrame)
+
+  try {
+    await (document as any).fonts?.ready
+
+    const canvas = await html2canvas(el, {
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      scale: Math.min(3, window.devicePixelRatio * 2)
+    })
+
+    if (isWeb.value) {
+      const blob: Blob | null = await new Promise(resolve =>
+        canvas.toBlob(b => resolve(b), 'image/png')
+      )
+      if (!blob || blob.size < 1000) return alert('فشل إنشاء الصورة')
+
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `mky-${kind}-${Date.now()}.png`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      return
+    }
+
+    // Native: write then Share
+    const base64 = canvas.toDataURL('image/png').split(',')[1]
+    const fileName = `mky-${kind}-${Date.now()}.png`
+
+    const saved = await Filesystem.writeFile({
+      path: fileName,
+      data: base64,
+      directory: Directory.Cache
+    })
+
+    await Share.share({
+      title: 'معًا كل يوم',
+      url: saved.uri
+    })
+  } catch (e) {
+    console.error(e)
+    alert('فشل مشاركة الصورة')
+  } finally {
+    isCapturing.value = false
+  }
+}
+
 
 const shareButtons = computed(() => {
   // ✅ Web: text + image
@@ -2821,6 +2944,32 @@ onMounted(() => {
   @media (max-width: 420px) {
   .title { font-size: calc(34px * var(--mk-fontScale)); }
   .row { grid-template-columns: 1fr; }
+}
+.shareable{
+  position: relative; /* needed for absolute share button */
+}
+
+.sectionShareBtn{
+  position: absolute;
+  z-index: 5;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: #fff;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.10);
+  color: var(--mk-text);
+  opacity: 0.95;
+  left: 40px;
+  bottom: 20px;
+  color: #061018;
+}
+
+.home.theme-dark .sectionShareBtn{
+  background: rgba(0,0,0,0.30);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.45);
+  color: #fff;
 }
 
   </style>
