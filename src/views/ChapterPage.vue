@@ -787,7 +787,12 @@ onMounted(() => {
   color: var(--mk-text);
 }
 
-:global(html[data-mk-theme="dark"]) .chapter{
+/* Ionic dark mode selectors (covers most setups) */
+:global(html.ion-palette-dark) .chapter,
+:global(html.dark) .chapter,
+:global(body.dark) .chapter,
+:global(ion-app.ion-palette-dark) .chapter,
+:global(ion-app.dark) .chapter{
   --mk-bg1: #0b1620;
   --mk-bg2: #0a0f14;
   --mk-text: #ffffff;
@@ -799,6 +804,15 @@ onMounted(() => {
   --mk-shadow: 0 16px 30px rgba(0,0,0,0.35);
   --mk-shadow-strong: 0 22px 40px rgba(0,0,0,0.55);
 }
+.verses{ color: var(--mk-text); }
+
+.verseMain{ color: var(--mk-text); }
+
+.txt{ color: var(--mk-text); }
+
+.num{ color: var(--mk-text); }
+
+.chev{ color: var(--mk-text); }
 
 :global(ion-content){
   --background: transparent;

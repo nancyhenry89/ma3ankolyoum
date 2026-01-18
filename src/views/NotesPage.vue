@@ -1,5 +1,6 @@
 <template>
-    <ion-page :dir="dir" :lang="lang">
+   <ion-page :dir="dir" :lang="lang" class="notesDetails">
+
       <ion-header>
         <ion-toolbar>
           <ion-buttons slot="start">
@@ -658,6 +659,43 @@
   </script>
   
   <style scoped>
+    /* ===== Theme variables (light default) ===== */
+.notesDetails{
+  --mk-bg: #f3f6fb;
+  --mk-card: rgba(255,255,255,0.86);
+  --mk-card2: rgba(255,255,255,0.70);
+  --mk-border: rgba(0,0,0,0.08);
+  --mk-text: #0b1f33;
+  --mk-sub: rgba(11,31,51,0.72);
+  --mk-soft: rgba(0,0,0,0.03);
+  --mk-soft2: rgba(0,0,0,0.04);
+  --mk-shadow: 0 10px 22px rgba(0,0,0,0.06);
+  --mk-shadow-strong: 0 18px 46px rgba(0,0,0,0.14);
+}
+
+/* ===== Dark (covers Ionic variants) ===== */
+:global(html.ion-palette-dark) .notesDetails,
+:global(html.dark) .notesDetails,
+:global(body.dark) .notesDetails,
+:global(ion-app.ion-palette-dark) .notesDetails,
+:global(ion-app.dark) .notesDetails{
+  --mk-bg: #0b1620;
+  --mk-card: rgba(255,255,255,0.06);
+  --mk-card2: rgba(255,255,255,0.06);
+  --mk-border: rgba(255,255,255,0.12);
+  --mk-text: rgba(241,245,249,0.94);
+  --mk-sub: rgba(241,245,249,0.70);
+  --mk-soft: rgba(255,255,255,0.06);
+  --mk-soft2: rgba(255,255,255,0.07);
+  --mk-shadow: 0 18px 46px rgba(0,0,0,0.55);
+  --mk-shadow-strong: 0 24px 60px rgba(0,0,0,0.65);
+}
+
+/* optional: page background */
+:global(ion-content){
+  --background: var(--mk-bg);
+}
+
   .card {
     padding: 14px;
     border-radius: 18px;
@@ -920,5 +958,183 @@
     opacity: 0.9;
   }
   .shotSmall{ opacity: 0.75; font-weight: 900; }
+  .card {
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--mk-border);
+  background: var(--mk-card);
+  box-shadow: var(--mk-shadow);
+  margin-bottom: 12px;
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  overflow: hidden;
+  color: var(--mk-text);
+}
+
+.cardHead { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px; }
+.hTitle { font-weight:1000; font-size:16px; color: var(--mk-text); }
+.hSub { font-weight:900; font-size:12px; opacity:1; color: var(--mk-sub); margin-top:2px; }
+
+.chip{
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 1000;
+  font-size: 12px;
+  border: 1px solid var(--mk-border);
+  background: var(--mk-soft);
+  color: var(--mk-text);
+}
+
+.ta{
+  width:100%;
+  min-height:92px;
+  border-radius:14px;
+  padding:10px 12px;
+  border:1px solid var(--mk-border);
+  background: var(--mk-card2);
+  font-weight:900;
+  resize: vertical;
+  outline:none;
+  color: var(--mk-text);
+}
+
+.saved{ margin-top:8px; font-weight:900; font-size:12px; color: var(--mk-sub); }
+
+/* Stats */
+.statsGrid{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; }
+@media (max-width: 860px){ .statsGrid{ grid-template-columns: 1fr; } }
+
+.statBox{
+  border-radius:16px;
+  padding:10px;
+  border:1px solid var(--mk-border);
+  background: var(--mk-card2);
+  color: var(--mk-text);
+}
+
+.statTitle{ font-weight:1000; margin-bottom:8px; color: var(--mk-text); }
+.statRow{ display:flex; justify-content:space-between; gap:10px; padding:6px 0; }
+.k{ font-weight:900; color: var(--mk-sub); }
+.v{ font-weight:1000; color: var(--mk-text); }
+
+/* ✅ gradients ONLY for light (they look noisy in dark) */
+.statBox--morn{ background: linear-gradient(135deg, rgba(110,231,183,0.22), rgba(255,255,255,0.72)); }
+.statBox--bible{ background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(255,255,255,0.72)); }
+.statBox--sleep{ background: linear-gradient(135deg, rgba(244,114,182,0.16), rgba(255,255,255,0.72)); }
+.statBox--comm{ background: linear-gradient(135deg, rgba(250,204,21,0.16), rgba(255,255,255,0.72)); }
+.statBox--conf{ background: linear-gradient(135deg, rgba(167,139,250,0.16), rgba(255,255,255,0.72)); }
+
+/* in dark: override these to calm panels */
+:global(html.ion-palette-dark) .statBox--morn,
+:global(html.dark) .statBox--morn,
+:global(body.dark) .statBox--morn,
+:global(html.ion-palette-dark) .statBox--bible,
+:global(html.dark) .statBox--bible,
+:global(body.dark) .statBox--bible,
+:global(html.ion-palette-dark) .statBox--sleep,
+:global(html.dark) .statBox--sleep,
+:global(body.dark) .statBox--sleep,
+:global(html.ion-palette-dark) .statBox--comm,
+:global(html.dark) .statBox--comm,
+:global(body.dark) .statBox--comm,
+:global(html.ion-palette-dark) .statBox--conf,
+:global(html.dark) .statBox--conf,
+:global(body.dark) .statBox--conf{
+  background: var(--mk-card2);
+}
+
+/* Share hint row */
+.shareHintRow{ margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.miniNote{ font-weight:900; font-size:12px; color: var(--mk-sub); }
+.iconBtn{ font-weight:1000; font-size:18px; line-height:1; color: var(--mk-text); }
+
+/* Tabs ✅ FIX: remove hard-coded #000 */
+.tabs{ display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+.tab{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border-radius:999px;
+  padding:8px 10px;
+  border:1px solid var(--mk-border);
+  background: var(--mk-soft);
+  font-weight:1000;
+  color: var(--mk-text);   /* ✅ not #000 */
+}
+.tab.on{
+  border-color: rgba(45,212,191,0.55);
+  background: rgba(45,212,191,0.12);
+}
+.tabCount{
+  min-width:26px;
+  height:22px;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+  border:1px solid var(--mk-border);
+  background: var(--mk-soft2);
+  color: var(--mk-text);
+}
+
+/* List */
+.list{ margin-top:10px; display:flex; flex-direction:column; gap:8px; }
+.empty{ font-weight:900; color: var(--mk-sub); padding:10px; }
+
+.row{
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:10px;
+  border-radius:14px;
+  border:1px solid var(--mk-border);
+  background: var(--mk-card2);
+  text-align:start;
+  color: var(--mk-text);
+}
+.row.readOnly{ cursor: default; user-select: text; }
+
+.rowLeft{ display:flex; gap:10px; align-items:center; }
+.dot{
+  width:26px; height:26px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:1000;
+  border:1px solid var(--mk-border);
+  color: var(--mk-text);
+}
+.dot.on{ background: rgba(45,212,191,0.16); border-color: rgba(45,212,191,0.55); }
+
+.rowMain{ font-weight:1000; color: var(--mk-text); }
+.rowSub{ font-weight:900; font-size:12px; color: var(--mk-sub); margin-top:2px; }
+
+.rowBadge{
+  font-weight:1000;
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(45,212,191,0.35);
+  background: rgba(45,212,191,0.12);
+  color: var(--mk-text);
+}
+
+/* Debug */
+.dbgCard{
+  padding:12px;
+  border-radius:16px;
+  border:1px dashed var(--mk-border);
+  background: var(--mk-card2);
+  margin-bottom:12px;
+  color: var(--mk-text);
+}
+.dbgTop{ display:flex; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.dbgTitle{ font-weight:1000; }
+.dbgValue{ font-weight:900; color: var(--mk-sub); }
+.dbgHint{ margin-inline-start:8px; font-size:12px; color: var(--mk-sub); }
+.dbgBtns{ display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; }
+
+/* ShareShot stays white (good for sharing) - keep as is */
+
   </style>
   
