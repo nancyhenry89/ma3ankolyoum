@@ -765,8 +765,17 @@ const sectionEls = ref<Record<ShareKind, HTMLElement | null>>({
   training: null
 })
 
-function setSectionEl(kind: ShareKind, el: Element | null) {
-  sectionEls.value[kind] = (el as HTMLElement) || null
+import type { ComponentPublicInstance } from 'vue'
+
+function setSectionEl(kind: ShareKind, el: Element | ComponentPublicInstance | null) {
+  const dom =
+    (el as any)?.$el instanceof HTMLElement
+      ? ((el as any).$el as HTMLElement) // component root element
+      : (el as any) instanceof HTMLElement
+        ? ((el as any) as HTMLElement)  // normal element
+        : null
+
+  sectionEls.value[kind] = dom
 }
 
 const isWeb = computed(() => !Capacitor.isNativePlatform())
