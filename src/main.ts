@@ -18,6 +18,14 @@ import '@ionic/vue/css/palettes/dark.system.css'
 import './theme/variables.css'
 
 import { App as CapApp } from '@capacitor/app'
+import { LocalNotifications } from '@capacitor/local-notifications'
+
+// ✅ ADD THIS:
+import { initAppCheckWeb, ensureAnonAuth } from '@/lib/firebase'
+
+// ✅ INIT FIRST (before app mount)
+initAppCheckWeb()
+ensureAnonAuth()
 
 const app = createApp(App).use(IonicVue).use(router)
 
@@ -33,8 +41,8 @@ CapApp.addListener('backButton', ({ canGoBack }) => {
     CapApp.exitApp()
   }
 })
-import { LocalNotifications } from '@capacitor/local-notifications'
 
+// ✅ Notification click -> open route
 LocalNotifications.addListener('localNotificationActionPerformed', (ev) => {
   const route = ev.notification.extra?.route
   if (route) router.push(route)
