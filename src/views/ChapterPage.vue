@@ -850,6 +850,7 @@ onMounted(() => {
   font-weight:900;
   text-align:center;
   margin-bottom:10px;
+  color: var(--mk-text);
 }
 .videoWrap{
   position:relative;
@@ -899,6 +900,7 @@ onMounted(() => {
   text-align:center;
   margin: 6px 0 10px;
   font-family:"Noto Kufi Arabic", system-ui, sans-serif;
+  color: var(--mk-text);
 }
 
 /* Saved open btn */
@@ -1308,7 +1310,7 @@ onMounted(() => {
 .bmTip{
   padding: 10px 12px;
   font-weight: 1000;
-  font-size: 13px;
+  font-size: 16px;
   white-space: nowrap;
   background: #000000;
   color: #fff;
@@ -1316,7 +1318,6 @@ onMounted(() => {
 .bmTip{
   padding: 10px 12px;
   font-weight: 1000;
-  font-size: 13px;
   white-space: nowrap;
 
   direction: rtl;
@@ -1407,7 +1408,7 @@ onMounted(() => {
 .topCtaBtn{
   width: 100%;
   margin: 8px 0 10px;
-  padding: 12px 14px;
+  padding: 12px 8px;
   border-radius: 18px;
   border: 1px solid var(--mk-border);
   background: var(--mk-card);
@@ -1418,7 +1419,7 @@ onMounted(() => {
   display:flex;
   align-items:center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 5px;
 
 }
 .topCtaBtn{

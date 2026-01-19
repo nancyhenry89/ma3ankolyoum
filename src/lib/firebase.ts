@@ -59,6 +59,7 @@ export function initAppCheckWeb() {
   if (Capacitor.isNativePlatform()) return;
 
   try {
+    
     initializeAppCheck(app, {
       provider: new ReCaptchaV3Provider("6LfvO08sAAAAAIx9lpKcVbANYxkndbHRVqQg1QYv"),
       isTokenAutoRefreshEnabled: true,

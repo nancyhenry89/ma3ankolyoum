@@ -1049,9 +1049,10 @@ function openHabitPopover(ev: any, key: Keys) {
   .nrCountPopInner{
     padding: 10px 12px;
     font-weight: 1000;
-    font-size: 13px;
+    font-size: 15px;
     color: #fff;
     white-space: nowrap;
+
   }
   .nrCountPopInner{
 
@@ -1060,6 +1061,7 @@ function openHabitPopover(ev: any, key: Keys) {
 
   :global(.home.theme-light) .nrCountPopInner{
     color: #0b1f33;
+
   }
   </style>
   
