@@ -4,10 +4,7 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth, signInAnonymously } from "firebase/auth";
 import { Capacitor } from "@capacitor/core";
 
-import {
-  initializeAppCheck,
-  ReCaptchaEnterpriseProvider,
-} from "firebase/app-check";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAfQbI3s52SlpqX2v_SkvtfYo3TR8pO1io",
@@ -24,14 +21,14 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
-// ✅ Web only: AppCheck
+// ✅ Web only: AppCheck (reCAPTCHA v3)
 export function initAppCheckWeb() {
   const isWeb = !Capacitor.isNativePlatform();
   if (!isWeb) return;
 
   try {
     initializeAppCheck(app, {
-      provider: new ReCaptchaEnterpriseProvider("6LfvO08sAAAAAD1YTZBJUBy4filFNestfSL6QrSg"),
+      provider: new ReCaptchaV3Provider("6LfvO08sAAAAAD1YTZBJUBy4filFNestfSL6QrSg"),
       isTokenAutoRefreshEnabled: true,
     });
   } catch (e) {
