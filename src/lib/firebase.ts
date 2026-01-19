@@ -21,10 +21,14 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
-// ✅ Web only: AppCheck (reCAPTCHA v3)
+let appCheckStarted = false;
+
+// ✅ Web only: App Check (reCAPTCHA v3 SITE KEY)
 export function initAppCheckWeb() {
   const isWeb = !Capacitor.isNativePlatform();
-  if (!isWeb) return;
+  if (!isWeb || appCheckStarted) return;
+
+  appCheckStarted = true;
 
   try {
     initializeAppCheck(app, {
