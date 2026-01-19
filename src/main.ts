@@ -19,13 +19,12 @@ import './theme/variables.css'
 
 import { App as CapApp } from '@capacitor/app'
 import { LocalNotifications } from '@capacitor/local-notifications'
-
-// ✅ ADD THIS:
 import { initAppCheckWeb, ensureAnonAuth } from '@/lib/firebase'
 
-// ✅ INIT FIRST (before app mount)
 initAppCheckWeb()
 ensureAnonAuth()
+// ✅ ADD THIS:
+
 
 const app = createApp(App).use(IonicVue).use(router)
 
