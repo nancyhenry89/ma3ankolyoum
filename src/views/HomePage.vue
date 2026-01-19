@@ -624,6 +624,7 @@ import {
 } from '@ionic/vue'
 
 import { onMounted, onBeforeUnmount, ref, computed, watch } from 'vue'
+import { onIonViewDidEnter, onIonViewWillLeave } from '@ionic/vue'
 import { useRouter, useRoute } from 'vue-router'
 import Papa from 'papaparse'
 import html2canvas from 'html2canvas'
@@ -1050,7 +1051,7 @@ function onDateChange(ev: any) {
 }
 
 /* ============================
-   Reactions (FIXED + expanded)
+   Reactions (Ionic-safe)
 ============================ */
 type ReactKey = 'story' | 'verse' | 'reflection' | 'training'
 
@@ -1061,46 +1062,59 @@ const reactCounts = ref<Record<ReactKey, { heart: number }>>({
   training: { heart: 0 }
 })
 
-let unSubs: Array<() => void> = []
 const reactMine = ref<Record<ReactKey, { heart: boolean }>>({
   story: { heart: false },
   verse: { heart: false },
   reflection: { heart: false },
   training: { heart: false }
 })
+
+let unSubs: Array<() => void> = []
+let reactionsActive = false
+
 function makeItemId(kind: ReactKey) {
   const iso = String(selectedDateISO.value).substring(0, 10)
   return `${iso}:${kind}`
 }
 
-function resubscribeReactions() {
+function stopReactions() {
   unSubs.forEach(fn => fn?.())
   unSubs = []
+  reactionsActive = false
+}
+
+function startReactions() {
+  stopReactions()
+  reactionsActive = true
 
   const keys: ReactKey[] = ['story', 'verse', 'reflection', 'training']
   keys.forEach((k) => {
-const un = listenReactions(makeItemId(k), (payload) => {
-  reactCounts.value[k].heart = Number(payload.counts.heart || 0)
-  reactMine.value[k].heart = !!payload.me.heart
-})
-
+    const un = listenReactions(makeItemId(k), (payload) => {
+      reactCounts.value[k].heart = Number(payload.counts.heart || 0)
+      reactMine.value[k].heart = !!payload.me.heart
+    })
     if (typeof un === 'function') unSubs.push(un)
   })
 }
 
-watch(
-  () => selectedDateISO.value,
-  () => resubscribeReactions(),
-  { immediate: true }
-)
-
-onBeforeUnmount(() => {
-  unSubs.forEach(fn => fn?.())
-  unSubs = []
+// ✅ Ionic lifecycle: الصفحة بتفضل cached، فلازم نبدأ/نقف هنا
+onIonViewDidEnter(() => {
+  startReactions()
 })
 
+onIonViewWillLeave(() => {
+  stopReactions()
+})
+
+// ✅ لما التاريخ يتغير وإحنا داخل الصفحة فقط
+watch(
+  () => selectedDateISO.value,
+  () => {
+    if (reactionsActive) startReactions()
+  }
+)
+
 async function onHeart(kind: ReactKey) {
-  // 1) optimistic toggle (instant UI)
   const wasOn = !!reactMine.value[kind].heart
   reactMine.value[kind].heart = !wasOn
   reactCounts.value[kind].heart = Math.max(
@@ -1108,11 +1122,9 @@ async function onHeart(kind: ReactKey) {
     Number(reactCounts.value[kind].heart || 0) + (wasOn ? -1 : 1)
   )
 
-  // 2) fire backend update
   try {
     await toggleHeart(makeItemId(kind))
   } catch (e) {
-    // 3) revert if it fails
     reactMine.value[kind].heart = wasOn
     reactCounts.value[kind].heart = Math.max(
       0,
@@ -1121,10 +1133,10 @@ async function onHeart(kind: ReactKey) {
     console.error(e)
   }
 }
-
 /* ============================
    End reactions
 ============================ */
+
 
 // ====== Reminders ======
 async function applyReminderSchedule() {

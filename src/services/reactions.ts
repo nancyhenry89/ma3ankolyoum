@@ -15,9 +15,9 @@ function getAnonId() {
 }
 
 /**
- * Listen to reactions:
- * - counts: public numbers
- * - me: whether THIS anon user reacted
+ * ✅ IMPORTANT:
+ * This MUST return the unsubscribe function from onSnapshot
+ * so we can stop listeners when leaving the page.
  */
 export function listenReactions(
   itemId: string,
@@ -32,10 +32,8 @@ export function listenReactions(
     const voters = data.voters || {}
 
     cb({
-      counts,
-      me: {
-        heart: !!voters[anonId]
-      }
+      counts: { heart: Number(counts.heart || 0) },
+      me: { heart: !!voters[anonId] }
     })
   })
 }
