@@ -38,10 +38,15 @@ function bookmarkDocId(anonId: string, bookKey: string, chapter: number, verse: 
 }
 
 export function peopleText(n: number) {
-    if (n === 1) return '⭐ 1 شخص حفظ هذه الآية'
-    if (n === 2) return '⭐ شخصين حفظوا هذه الآية'
-    return `⭐ ${n} اشخاص حفظوا هذه الآية`
-  }
+  if (n === 1) return '⭐ 1 شخص حفظ هذه الآية'
+  if (n === 2) return '⭐ شخصين حفظوا هذه الآية'
+
+  // 3..10
+  if (n <= 10) return `⭐ ${n} أشخاص حفظوا هذه الآية`
+
+  // 11+
+  return `⭐ ${n} شخص حفظوا هذه الآية`
+}
   
 // ✅ استماع للأرقام لكل آيات الأصحاح (counts by verse)
 export function listenChapterBookmarkCounts(

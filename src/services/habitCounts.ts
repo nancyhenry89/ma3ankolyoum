@@ -138,8 +138,13 @@ export function peopleTextHabitAr(key: HabitCountKey, n: number) {
   
     if (n === 1) return `${RLM}✨ شخص ${p.one}`
     if (n === 2) return `${RLM}✨ شخصين ${p.two}`
-  
-    // ✅ الرقم في الأول + منع قلب الاتجاه
+    
+    // ✅ لو أكتر من 10 -> شخص
+    if (n > 10) {
+      return `${RLM}✨ ${LRM}${n}${RLM} شخص ${p.many}`
+    }
+    
+    // ✅ من 3 لـ 10 -> أشخاص
     return `${RLM}✨ ${LRM}${n}${RLM} أشخاص ${p.many}`
   }
   

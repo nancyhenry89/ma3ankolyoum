@@ -244,6 +244,7 @@ function onAudioPlay(e: Event) {
       font-size: 12px;
       opacity: 0.7;
       text-align: center;
+      display: none;
     }
     
     /* Unavailable */
