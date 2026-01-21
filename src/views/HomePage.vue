@@ -42,8 +42,8 @@
 
 
             <!-- Share -->
-            <ion-button class="shareBtn" fill="clear" size="small" @click="showShareSheet = true">
-              <IonIcon :icon="shareOutline" />
+            <ion-button v-if="isWeb" class="shareBtn" fill="clear" size="small" @click="showShareSheet = true">
+              <IonIcon :icon="shareSocial" />
             </ion-button>
 
             <ion-action-sheet
@@ -175,14 +175,15 @@
 
             </div>
             <ion-button
-    class="sectionShareBtn mkNoCapture"
-    fill="clear"
-    size="small"
-    @click.stop="shareSectionImage('story')"
-    aria-label="Share story as image"
-  >
-    <IonIcon :icon="shareSocial" />
-  </ion-button>
+  class="sectionShareBtn mkNoCapture"
+  fill="clear"
+  size="small"
+  @click.stop="shareSection('story')"
+  aria-label="Share story"
+>
+  <IonIcon :icon="shareSocial" />
+</ion-button>
+
           </div>
 
           <div class="card" v-else-if="isLoading">
@@ -218,14 +219,15 @@
 
             </div>
             <ion-button
-    class="sectionShareBtn mkNoCapture"
-    fill="clear"
-    size="small"
-    @click.stop="shareSectionImage('verse')"
-    aria-label="Share verse as image"
-  >
-    <IonIcon :icon="shareSocial" />
-  </ion-button>
+  class="sectionShareBtn mkNoCapture"
+  fill="clear"
+  size="small"
+  @click.stop="shareSection('verse')"
+  aria-label="Share verse"
+>
+  <IonIcon :icon="shareSocial" />
+</ion-button>
+
           </div>
 
           <div class="card" v-else-if="isLoading">
@@ -262,14 +264,15 @@
 
             </div>
             <ion-button
-    class="sectionShareBtn mkNoCapture"
-    fill="clear"
-    size="small"
-    @click.stop="shareSectionImage('reflection')"
-    aria-label="Share verse as image"
-  >
-    <IonIcon :icon="shareSocial" />
-  </ion-button>
+  class="sectionShareBtn mkNoCapture"
+  fill="clear"
+  size="small"
+  @click.stop="shareSection('reflection')"
+  aria-label="Share reflection"
+>
+  <IonIcon :icon="shareSocial" />
+</ion-button>
+
           </div>
 
           <div class="card" v-else-if="isLoading">
@@ -401,14 +404,15 @@
 
             </div>
             <ion-button
-    class="sectionShareBtn mkNoCapture"
-    fill="clear"
-    size="small"
-    @click.stop="shareSectionImage('training')"
-    aria-label="Share verse as image"
-  >
-    <IonIcon :icon="shareSocial" />
-  </ion-button>
+  class="sectionShareBtn mkNoCapture"
+  fill="clear"
+  size="small"
+  @click.stop="shareSection('training')"
+  aria-label="Share training"
+>
+  <IonIcon :icon="shareSocial" />
+</ion-button>
+
           </div>
 
           <div class="card" v-else-if="isLoading">
@@ -466,6 +470,44 @@
         <!-- end wrap -->
       </div>
       <!-- end capture -->
+<!-- ✅ ShareShot for SECTION share (native only) -->
+<div v-if="!isWeb" class="shareShotWrap mkNoCapture" aria-hidden="true">
+  <div class="shareShot" ref="sectionShotRef">
+    <div class="shotTop">
+      <div class="shotTitle">{{ isArabic ? 'معًا كل يوم' : 'Together Every Day' }}</div>
+      <div class="shotDate">{{ gregorianDate }} – {{ copticDate }}</div>
+    </div>
+
+    <!-- ✅ content by kind -->
+    <div class="shotBody">
+      <template v-if="shotKind === 'story'">
+        <div class="shotHeading">{{ isArabic ? 'القصة' : 'Story' }}</div>
+        <div class="md" v-html="storyHtml"></div>
+      </template>
+
+      <template v-else-if="shotKind === 'verse'">
+        <div class="shotHeading">{{ isArabic ? 'الآية' : 'Verse' }}</div>
+        <div class="shotVerse">"{{ verseText }}"</div>
+        <div class="shotVerseRef">{{ verseRef }}</div>
+      </template>
+
+      <template v-else-if="shotKind === 'reflection'">
+        <div class="shotHeading">{{ isArabic ? 'التأمل' : 'Meditation' }}</div>
+        <div class="md" v-html="reflectionHtml"></div>
+      </template>
+
+      <template v-else-if="shotKind === 'training'">
+        <div class="shotHeading">{{ isArabic ? 'خطوة لقدام' : 'A Step Forward' }}</div>
+        <div class="shotTraining">{{ training }}</div>
+      </template>
+    </div>
+
+    <div class="shotFooter">
+      <span>{{ title }}</span>
+      <span class="shotSmall">{{ isArabic ? 'مشاركة' : 'Share' }}</span>
+    </div>
+  </div>
+</div>
 
       <!-- Date picker -->
       <ion-modal :is-open="showDatePicker" @didDismiss="showDatePicker = false">
@@ -647,6 +689,102 @@ import { scheduleDailyReminder, disableDailyReminder, sendTestReminder } from '@
 import { listenReactions, toggleHeart } from '@/services/reactions'
 import { Share } from '@capacitor/share'
 import { Filesystem, Directory } from '@capacitor/filesystem'
+import { nextTick } from 'vue'
+
+
+
+function getShareFooter(lang: 'ar' | 'en') {
+  const android = 'https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum'
+  const ios = 'https://apps.apple.com/app/%D9%85%D8%B9%D8%A7-%D9%83%D9%84-%D9%8A%D9%88%D9%85/id6756967997'
+  const web = 'Ma3ankolyoum.org'
+
+  if (lang === 'ar') {
+    return [
+      'معًا كل يوم – مع القمص يوحنا باقي',
+      `🔗 Android: ${android}`,
+      `🔗 iPhone: ${ios}`,
+      `🔗 Web: ${web}`,
+      '❤️ ابدأ يومك مع الله',
+      '📲 تمت المشاركة من تطبيق “معًا كل يوم”',
+    ].join('\n')
+  }
+
+  return [
+    'Together Every Day – with Fr. Yohanna Baky',
+    `🔗 Android: ${android}`,
+    `🔗 iPhone: ${ios}`,
+    `🔗 Web: ${web}`,
+    '❤️ Start your day with God',
+    '📲 Shared from the “Together Every Day” app',
+  ].join('\n')
+}
+
+function buildSectionShareText(kind: ShareKind, lang: 'ar'|'en') {
+  const sectionTitle =
+    lang === 'ar'
+      ? ({
+          story:'القصة',
+          verse:'الآية',
+          reflection:'التأمل',
+          training:'خطوة لقدّام',
+          bible:'الكتاب المقدس',
+          agbia:'الأجبية',
+          coptic:'القبطي',
+        } as const)[kind] || 'مشاركة'
+      : ({
+          story:'Story',
+          verse:'Verse',
+          reflection:'Meditation',
+          training:'A Step Forward',
+          bible:'Bible',
+          agbia:'Agpeya',
+          coptic:'Coptic',
+        } as const)[kind] || 'Share'
+
+  const sectionBody = getSectionPlainText(kind as any, lang)
+
+  return [
+    `${sectionTitle}`,
+    '',
+    sectionBody,
+    '',
+    '—',
+    getShareFooter(lang),
+  ].join('\n')
+}
+
+type SectionShareKind = 'story' | 'verse' | 'reflection' | 'training'
+
+async function shareSectionText(kind: SectionShareKind, lang:'ar'|'en') {
+  const text = buildSectionShareText(kind, lang)
+  await Share.share({ title: lang === 'ar' ? 'معًا كل يوم' : 'Together Every Day', text })
+}
+function getSectionPlainText(kind: ShareKind, lang:'ar'|'en') {
+  if (kind === 'verse') return `"${verseText.value}"\n${verseRef.value}`
+  if (kind === 'training') return training.value || ''
+  if (kind === 'story') return stripHtml(storyHtml.value || '')
+  if (kind === 'reflection') return stripHtml(reflectionHtml.value || '')
+
+  // ✅ اختياري: Bible/Agbia/Coptic كـ نص بسيط
+  if (kind === 'bible') return `${previewLabel.value}\n${previewTitle.value}\n${(previewSections.value||[]).join('\n')}`.trim()
+  if (kind === 'agbia') return [agbia.value, agbia_author.value ? `(${agbia_author.value})` : ''].filter(Boolean).join('\n')
+  if (kind === 'coptic') return '' // لو مش عندك نص جاهز هنا
+
+  return ''
+}
+
+function stripHtml(html: string) {
+  const div = document.createElement('div')
+  div.innerHTML = html
+  return (div.textContent || div.innerText || '').trim()
+}
+
+const sectionShotRef = ref<HTMLElement | null>(null)
+const shotKind = ref<ReactKey>('story') // reuse ReactKey: story/verse/reflection/training
+
+function sleep(ms: number) {
+  return new Promise(r => setTimeout(r, ms))
+}
 
 type Lang = 'ar' | 'en'
 const lang = ref<Lang>((localStorage.getItem('mk_lang') as Lang) || 'ar')
@@ -834,22 +972,21 @@ async function shareAsImageWeb() {
 async function shareSectionImage(kind: ShareKind) {
   if (noData.value || isLoading.value) return
 
-  const el = sectionEls.value[kind]
-  if (!el) return
+  // ✅ Web: keep your current behavior (no change)
+  if (isWeb.value) {
+    const el = sectionEls.value[kind]
+    if (!el) return
+    isCapturing.value = true
+    await new Promise(requestAnimationFrame)
 
-  isCapturing.value = true
-  await new Promise(requestAnimationFrame)
+    try {
+      await (document as any).fonts?.ready
+      const canvas = await html2canvas(el, {
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        scale: Math.min(3, window.devicePixelRatio * 2),
+      })
 
-  try {
-    await (document as any).fonts?.ready
-
-    const canvas = await html2canvas(el, {
-      backgroundColor: '#ffffff',
-      useCORS: true,
-      scale: Math.min(3, window.devicePixelRatio * 2)
-    })
-
-    if (isWeb.value) {
       const blob: Blob | null = await new Promise(resolve =>
         canvas.toBlob(b => resolve(b), 'image/png')
       )
@@ -863,22 +1000,49 @@ async function shareSectionImage(kind: ShareKind) {
       a.click()
       a.remove()
       URL.revokeObjectURL(url)
-      return
+    } finally {
+      isCapturing.value = false
     }
+    return
+  }
 
-    // Native: write then Share
+  // ✅ Native: use ShareShot (painted but invisible)
+  if (kind !== 'story' && kind !== 'verse' && kind !== 'reflection' && kind !== 'training') {
+    // only the kinds we built shots for
+    return
+  }
+
+  isCapturing.value = true
+  try {
+    shotKind.value = kind as any
+    await nextTick()
+    await (document as any).fonts?.ready?.catch(() => {})
+    await sleep(60) // important: let it paint on iOS/Android
+
+    const el = sectionShotRef.value
+    if (!el) return
+
+    const canvas = await html2canvas(el, {
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      scale: Math.min(3, window.devicePixelRatio * 2),
+      scrollX: 0,
+      scrollY: 0,
+    })
+
     const base64 = canvas.toDataURL('image/png').split(',')[1]
     const fileName = `mky-${kind}-${Date.now()}.png`
 
     const saved = await Filesystem.writeFile({
       path: fileName,
       data: base64,
-      directory: Directory.Cache
+      directory: Directory.Cache,
+      recursive: true,
     })
 
     await Share.share({
-      title: 'معًا كل يوم',
-      url: saved.uri
+      title: isArabic.value ? 'معًا كل يوم' : 'Together Every Day',
+      url: saved.uri,
     })
   } catch (e) {
     console.error(e)
@@ -886,6 +1050,24 @@ async function shareSectionImage(kind: ShareKind) {
   } finally {
     isCapturing.value = false
   }
+}
+
+async function shareSection(kind: ShareKind) {
+  if (noData.value || isLoading.value) return
+
+  if (isWeb.value) {
+    await shareSectionImage(kind)
+    return
+  }
+
+  // native: only the 4 supported kinds
+  if (!['story','verse','reflection','training'].includes(kind)) {
+  await shareAsText()
+  return
+}
+
+await shareSectionText(kind as SectionShareKind, lang.value)
+
 }
 
 
@@ -2499,14 +2681,13 @@ onMounted(() => {
   
   /* Share btn (you had opacity:0 — keeping your behavior) */
   .shareBtn{
-    opacity: 0;
+    opacity: 1;
     position: absolute;
-    top: -4px;
-    right: 160px;
+    top: 4px;
+    left: 50px;
     color: var(--mk-text);
-    background: rgba(255,255,255,0.60);
+    background: transparent;
     border-radius: 12px;
-    backdrop-filter: blur(8px);
   }
   .home.theme-dark .shareBtn{
     background: rgba(0,0,0,0.30);
@@ -2986,12 +3167,96 @@ onMounted(() => {
   bottom: 20px;
   color: #061018;
 }
+.home.lang-ar .sectionShareBtn{
+  left: 40px;
+  right: auto;
+}
+
+.home.lang-en .sectionShareBtn{
+  right: 20px;
+  left: auto;
+}
 
 .home.theme-dark .sectionShareBtn{
   background: rgba(0,0,0,0.30);
   box-shadow: 0 10px 22px rgba(0,0,0,0.45);
   color: #fff;
 }
+/* ✅ ShareShot (painted, invisible) for native section share */
+.shareShotWrap{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.shareShot{
+  width: 900px;
+  padding: 22px;
+  border-radius: 22px;
+  background: #ffffff;
+  color: #0b1f33;
+  border: 1px solid rgba(0,0,0,0.10);
+  box-shadow: 0 18px 48px rgba(0,0,0,0.18);
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+}
+
+.shotTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom: 14px;
+}
+.shotTitle{ font-size: 20px; font-weight: 1000; }
+.shotDate{
+  font-size: 13px;
+  font-weight: 900;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.shotHeading{
+  font-weight: 1000;
+  margin: 6px 0 10px;
+  font-size: 18px;
+}
+
+.shotVerse{
+  font-family: "Amiri", serif;
+  font-size: 28px;
+  line-height: 1.9;
+  font-weight: 700;
+  text-align: center;
+}
+.shotVerseRef{
+  margin-top: 8px;
+  text-align: center;
+  font-weight: 900;
+}
+
+.shotTraining{
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.9;
+}
+
+.shotFooter{
+  margin-top: 16px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-weight: 1000;
+  font-size: 14px;
+  opacity: 0.9;
+}
+.shotSmall{ opacity: 0.75; font-weight: 900; }
 
   </style>
   

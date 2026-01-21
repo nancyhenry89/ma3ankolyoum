@@ -20,7 +20,8 @@ import './theme/variables.css'
 import { App as CapApp } from '@capacitor/app'
 import { LocalNotifications } from '@capacitor/local-notifications'
 import { initAppCheckWeb, ensureAnonAuth } from '@/lib/firebase'
-
+import { initReminderSystem } from '@/services/reminder'
+initReminderSystem()
 initAppCheckWeb()
 ensureAnonAuth()
 // ✅ ADD THIS:

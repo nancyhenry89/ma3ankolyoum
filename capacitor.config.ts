@@ -12,6 +12,13 @@ const config: CapacitorConfig = {
       'docs.google.com',
       '*.googleusercontent.com'
     ]
+  },
+  plugins: {
+    LocalNotifications: {
+      smallIcon: 'ic_stat_notify',
+      // optional:
+      // iconColor: '#488AFF',
+    },
   }
 }
 
