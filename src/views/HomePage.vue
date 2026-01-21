@@ -644,6 +644,7 @@
           </section>
         </ion-content>
       </ion-modal>
+      <HomePopup :enabled="isArabic" />
     </ion-content>
   </ion-page>
 </template>
@@ -664,6 +665,7 @@ import {
   IonActionSheet,
   IonIcon
 } from '@ionic/vue'
+import HomePopup from "@/components/HomePopup.vue"
 
 import { onMounted, onBeforeUnmount, ref, computed, watch } from 'vue'
 import { onIonViewDidEnter, onIonViewWillLeave } from '@ionic/vue'
