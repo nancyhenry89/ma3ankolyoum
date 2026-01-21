@@ -17,7 +17,7 @@
   
           <!-- YouTube -->
           <div v-if="popup?.youtubeId" class="hpVideoWrap">
-            <!-- Web + Android: iframe -->
+            <!-- ✅ iframe only when it's reliable -->
             <div v-if="shouldEmbedIframe" class="hpVideo">
               <iframe
                 :src="youtubeEmbedUrl"
@@ -28,7 +28,7 @@
               />
             </div>
   
-            <!-- iOS native: thumbnail -> Browser.open -->
+            <!-- ✅ iOS native + iPhone Safari web: thumbnail -> open externally -->
             <button
               v-else
               class="hpYtThumbBtn"
@@ -71,8 +71,7 @@
   import { useRouter } from "vue-router"
   import DOMPurify from "dompurify"
   
-  import { Capacitor } from "@capacitor/core"
-  import { CapacitorHttp } from "@capacitor/core"
+  import { Capacitor, CapacitorHttp } from "@capacitor/core"
   import { Browser } from "@capacitor/browser"
   import { AppLauncher } from "@capacitor/app-launcher"
   
@@ -111,8 +110,36 @@
     if (props.debug) console.log("[MKY_POPUP]", ...args)
   }
   
-  /** iframe is OK on web + android; iOS native is flaky -> open externally */
-  const shouldEmbedIframe = computed(() => platform.value === "web" || platform.value === "android")
+  /**
+   * iPhone/iPad Safari web detection (iPadOS may look like Mac)
+   */
+  function isAppleMobileWeb() {
+    const ua = navigator.userAgent || ""
+    return (
+      /iPhone|iPad|iPod/i.test(ua) ||
+      (navigator.platform === "MacIntel" && (navigator as any).maxTouchPoints > 1) // iPadOS
+    )
+  }
+  function isIOSWebSafari() {
+    if (platform.value !== "web") return false
+    if (!isAppleMobileWeb()) return false
+    const ua = navigator.userAgent || ""
+    const isSafari = /^((?!chrome|crios|fxios|edgios|android).)*safari/i.test(ua)
+    return isSafari
+  }
+  
+  /**
+   * ✅ iframe is reliable on:
+   * - desktop web (including Mac Safari)
+   * - android web/native webview
+   * ❌ iOS native (often flaky inside overlay)
+   * ❌ iPhone/iPad Safari web (often blank in overlays)
+   */
+  const shouldEmbedIframe = computed(() => {
+    if (platform.value === "ios") return false
+    if (isIOSWebSafari()) return false
+    return true // web desktop + android
+  })
   
   const youtubeEmbedUrl = computed(() => {
     const id = String(popup.value?.youtubeId || "").trim()
@@ -126,7 +153,11 @@
   
   async function openYoutube(id: string) {
     const url = `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`
-    await Browser.open({ url })
+    if (isNative.value) {
+      await Browser.open({ url })
+    } else {
+      window.open(url, "_blank", "noopener")
+    }
   }
   
   function todayISO(): string {
@@ -260,7 +291,7 @@
     const today = todayISO()
     if (!inRange(today, data.activeFrom, data.activeTo)) return
   
-    if (getDailyCount() >= 200) return
+    if (getDailyCount() >= 4) return
     if (wasShownThisSession(data.id)) return
   
     popup.value = data
@@ -293,50 +324,48 @@
     }
   }
   
-
-
-async function goUpdate() {
-  const android = "https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum"
-
-  // Try multiple iOS deep links (some devices prefer one over the other)
-  const iosItmsCandidates = [
-    "itms-apps://apps.apple.com/app/id6756967997",
-    "itms-apps://itunes.apple.com/app/id6756967997",
-  ]
-  const iosHttps = "https://apps.apple.com/app/id6756967997"
-
-  const p = Capacitor.getPlatform()
-  console.log("[MKY_POPUP] goUpdate platform:", p)
-
-  if (p === "ios") {
-    // NOTE: simulator often won't do anything here (no App Store app)
-    for (const url of iosItmsCandidates) {
-      try {
-        console.log("[MKY_POPUP] trying AppLauncher.openUrl:", url)
-        await AppLauncher.openUrl({ url })
-        console.log("[MKY_POPUP] openUrl success:", url)
-        return
-      } catch (e) {
-        console.log("[MKY_POPUP] openUrl failed:", url, e)
+  /**
+   * ✅ iOS update:
+   * - Native iOS: try opening App Store app via itms-apps scheme (real device works; simulator often won't)
+   * - Web iPhone/iPad Safari: open App Store HTTPS (valid)
+   */
+  async function goUpdate() {
+    const android = "https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum"
+    const iosHttps = "https://apps.apple.com/app/id6756967997"
+  
+    const p = Capacitor.getPlatform()
+    logDebug("goUpdate platform:", p)
+  
+    if (p === "ios") {
+      // Real device: should jump to App Store app
+      const candidates = [
+        "itms-apps://apps.apple.com/app/id6756967997",
+        "itms-apps://itunes.apple.com/app/id6756967997",
+      ]
+  
+      for (const url of candidates) {
+        try {
+          // some iOS versions just open without canOpenUrl
+          await AppLauncher.openUrl({ url })
+          return
+        } catch (e) {
+          logDebug("AppLauncher.openUrl failed:", url, e)
+        }
       }
+  
+      // Fallback (works even if App Store app can't be opened, including simulator)
+      await Browser.open({ url: iosHttps })
+      return
     }
-
-    // Fallback: open HTTPS in in-app browser (will work even on simulator)
-    console.log("[MKY_POPUP] fallback Browser.open:", iosHttps)
-    await Browser.open({ url: iosHttps })
-    return
+  
+    if (p === "android") {
+      await Browser.open({ url: android })
+      return
+    }
+  
+    // web
+    window.open(isAppleMobileWeb() ? iosHttps : android, "_blank", "noopener")
   }
-
-  if (p === "android") {
-    await Browser.open({ url: android })
-    return
-  }
-
-  // web
-  const isIOSWeb = /iPhone|iPad|iPod/i.test(navigator.userAgent || "")
-  window.open(isIOSWeb ? iosHttps : android, "_blank", "noopener")
-}
-
   
   async function onCta(cta?: PopupCta) {
     if (!cta) return
@@ -388,12 +417,13 @@ async function goUpdate() {
   </script>
   
   <style scoped>
-  /* Uses CSS vars so it works in light/dark */
+  /* Overlay */
   .hpOverlay {
     position: fixed;
     inset: 0;
     z-index: 9999;
     background: rgba(0, 0, 0, 0.45);
+    /* iOS Safari sometimes hates iframe + backdrop-filter; iframe disabled there */
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     display: flex;
@@ -402,18 +432,26 @@ async function goUpdate() {
     padding: 18px;
   }
   
+  /* Card */
   .hpCard {
     width: min(560px, 100%);
     max-height: 85vh;
     overflow: auto;
     border-radius: 22px;
-    background: var(--ion-background-color, #fff);
+    background: var(--ion-card-background, var(--ion-background-color, #fff));
     color: var(--ion-text-color, #0b1f33);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.12);
     box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
     padding: 16px 16px 14px;
   }
   
+  :global(.ion-palette-dark) .hpCard,
+  :global(body.dark) .hpCard,
+  :global(.dark) .hpCard {
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+  
+  /* Header */
   .hpHeader {
     display: flex;
     align-items: center;
@@ -421,17 +459,15 @@ async function goUpdate() {
     gap: 12px;
     margin-bottom: 10px;
   }
-  
   .hpTitle {
     font-weight: 1000;
     font-size: 18px;
     line-height: 1.3;
   }
-  
   .hpClose {
     appearance: none;
     border: 0;
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.06);
     color: inherit;
     width: 38px;
     height: 38px;
@@ -440,33 +476,42 @@ async function goUpdate() {
     font-weight: 1000;
     line-height: 1;
   }
+  :global(.ion-palette-dark) .hpClose,
+  :global(body.dark) .hpClose,
+  :global(.dark) .hpClose {
+    background: rgba(255, 255, 255, 0.12);
+  }
   
+  /* Body */
   .hpBody {
     padding: 6px 2px 10px;
   }
-  
   .hpHtml {
     font-weight: 800;
     line-height: 1.9;
   }
   
+  /* Video */
   .hpVideoWrap {
     margin-top: 12px;
   }
-  
   .hpVideo {
     border-radius: 18px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.12);
   }
-  
+  :global(.ion-palette-dark) .hpVideo,
+  :global(body.dark) .hpVideo,
+  :global(.dark) .hpVideo {
+    border-color: rgba(255, 255, 255, 0.14);
+  }
   .hpVideo iframe {
     width: 100%;
     aspect-ratio: 16 / 9;
     display: block;
   }
   
-  /* iOS native thumbnail */
+  /* Thumbnail button */
   .hpYtThumbBtn {
     position: relative;
     width: 100%;
@@ -476,14 +521,17 @@ async function goUpdate() {
     border-radius: 18px;
     overflow: hidden;
     cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.12);
   }
-  
+  :global(.ion-palette-dark) .hpYtThumbBtn,
+  :global(body.dark) .hpYtThumbBtn,
+  :global(.dark) .hpYtThumbBtn {
+    border-color: rgba(255, 255, 255, 0.14);
+  }
   .hpYtThumb {
     width: 100%;
     display: block;
   }
-  
   .hpYtPlay {
     position: absolute;
     inset: 0;
@@ -495,7 +543,6 @@ async function goUpdate() {
     text-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.35));
   }
-  
   .hpYtHint {
     position: absolute;
     bottom: 10px;
@@ -510,6 +557,7 @@ async function goUpdate() {
     -webkit-backdrop-filter: blur(10px);
   }
   
+  /* CTAs */
   .hpActions {
     display: flex;
     gap: 10px;
@@ -517,12 +565,12 @@ async function goUpdate() {
     flex-wrap: wrap;
     margin-top: 10px;
   }
-  
   .hpBtn {
     --border-radius: 14px;
     font-weight: 900;
   }
   
+  /* Debug */
   .hpDebug {
     margin-top: 10px;
     font-size: 12px;
