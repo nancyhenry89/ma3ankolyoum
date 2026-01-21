@@ -691,6 +691,7 @@ import { Share } from '@capacitor/share'
 import { Filesystem, Directory } from '@capacitor/filesystem'
 import { nextTick } from 'vue'
 
+import { hasReminderPermission, resyncReminderIfNeeded,requestReminderPermission  } from '@/services/reminder'
 
 
 function getShareFooter(lang: 'ar' | 'en') {
@@ -1321,22 +1322,38 @@ async function onHeart(kind: ReactKey) {
 
 
 // ====== Reminders ======
-async function applyReminderSchedule() {
+
+async function applyReminderSchedule(userInitiated = false) {
   if (isWeb.value) return
+
   if (!reminderEnabled.value) {
     await disableDailyReminder()
     return
   }
 
+  // ✅ لا تطلب إذن إلا لو userInitiated
+  if (!(await hasReminderPermission())) {
+    if (!userInitiated) return
+
+    const granted = await requestReminderPermission()
+    if (!granted) {
+      reminderEnabled.value = false
+      localStorage.setItem('mk_reminder_enabled', '0')
+      return
+    }
+  }
+
   const [h, m] = reminderTime.value.split(':').map(Number)
   if (Number.isNaN(h) || Number.isNaN(m)) return
-  await scheduleDailyReminder(h, m, lang.value)
+
+  await scheduleDailyReminder(h, m, lang.value, userInitiated)
 }
 
 async function onReminderToggle(ev: any) {
   reminderEnabled.value = !!ev.detail.checked
   localStorage.setItem('mk_reminder_enabled', reminderEnabled.value ? '1' : '0')
-  await applyReminderSchedule()
+
+  await applyReminderSchedule(true) // ✅ user initiated
 }
 
 watch(reminderTime, async () => {
@@ -1916,7 +1933,7 @@ if (cachedInit) {
   isLoading.value = true
 }
 
-onMounted(() => {
+onMounted(async () => {
   applyPrefs()
   applyLangFromQueryOnce()
 
@@ -1936,8 +1953,10 @@ onMounted(() => {
   }
 
   if (!isWeb.value && reminderEnabled.value) {
-    applyReminderSchedule().catch(console.error)
-  }
+    if (await hasReminderPermission()) {
+      await resyncReminderIfNeeded()
+    }
+    }
 })
 </script>
 

@@ -9,6 +9,7 @@ const TEST_ID = 9999
 
 type Lang = 'ar' | 'en'
 
+const PREF_EXACT_ASKED = 'reminder_exact_asked'
 const PREF_ENABLED = 'reminder_enabled'
 const PREF_HOUR = 'reminder_hour'
 const PREF_MINUTE = 'reminder_minute'
@@ -34,31 +35,45 @@ function getTZ() {
   return Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown'
 }
 
-/** Android 12+ : exact alarms can be disabled by user setting */
-async function ensureExactAlarmAllowedIfPossible(): Promise<void> {
+/**
+ * Android 12+ : exact alarms can be disabled by user setting.
+ * ✅ Only open system settings when userInitiated === true
+ * ✅ Ask only once (PREF_EXACT_ASKED)
+ */
+async function ensureExactAlarmAllowedIfPossible(userInitiated: boolean): Promise<void> {
   if (!Capacitor.isNativePlatform()) return
   if (Capacitor.getPlatform() !== 'android') return
+  if (!userInitiated) return
 
-  // These APIs exist on newer Capacitor versions. Guard for older versions.
+  const asked = await Preferences.get({ key: PREF_EXACT_ASKED })
+  if (asked.value === '1') return
+
   const anyLN = LocalNotifications as any
   try {
     if (typeof anyLN.checkExactNotificationSetting === 'function') {
       const res = await anyLN.checkExactNotificationSetting()
-      const enabled =
-        typeof res === 'boolean' ? res : Boolean(res?.value ?? res?.enabled ?? res?.exact)
+      const enabled = typeof res === 'boolean' ? res : Boolean(res?.value ?? res?.enabled ?? res?.exact)
 
       if (!enabled && typeof anyLN.changeExactNotificationSetting === 'function') {
-        // Opens system UI where user can enable "Alarms & reminders" / exact alarms
+        // ✅ set before opening settings (so we don't loop)
+        await Preferences.set({ key: PREF_EXACT_ASKED, value: '1' })
         await anyLN.changeExactNotificationSetting()
       }
     }
   } catch {
-    // ignore: device/OS/plugin may not support it
+    // ignore
   }
 }
 
+/** ✅ Use this on a user action only (toggle / test) */
 export async function requestReminderPermission() {
   const perm = await LocalNotifications.requestPermissions()
+  return perm.display === 'granted'
+}
+
+/** ✅ Safe check (no prompt) */
+export async function hasReminderPermission() {
+  const perm = await LocalNotifications.checkPermissions()
   return perm.display === 'granted'
 }
 
@@ -72,8 +87,6 @@ export async function initReminderSystem() {
       description: 'Daily reminder to read today’s message',
       importance: 4, // HIGH
       visibility: 1, // PUBLIC
-      // sound: undefined, // default
-      // vibration: true, // default
     })
   } catch {
     // ignore
@@ -82,17 +95,14 @@ export async function initReminderSystem() {
   // Handle tap on notification
   try {
     await LocalNotifications.addListener('localNotificationActionPerformed', (ev: any) => {
-      // If you use router, you can handle ev.notification.extra.route in a central place.
-      // Example:
-      // const route = ev?.notification?.extra?.route
-      // if (route) router.push(route)
+      // You can route based on ev.notification.extra.route
       void ev
     })
   } catch {
     // ignore
   }
 
-  // Reschedule on app resume if timezone changed (fixes +1h shifts after travel/DST)
+  // ✅ On resume: ONLY resync if timezone changed, and NEVER prompt for permission/settings
   App.addListener('appStateChange', async (state) => {
     if (!state.isActive) return
     await resyncReminderIfNeeded()
@@ -132,35 +142,44 @@ async function readReminderPrefs(): Promise<{
   return { enabled, hour, minute, lang, tz: lastTz }
 }
 
-export async function scheduleDailyReminder(hour: number, minute: number, lang: Lang) {
-  const granted = await requestReminderPermission()
-  if (!granted) return false
+/**
+ * ✅ Schedules the daily reminder.
+ * - If userInitiated=false (app resume / silent resync): NO permission prompt, NO settings UI.
+ * - If userInitiated=true (toggle/test): we can request permission and open exact-alarm settings if needed.
+ */
+export async function scheduleDailyReminder(
+  hour: number,
+  minute: number,
+  lang: Lang,
+  userInitiated = false
+) {
+  if (!Capacitor.isNativePlatform()) return false
 
-  await ensureExactAlarmAllowedIfPossible()
+  // ✅ Avoid permission prompt unless user initiated
+  if (userInitiated) {
+    const granted = await requestReminderPermission()
+    if (!granted) return false
+  } else {
+    const ok = await hasReminderPermission()
+    if (!ok) return false
+  }
+
+  // ✅ Only opens settings on user action (and only once)
+  await ensureExactAlarmAllowedIfPossible(userInitiated)
 
   const copy = getReminderCopy(lang)
 
   // cancel old one to avoid duplicates
   await LocalNotifications.cancel({ notifications: [{ id: REMINDER_ID }] })
 
-  // schedule
   await LocalNotifications.schedule({
     notifications: [
       {
         id: REMINDER_ID,
         title: copy.title,
         body: copy.body,
-
-        // Android: ensure it uses your channel + high priority
         channelId: 'daily',
-
-        // Helps Android in Doze (may still be delayed on some OEMs)
         schedule: { repeats: true, on: { hour, minute }, allowWhileIdle: true },
-
-        // iOS extras (safe on Android too)
-        // sound: undefined, // use default
-        // badge: 1, // uncomment if you want badge count
-
         extra: { route: '/' },
       },
     ],
@@ -171,11 +190,15 @@ export async function scheduleDailyReminder(hour: number, minute: number, lang: 
 }
 
 export async function disableDailyReminder() {
+  if (!Capacitor.isNativePlatform()) return
   await LocalNotifications.cancel({ notifications: [{ id: REMINDER_ID }] })
   await saveReminderPrefs(0, 0, 'ar', false)
 }
 
+/** ✅ Only call on user action (button) */
 export async function sendTestReminder(lang: Lang) {
+  if (!Capacitor.isNativePlatform()) return false
+
   const granted = await requestReminderPermission()
   if (!granted) return false
 
@@ -200,17 +223,23 @@ export async function sendTestReminder(lang: Lang) {
 }
 
 /**
- * Call on app resume (already done in initReminderSystem) or manually.
- * Re-schedules if timezone changed (prevents 1-hour offsets after travel/DST).
+ * ✅ Call on app resume (already wired in initReminderSystem).
+ * Re-schedules if timezone changed, WITHOUT prompting permissions/settings.
  */
 export async function resyncReminderIfNeeded() {
+  if (!Capacitor.isNativePlatform()) return
+
   const prefs = await readReminderPrefs()
-  if (!prefs) return
-  if (!prefs.enabled) return
+  if (!prefs?.enabled) return
+
+  // ✅ if permission isn't granted, do nothing silently
+  const ok = await hasReminderPermission()
+  if (!ok) return
 
   const nowTz = getTZ()
   if (prefs.tz !== nowTz) {
-    await scheduleDailyReminder(prefs.hour, prefs.minute, prefs.lang)
-    // scheduleDailyReminder saves the new tz
+    // ✅ silent reschedule (no permission prompt, no settings UI)
+    await scheduleDailyReminder(prefs.hour, prefs.minute, prefs.lang, false)
+    // scheduleDailyReminder updates stored tz via saveReminderPrefs()
   }
 }
