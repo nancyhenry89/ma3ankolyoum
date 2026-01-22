@@ -42,7 +42,7 @@
 
 
             <!-- Share -->
-            <ion-button v-if="isWeb" class="shareBtn" fill="clear" size="small" @click="showShareSheet = true">
+            <ion-button v-if="isWeb" class="shareBtn mkNoCapture" fill="clear" size="small" @click="showShareSheet = true">
               <IonIcon :icon="shareSocial" />
             </ion-button>
 
@@ -53,7 +53,19 @@
               :buttons="shareButtons"
               @didDismiss="showShareSheet = false"
             />
-
+<!-- Web Bible 2026 -->
+<ion-button
+  v-if="isWeb"
+  class="bible2026Btn mkNoCapture"
+  fill="clear"
+  size="small"
+  href="https://ma3ankolyoum.org/bible-2026"
+  target="_blank"
+  rel="noopener"
+  aria-label="Bible 2026"
+>
+  <span class="bibleIcon">📖</span>
+</ion-button>
             <div class="brand">
               <template v-if="isArabic">
                 <div class="brand_name">معاً كل يوم</div>
@@ -3278,6 +3290,23 @@ onMounted(async () => {
   opacity: 0.9;
 }
 .shotSmall{ opacity: 0.75; font-weight: 900; }
+.bible2026Btn{
+  position: absolute;
+  top: 4px;
+  left: 95px; /* جنب زر الشير */
+  z-index: 3;
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.home.theme-dark .bible2026Btn{
+  background: rgba(0,0,0,0.30);
+}
+
+.bibleIcon{
+  font-size: 20px;
+  line-height: 1;
+}
 
   </style>
   
