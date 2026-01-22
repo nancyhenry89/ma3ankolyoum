@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>معاً كل يوم - قراءات الكتاب المقدس ٢٠٢٦</title>
+
+  <!-- Normal UI font (Cairo) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Export-only font (Tajawal renders better in html2canvas) -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- libs -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    :root{
+      --bg: #f6f7fb;
+      --surface2: rgba(255,255,255,.94);
+      --border: rgba(17,24,39,.12);
+
+      --text: #0f172a;
+      --muted: rgba(15,23,42,.65);
+
+      --shadow: 0 14px 40px rgba(2,6,23,.08);
+      --radius: 18px;
+      --gap: 14px;
+
+      --accent1: #7c3aed;
+      --accent2: #06b6d4;
+
+      --cellMinH: 92px;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    :root{
+  --uiFont: "Tajawal", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --exportFont: "Tajawal", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* كل الصفحة تستخدم variable */
+html, body{
+  font-family: var(--uiFont);
+}
+
+/* ورّث الخط لكل العناصر (بدون !important) */
+*{
+  font-family: inherit;
+}
+
+/* تحسين تشكيل العربية */
+.reading, .monthTitle, .dow div, .day{
+  direction: rtl;
+  unicode-bidi: plaintext;
+  letter-spacing: 0 !important;
+}
+
+/* وقت التصدير: غيّر الـuiFont للـexportFont */
+html.isExporting, html.isExporting body{
+  --uiFont: var(--exportFont);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+/* اخفاء اي حاجة mkNoCapture في التصدير */
+html.isExporting .mkNoCapture{
+  display:none !important;
+}
+
+    body{
+      margin:0;
+      font-family: "Tajawal", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(124,58,237,.12), transparent 60%),
+        radial-gradient(1000px 520px at 80% 20%, rgba(6,182,212,.12), transparent 55%),
+        radial-gradient(900px 520px at 50% 90%, rgba(245,158,11,.08), transparent 55%),
+        linear-gradient(180deg, #ffffff, var(--bg));
+      direction: rtl;
+    }
+
+
+
+    .reading, .monthTitle, .dow div, .day{
+      direction: rtl;
+      unicode-bidi: plaintext;
+      letter-spacing: 0 !important;
+    }
+
+    .wrap{
+      max-width: 1360px;
+      margin: 28px auto;
+      padding: 0 18px 34px;
+    }
+
+    .pageHeader{
+      text-align: center;
+      margin: 10px 0 8px;
+      font-family: "Cairo", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    .appTitle{
+      font-size: 28px;
+      font-weight: 900;
+      margin: 0;
+      line-height: 1.15;
+    }
+
+    .subTitle{
+      margin: 6px 0 0;
+      font-size: 16px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    /* Store badges row */
+    .storesRow{
+      margin: 12px auto 4px;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .storeBadge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(17,24,39,.12);
+      background: rgba(255,255,255,.82);
+      box-shadow: 0 10px 18px rgba(2,6,23,.06);
+      transition: transform .15s ease, box-shadow .2s ease;
+      text-decoration: none;
+    }
+    .storeBadge:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 14px 26px rgba(2,6,23,.10);
+    }
+    .storeBadge img{
+      display:block;
+      height: 42px;
+      width: auto;
+    }
+
+    /* Buttons row */
+    .topActions{
+      display:flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 12px 0 14px;
+    }
+
+    .btn{
+      border: 1px solid rgba(17,24,39,.14);
+      background: linear-gradient(180deg, rgba(6,182,212,.16), #fff);
+      padding: 10px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 900;
+      box-shadow: 0 10px 18px rgba(2,6,23,.06);
+    }
+    .btn:hover{ transform: translateY(-1px); }
+
+    .select{
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 1px solid rgba(17,24,39,.14);
+      background: #fff;
+      font-weight: 800;
+    }
+
+    .yearGrid{
+      margin-top: 6px;
+      display:grid;
+      gap: var(--gap);
+      grid-template-columns: repeat(3, minmax(280px, 1fr));
+    }
+    @media (max-width: 1160px){
+      .yearGrid{ grid-template-columns: repeat(2, minmax(280px, 1fr)); }
+    }
+    @media (max-width: 760px){
+      .yearGrid{ grid-template-columns: 1fr; }
+    }
+
+    .month{
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow:hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .monthHeader{
+      padding: 14px 14px 12px;
+      display:flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(17,24,39,.08);
+      position: relative;
+    }
+    .monthHeader::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(800px 140px at 20% 0%, rgba(124,58,237,.12), transparent 60%),
+        radial-gradient(700px 140px at 85% 0%, rgba(6,182,212,.10), transparent 55%);
+      pointer-events:none;
+    }
+
+    .monthTitle{
+      position: relative;
+      font-weight: 900;
+      font-size: 16px;
+    }
+    .monthMeta{
+      position: relative;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .dow{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: rgba(15,23,42,.03);
+      border-bottom: 1px solid rgba(17,24,39,.08);
+    }
+    .dow div{
+      padding: 9px 10px;
+      font-size: 12px;
+      color: rgba(15,23,42,.55);
+      border-left: 1px solid rgba(17,24,39,.08);
+      text-align: right;
+      white-space: nowrap;
+    }
+    .dow div:first-child{ border-left:0; }
+
+    .days{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .day{
+        border-left: 1px solid rgba(17, 24, 39, .08);
+    border-bottom: 1px solid rgba(17, 24, 39, .08);
+    min-height: var(--cellMinH);
+    padding: 10px 6px 12px 0px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: right;
+    background: rgba(255, 255, 255, .80);
+    }
+    .day:nth-child(7n+1){ border-left:0; }
+
+    .day.empty{
+      background: rgba(15,23,42,.02);
+      color: rgba(15,23,42,.25);
+    }
+
+    .dayNum{
+      font-size: 12px;
+      color: rgba(15,23,42,.55);
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .reading{
+      font-size: 11px;
+      line-height: 1.35;
+      color: rgba(15,23,42,.92);
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-weight:bold
+    }
+
+    .day.hasReading{ position: relative; }
+    .day.hasReading::after{
+      content:"";
+      position:absolute;
+      top: 10px;
+      bottom: 10px;
+      right: 0;
+      width: 3px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, var(--accent2), var(--accent1));
+      opacity: .75;
+    }
+    .day:not(.empty){
+  cursor: pointer;
+}
+.day:not(.empty):focus{
+  outline: 3px solid rgba(6,182,212,.35);
+  outline-offset: 2px;
+}
+
+    .day.isToday{
+      background: linear-gradient(180deg, rgba(6,182,212,.18), rgba(255,255,255,.98));
+      outline: 2px solid rgba(6,182,212,.60);
+      box-shadow: 0 0 0 6px rgba(6,182,212,.16), 0 16px 40px rgba(2,6,23,.12);
+      transform: translateY(-2px);
+    }
+
+    /* mkNoCapture: anything with this class will be hidden in export */
+    body.isExporting .mkNoCapture{
+      display:none !important;
+    }
+
+    /* Export mode: use Tajawal to avoid Cairo shaping glitches in canvas */
+    body.isExporting, body.isExporting *{
+      font-family: "Tajawal", system-ui, Arial, sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+    body.isExporting .wrap{ max-width: none; }
+    body.isExporting .yearGrid{
+      grid-template-columns: repeat(3, minmax(360px, 1fr));
+    }
+
+    .toast{
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,.95);
+      border: 1px solid rgba(17,24,39,.12);
+      box-shadow: 0 14px 40px rgba(2,6,23,.12);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-weight: 800;
+      color: rgba(15,23,42,.80);
+      display: none;
+      z-index: 9999;
+    }
+    .toast.show{ display:block; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header class="pageHeader">
+      <h1 class="appTitle">معاً كل يوم</h1>
+      <div class="subTitle">قراءات الكتاب المقدس ٢٠٢٦</div>
+
+      <!-- ✅ Store badges (NOT captured) -->
+      <div class="storesRow mkNoCapture" aria-label="App Store and Google Play">
+        <a
+          class="storeBadge"
+          href="https://apps.apple.com/app/%D9%85%D8%B9%D8%A7-%D9%83%D9%84-%D9%8A%D9%88%D9%85/id6756967997"
+          target="_blank"
+          rel="noopener"
+          aria-label="Download on the App Store"
+        >
+          <img src="/badges/appstore.png" alt="Download on the App Store" />
+        </a>
+
+        <a
+          class="storeBadge"
+          href="https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum&pcampaignid=web_share"
+          target="_blank"
+          rel="noopener"
+          aria-label="Get it on Google Play"
+        >
+          <img src="/badges/googleplay.png" alt="Get it on Google Play" />
+        </a>
+      </div>
+    </header>
+
+    <div class="topActions mkNoCapture">
+      <button id="downloadPosterBtn" class="btn" type="button">تحميل بوستر السنة PNG</button>
+
+      <select id="monthSelect" class="select" aria-label="اختيار الشهر">
+        <option value="0">يناير</option>
+        <option value="1">فبراير</option>
+        <option value="2">مارس</option>
+        <option value="3">أبريل</option>
+        <option value="4">مايو</option>
+        <option value="5">يونيو</option>
+        <option value="6">يوليو</option>
+        <option value="7">أغسطس</option>
+        <option value="8">سبتمبر</option>
+        <option value="9">أكتوبر</option>
+        <option value="10">نوفمبر</option>
+        <option value="11">ديسمبر</option>
+      </select>
+
+      <button id="downloadMonthBtn" class="btn" type="button">تحميل شهر PNG</button>
+    </div>
+
+    <div id="calendar" class="yearGrid"></div>
+  </div>
+
+  <div id="toast" class="toast mkNoCapture"></div>
+
+  <script>
+    const SITE_BASE = "https://ma3ankolyoum.org";
+
+    const DEFAULT_CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vSLRsgia4WnxniQy_RVO3S0GwPzPNu9Oby-w19wPulf7X4Xf0SV1mbpInAM9NKh4Lag_DKFUuE42Djq/pub?gid=996972455&single=true&output=csv";
+
+    const DOW = ["الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت","الأحد"];
+    const MONTH_NAMES_AR = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+
+    let store = {};
+    const elCalendar = document.getElementById("calendar");
+    const toastEl = document.getElementById("toast");
+
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      setTimeout(()=>toastEl.classList.remove("show"), 2400);
+    }
+
+    function clearCalendar(){ elCalendar.innerHTML = ""; }
+
+    function parseISODate(value){
+      if (!value) return null;
+      const s = String(value).trim().replaceAll("/", "-");
+      const iso = s.length >= 10 ? s.slice(0,10) : s;
+      const parts = iso.split("-");
+      if (parts.length !== 3) return null;
+      const y = parseInt(parts[0],10);
+      const m = parseInt(parts[1],10);
+      const d = parseInt(parts[2],10);
+      if (!y || !m || !d) return null;
+      return { y, m, d };
+    }
+
+    function ensurePath(y, mIndex){
+      store[y] ??= {};
+      store[y][mIndex] ??= {};
+      return store[y][mIndex];
+    }
+
+    function renderYear(year){
+      clearCalendar();
+
+      const y = year;
+      const now = new Date();
+
+      for (let m = 0; m < 12; m++){
+        const monthCard = document.createElement("div");
+        monthCard.className = "month";
+        monthCard.dataset.month = String(m);
+
+        const header = document.createElement("div");
+        header.className = "monthHeader";
+
+        const title = document.createElement("div");
+        title.className = "monthTitle";
+        title.textContent = MONTH_NAMES_AR[m];
+
+        const meta = document.createElement("div");
+        meta.className = "monthMeta";
+        meta.textContent = y;
+
+        header.appendChild(title);
+        header.appendChild(meta);
+
+        const dow = document.createElement("div");
+        dow.className = "dow";
+        for (const name of DOW){
+          const c = document.createElement("div");
+          c.textContent = name;
+          dow.appendChild(c);
+        }
+
+        const days = document.createElement("div");
+        days.className = "days";
+
+        const daysInMonth = new Date(y, m+1, 0).getDate();
+        const first = new Date(y, m, 1);
+        const jsDow = first.getDay();
+        const mondayIndex = (jsDow + 6) % 7;
+
+        const monthData = (store[y] && store[y][m]) ? store[y][m] : {};
+
+        for (let i=0; i<mondayIndex; i++){
+          const cell = document.createElement("div");
+          cell.className = "day empty";
+          days.appendChild(cell);
+        }
+
+        for (let d=1; d<=daysInMonth; d++){
+          const reading = monthData[d] || "";
+          const cell = document.createElement("div");
+          cell.className = "day" + (reading ? " hasReading" : "");
+          const iso = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+cell.dataset.date = iso;
+cell.tabIndex = 0; // keyboard
+cell.setAttribute("role", "link");
+cell.setAttribute("aria-label", `قراءات يوم ${iso}`);
+
+// ✅ click => open site (or deep link)
+cell.addEventListener("click", () => {
+  // Option 1: open homepage
+  window.open(SITE_BASE, "_blank");
+
+  // Option 2 (better): open a specific date page if you have it
+  // window.open(`${SITE_BASE}/?date=${encodeURIComponent(iso)}`, "_blank");
+  // or: window.location.href = `${SITE_BASE}/?date=${encodeURIComponent(iso)}`;
+});
+
+cell.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    cell.click();
+  }
+});
+
+          const isToday =
+            y === now.getFullYear() &&
+            m === now.getMonth() &&
+            d === now.getDate();
+          if (isToday) cell.classList.add("isToday");
+
+          const num = document.createElement("div");
+          num.className = "dayNum";
+          num.innerHTML = `<span>${d}</span>`;
+
+          const text = document.createElement("div");
+          text.className = "reading";
+          text.textContent = reading;
+
+          cell.appendChild(num);
+          cell.appendChild(text);
+          days.appendChild(cell);
+        }
+
+        const totalCells = mondayIndex + daysInMonth;
+        const trailing = (7 - (totalCells % 7)) % 7;
+        for (let i=0; i<trailing; i++){
+          const cell = document.createElement("div");
+          cell.className = "day empty";
+          days.appendChild(cell);
+        }
+
+        monthCard.appendChild(header);
+        monthCard.appendChild(dow);
+        monthCard.appendChild(days);
+        elCalendar.appendChild(monthCard);
+      }
+    }
+
+    function loadRows(rows){
+      store = {};
+      for (const r of rows){
+        const dateVal =
+          r.Date ?? r.date ?? r.DATE ?? r["Start Date"] ?? r["start_date"] ?? r["التاريخ"];
+        const readingVal =
+          r.Reading ?? r.reading ?? r.READING ?? r.Subject ?? r["القراءة"] ?? r["Reading "];
+
+        const parsed = parseISODate(dateVal);
+        if (!parsed) continue;
+
+        const { y, m, d } = parsed;
+        const mIndex = m - 1;
+        ensurePath(y, mIndex)[d] = (readingVal ?? "").toString();
+      }
+
+      renderYear(2026);
+    }
+
+    async function loadFromUrl(url){
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const csvText = await res.text();
+
+      const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+      loadRows(parsed.data);
+    }
+
+    // ---------- Export (reliable) ----------
+    function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+    function raf2(){ return new Promise(r => requestAnimationFrame(()=>requestAnimationFrame(r))); }
+
+    async function waitForExportFonts(){
+  if (document.fonts?.ready) {
+    try { await document.fonts.ready; } catch {}
+  }
+  if (document.fonts?.load) {
+    try{
+      await Promise.all([
+        document.fonts.load('400 12px "Tajawal"', "قراءات الكتاب المقدس"),
+        document.fonts.load('700 14px "Tajawal"', "قراءات الكتاب المقدس"),
+        document.fonts.load('900 18px "Tajawal"', "قراءات الكتاب المقدس"),
+      ]);
+    }catch{}
+  }
+  await new Promise(r => requestAnimationFrame(()=>requestAnimationFrame(r)));
+}
+
+    function fileNameSafe(s){ return s.replace(/[\\/:*?"<>|]/g, "_"); }
+
+    function downloadDataUrl(dataUrl, filename){
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = filename;
+      a.click();
+    }
+
+    async function captureElementToCanvas(el, { fullSize=false } = {}){
+      // ✅ export mode: switch font + hide mkNoCapture
+      document.documentElement.classList.add("isExporting");
+      // settle layout + font
+      await waitForExportFonts();
+      await raf2();
+
+      // IMPORTANT: foreignObjectRendering OFF (avoids blank images)
+      if (fullSize){
+        const w = el.scrollWidth;
+        const h = el.scrollHeight;
+        return await html2canvas(el, {
+  backgroundColor: "#ffffff",
+  scale: 2,
+  useCORS: true,
+  foreignObjectRendering: false,
+  scrollX: 0,
+  scrollY: -window.scrollY,
+  ignoreElements: (node) => node.classList?.contains("mkNoCapture"),
+});
+
+      }
+
+      return await html2canvas(el, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+        foreignObjectRendering: false,
+        scrollX: 0,
+        scrollY: -window.scrollY
+      });
+    }
+
+    async function exportElementPNG(el, filename, { fullSize=false } = {}){
+      const canvas = await captureElementToCanvas(el, { fullSize });
+      document.documentElement.classList.remove("isExporting");
+      downloadDataUrl(canvas.toDataURL("image/png", 1.0), filename);
+    }
+
+    async function downloadMonthPNG(monthIndex){
+      const monthEl = document.querySelector(`.month[data-month="${monthIndex}"]`);
+      if (!monthEl) return;
+      toast("جاري تجهيز صورة الشهر…");
+      const filename = fileNameSafe(`قراءات_الكتاب_٢٠٢٦_${MONTH_NAMES_AR[monthIndex]}.png`);
+      await exportElementPNG(monthEl, filename, { fullSize:false });
+    }
+
+    async function downloadHugePosterPNG(){
+      const calendarEl = document.getElementById("calendar");
+      if (!calendarEl) return;
+      toast("جاري تجهيز بوستر السنة…");
+
+      const prevScrollTop = window.scrollY;
+      window.scrollTo(0, 0);
+      await sleep(80);
+
+      await exportElementPNG(calendarEl, "معاً_كل_يوم_قراءات_الكتاب_٢٠٢٦_بوستر.png", { fullSize:true });
+
+      window.scrollTo(0, prevScrollTop);
+    }
+
+    // ---------- Bind ----------
+    document.getElementById("downloadPosterBtn").addEventListener("click", ()=>{
+      downloadHugePosterPNG().catch(console.error);
+    });
+
+    document.getElementById("downloadMonthBtn").addEventListener("click", async ()=>{
+      const m = parseInt(document.getElementById("monthSelect").value, 10);
+      await downloadMonthPNG(m);
+    });
+
+    // ---------- Auto-load ----------
+    loadFromUrl(DEFAULT_CSV_URL).catch((e)=>{
+      console.error(e);
+      toast("فشل تحميل CSV. افتحي الصفحة عبر localhost.");
+    });
+  </script>
+</body>
+</html>

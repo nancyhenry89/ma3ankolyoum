@@ -291,7 +291,7 @@
     const today = todayISO()
     if (!inRange(today, data.activeFrom, data.activeTo)) return
   
-    if (getDailyCount() >= 4) return
+    if (getDailyCount() >=3) return
     if (wasShownThisSession(data.id)) return
   
     popup.value = data
