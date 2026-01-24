@@ -3293,7 +3293,7 @@ onMounted(async () => {
 .bible2026Btn{
   position: absolute;
   top: 4px;
-  left: 95px; /* جنب زر الشير */
+  left: 77px; /* جنب زر الشير */
   z-index: 3;
   border-radius: 12px;
   backdrop-filter: blur(8px);

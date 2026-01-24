@@ -122,6 +122,8 @@
         </div>
 
         <div class="space"></div>
+        <BibleQuizSection :date-iso="todayISO" />
+
       </div>
     </ion-content>
 
@@ -331,6 +333,18 @@ import {
   toggleVerseBookmark,
   peopleText
 } from '@/services/verseBookmarks'
+// لو عندك تاريخ اليوم عندك already كـ ISO في مكان تاني استخدميه
+const todayISO = computed(() => {
+  // مثال سريع: لو انتِ بتجيبـي اليوم من route/query أو من store استبدليه
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+});
+import BibleQuizSection from "@/components/BibleQuizSection.vue";
+
+
 
 const showSavedToast = ref(false)
 
