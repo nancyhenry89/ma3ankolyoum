@@ -205,6 +205,28 @@ const SFX_CLAP = "/sfx/clap.mp3"
 const SFX_SUCCESS = "/sfx/success.mp3"
 const SFX_FAIL = "/sfx/fail.mp3"
 
+const sfxClap = new Audio(SFX_CLAP)
+const sfxSuccess = new Audio(SFX_SUCCESS)
+const sfxFail = new Audio(SFX_FAIL)
+;[sfxClap, sfxSuccess, sfxFail].forEach((a) => {
+  a.preload = "auto"
+  a.volume = 0.9
+})
+
+function playAudio(a: HTMLAudioElement) {
+  try {
+    a.pause()
+    a.currentTime = 0
+    const p = a.play()
+    if (p && typeof (p as any).catch === "function") {
+      ;(p as Promise<void>).catch((err) => {
+        console.warn("[SFX] play failed:", a.src, err)
+      })
+    }
+  } catch (err) {
+    console.warn("[SFX] play threw:", a.src, err)
+  }
+}
 const loading = ref(false)
 const error = ref(false)
 
@@ -493,9 +515,6 @@ async function loadFromSheet() {
 
 function submit(reason: SubmitReason) {
   if (submitted.value) return
-
-  // if timeout, accept partial answers (even unanswered)
-  // if manual, require canSubmit
   if (reason === "manual" && !canSubmit.value) return
 
   clearTick()
@@ -507,7 +526,7 @@ function submit(reason: SubmitReason) {
   submitted.value = true
   submitReason.value = reason
 
-  // ✅ persist attempt (ONE TIME)
+  // persist attempt
   const selectedClean: Record<string, "a" | "b" | "c" | "d"> = {}
   for (const q of mcqList.value) {
     const v = mcqSelected.value[q.id]
@@ -521,16 +540,19 @@ function submit(reason: SubmitReason) {
     reason
   })
 
-  // sounds
-  if (s === mcqList.value.length) {
-    playSfx(SFX_CLAP)
-    setTimeout(() => playSfx(SFX_SUCCESS), 250)
-  } else if (s >= 1) {
-    playSfx(SFX_SUCCESS)
+  // ✅ 3 cases
+  if (s === mcqList.value.length && mcqList.value.length > 0) {
+    // both correct (perfect)
+    playAudio(sfxClap)
+  } else if (s === 1) {
+    // one correct
+    playAudio(sfxSuccess)
   } else {
-    playSfx(SFX_FAIL)
+    // two wrong (0 correct)
+    playAudio(sfxFail)
   }
 }
+
 
 watch(
   () => props.dateIso,
@@ -541,6 +563,7 @@ watch(
 )
 
 onMounted(() => {
+  try { sfxClap.load(); sfxSuccess.load(); sfxFail.load(); } catch {}
   loadEssay()
   loadFromSheet()
 })
@@ -1428,50 +1451,6 @@ onBeforeUnmount(() => {
   .timerWarn{
     animation: none !important;
   }
-}
-.mcqQ{
-  display:flex;
-  gap: 10px;
-  align-items:flex-start;
-  font-weight: 1200;
-  line-height: 1.9;
-  margin-bottom: 12px;
-
-  padding: 14px 12px;
-  border-radius: 18px;
-
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.55));
-  border: 1px solid rgba(8,16,32,0.10);
-
-  box-shadow:
-    0 18px 42px rgba(0,0,0,0.14),
-    inset 0 1px 0 rgba(255,255,255,0.75);
-
-  position: relative;
-}
-
-.mcqQ::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius: 18px;
-  background:
-    radial-gradient(500px 180px at 12% 0%, rgba(245,158,11,0.16), transparent 60%),
-    radial-gradient(500px 180px at 90% 10%, rgba(124,58,237,0.12), transparent 60%);
-  pointer-events:none;
-}
-
-.mcqNum{
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(0,0,0,0.06);
-  border: 1px solid rgba(0,0,0,0.10);
-  font-weight: 1300;
-}
-
-.mcqTxt{
-  font-size: 16px;
 }
 
 </style>
