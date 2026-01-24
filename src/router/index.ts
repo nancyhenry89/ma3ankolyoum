@@ -10,7 +10,8 @@ const routes: Array<RouteRecordRaw> = [
   
 
   // ✅ مرة واحدة فقط
-  { path: '/chapter/:bookKey/:chapter', name: 'Chapter', component: ChapterPage },
+  { path: '/chapter/:bookKey/:chapter', name: 'Chapter', 
+    component: ChapterPage},
 
   { path: '/saint/:dateISO', name: 'Saint', component: () => import('@/views/SaintPage.vue') },
   { path: '/agbia-audio/:date', name: 'AgbiaAudio', component: () => import('@/views/AgbiaAudioPage.vue') },

@@ -1429,5 +1429,50 @@ onBeforeUnmount(() => {
     animation: none !important;
   }
 }
+.mcqQ{
+  display:flex;
+  gap: 10px;
+  align-items:flex-start;
+  font-weight: 1200;
+  line-height: 1.9;
+  margin-bottom: 12px;
+
+  padding: 14px 12px;
+  border-radius: 18px;
+
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.55));
+  border: 1px solid rgba(8,16,32,0.10);
+
+  box-shadow:
+    0 18px 42px rgba(0,0,0,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.75);
+
+  position: relative;
+}
+
+.mcqQ::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius: 18px;
+  background:
+    radial-gradient(500px 180px at 12% 0%, rgba(245,158,11,0.16), transparent 60%),
+    radial-gradient(500px 180px at 90% 10%, rgba(124,58,237,0.12), transparent 60%);
+  pointer-events:none;
+}
+
+.mcqNum{
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.10);
+  font-weight: 1300;
+}
+
+.mcqTxt{
+  font-size: 16px;
+}
+
 </style>
 

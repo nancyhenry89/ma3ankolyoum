@@ -1918,9 +1918,15 @@ async function loadByDate(dateISO: string) {
 // ===== Navigation =====
 function openChapter() {
   if (!isArabic.value) return
-  const bookKey = bibleBookKey.value || 'Matthew'
+
+  const bookKey = bibleBookKey.value || "Matthew"
   const ch = bibleChapter.value || 1
-  router.push(`/chapter/${bookKey}/${ch}`)
+
+  router.push({
+    name: "Chapter",
+    params: { bookKey, chapter: String(ch) },
+    query: { d: selectedDateISO.value }, // ✅ same day from sheet
+  })
 }
 
 function openSaint() {

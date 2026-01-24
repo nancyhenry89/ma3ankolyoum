@@ -122,7 +122,8 @@
         </div>
 
         <div class="space"></div>
-        <BibleQuizSection :date-iso="todayISO" />
+        <BibleQuizSection :date-iso="pageDateISO" :key="pageDateISO" />
+
 
       </div>
     </ion-content>
@@ -342,6 +343,12 @@ const todayISO = computed(() => {
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 });
+const pageDateISO = computed(() => {
+  const q = route.query.d
+  if (typeof q === "string" && /^\d{4}-\d{2}-\d{2}$/.test(q)) return q
+  return todayISO.value
+})
+
 import BibleQuizSection from "@/components/BibleQuizSection.vue";
 
 
