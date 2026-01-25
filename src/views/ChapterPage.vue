@@ -1557,6 +1557,7 @@ onMounted(() => {
   font-weight: 900;
   line-height: 1.9;
   white-space: pre-wrap;
+  font-size: 20px;
 }
 
 :global(html[data-mk-theme="dark"]) .topModalOpen{

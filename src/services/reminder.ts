@@ -70,7 +70,12 @@ export async function requestReminderPermission() {
   const perm = await LocalNotifications.requestPermissions()
   return perm.display === 'granted'
 }
-
+function notifSoundForPlatform() {
+  // iOS only: needs filename with extension inside bundle
+  if (Capacitor.getPlatform() === 'ios') return 'reminder_sound.wav'
+  // Android: channel handles it
+  return undefined
+}
 /** ✅ Safe check (no prompt) */
 export async function hasReminderPermission() {
   const perm = await LocalNotifications.checkPermissions()
@@ -82,12 +87,14 @@ export async function initReminderSystem() {
   // Android channel (safe no-op on iOS)
   try {
     await LocalNotifications.createChannel({
-      id: 'daily',
+      id: 'daily_v2',
       name: 'Daily reminders',
       description: 'Daily reminder to read today’s message',
       importance: 4, // HIGH
       visibility: 1, // PUBLIC
+      sound: 'reminder_sound', // ✅ no extension
     })
+    
   } catch {
     // ignore
   }
@@ -178,12 +185,14 @@ export async function scheduleDailyReminder(
         id: REMINDER_ID,
         title: copy.title,
         body: copy.body,
-        channelId: 'daily',
+        channelId: 'daily_v2',
+        sound: notifSoundForPlatform(), // ✅ iOS only
         schedule: { repeats: true, on: { hour, minute }, allowWhileIdle: true },
         extra: { route: '/' },
       },
     ],
   })
+  
 
   await saveReminderPrefs(hour, minute, lang, true)
   return true
@@ -206,19 +215,21 @@ export async function sendTestReminder(lang: Lang) {
 
   await LocalNotifications.cancel({ notifications: [{ id: TEST_ID }] })
 
+  
   await LocalNotifications.schedule({
     notifications: [
       {
         id: TEST_ID,
         title: copy.title,
         body: copy.testBody,
-        channelId: 'daily',
+        channelId: 'daily_v2',
+        sound: notifSoundForPlatform(), // ✅ iOS only
         schedule: { at: new Date(Date.now() + 3000), allowWhileIdle: true },
         extra: { route: '/' },
       },
     ],
   })
-
+  
   return true
 }
 
