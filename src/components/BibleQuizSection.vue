@@ -575,13 +575,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 /* =========================================================
-   BIBLE QUIZ – COMPETITION THEME (Colorful + Animated)
-   Full replacement for your current styles.
-   Works with the classes in your updated template:
-   .startGate .startCopy .startBtn .startHint
-   .timerWrap .timerTop .timerLabel .timerNum
-   .timerBar .timerFill .timerGlow .timerWarn
-   .mcqBody .timeoutNote
+   BIBLE QUIZ – COMPETITION THEME (STATIC GRADIENT)
+   Same look, NO animations (fixes jank on some devices)
 ========================================================= */
 
 /* ===== Root ===== */
@@ -624,7 +619,7 @@ onBeforeUnmount(() => {
   font-family:"Noto Kufi Arabic", system-ui, sans-serif;
 }
 
-/* ===== Animated Aura Background ===== */
+/* ===== Static Aura Background (NO animation) ===== */
 .bqWrap::before{
   content:"";
   position:absolute;
@@ -638,16 +633,9 @@ onBeforeUnmount(() => {
     linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.08));
   filter: blur(8px) saturate(1.15);
   opacity: 0.95;
-  animation: mkAura 10s ease-in-out infinite alternate;
 }
 
-@keyframes mkAura{
-  0%{ transform: translateY(0px) scale(1); }
-  50%{ transform: translateY(-5px) scale(1.01); }
-  100%{ transform: translateY(-2px) scale(1.02); }
-}
-
-/* Sparkly grain */
+/* Static sparkly grain (NO animation) */
 .bqWrap::after{
   content:"";
   position:absolute;
@@ -661,13 +649,7 @@ onBeforeUnmount(() => {
     radial-gradient(circle at 84% 72%, rgba(255,255,255,0.20) 0 2px, transparent 3px);
   opacity: .55;
   filter: blur(.2px);
-  animation: mkSparkle 7s linear infinite;
   pointer-events:none;
-}
-
-@keyframes mkSparkle{
-  from{ transform: translateY(0px); }
-  to{ transform: translateY(-12px); }
 }
 
 /* ===== Header ===== */
@@ -728,7 +710,7 @@ onBeforeUnmount(() => {
   overflow:hidden;
 }
 
-/* Shimmer + top highlight */
+/* Static shimmer overlay (NO animation) */
 .bqCard::before{
   content:"";
   position:absolute;
@@ -738,14 +720,7 @@ onBeforeUnmount(() => {
     radial-gradient(600px 220px at 90% 0%, rgba(6,182,212,0.16), transparent 60%),
     linear-gradient(135deg, rgba(255,255,255,0.55), transparent 35%, transparent 60%, rgba(255,255,255,0.30));
   opacity: 0.80;
-  transform: translateX(-18%);
-  animation: mkShimmer 7.5s ease-in-out infinite alternate;
   pointer-events:none;
-}
-
-@keyframes mkShimmer{
-  0%{ transform: translateX(-20%) translateY(0px); }
-  100%{ transform: translateX(0%) translateY(-6px); }
 }
 
 .bqCardTitle{
@@ -803,7 +778,6 @@ onBeforeUnmount(() => {
   box-shadow: var(--sh3);
   position: relative;
   overflow:hidden;
-  transform: translateZ(0);
   transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
 }
 
@@ -897,7 +871,6 @@ onBeforeUnmount(() => {
   background:
     linear-gradient(90deg, rgba(239,68,68,0.95), rgba(245,158,11,0.95), rgba(34,197,94,0.95), rgba(6,182,212,0.95), rgba(124,58,237,0.95));
   filter: saturate(1.12);
-  animation: timerPulse 1.4s ease-in-out infinite;
   will-change: transform;
 }
 
@@ -914,12 +887,6 @@ onBeforeUnmount(() => {
   will-change: transform;
 }
 
-@keyframes timerPulse{
-  0%{ filter: saturate(1.05) brightness(1); }
-  50%{ filter: saturate(1.25) brightness(1.05); }
-  100%{ filter: saturate(1.05) brightness(1); }
-}
-
 .timerWarn{
   margin-top: 10px;
   text-align: center;
@@ -929,15 +896,7 @@ onBeforeUnmount(() => {
   border: 1px dashed rgba(239, 68, 68, 0.45);
   padding: 8px 10px;
   border-radius: 14px;
-  animation: warnShake 1.1s ease-in-out infinite;
-}
-
-@keyframes warnShake{
-  0%,100%{ transform: translateX(0); }
-  20%{ transform: translateX(1px); }
-  40%{ transform: translateX(-1px); }
-  60%{ transform: translateX(1px); }
-  80%{ transform: translateX(-1px); }
+  /* NO shake animation */
 }
 
 /* ===== Questions ===== */
@@ -961,31 +920,53 @@ onBeforeUnmount(() => {
   margin-top: 0;
 }
 
+/* ===== (Your enhanced mcqQ override kept) ===== */
 .mcqQ{
   display:flex;
   gap: 10px;
   align-items:flex-start;
-  font-weight: 1100;
+  font-weight: 1200;
   line-height: 1.9;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+
+  padding: 14px 12px;
+  border-radius: 18px;
+
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.55));
+  border: 1px solid rgba(8,16,32,0.10);
+
+  box-shadow:
+    0 18px 42px rgba(0,0,0,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.75);
+
+  position: relative;
+}
+
+.mcqQ::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius: 18px;
+  background:
+    radial-gradient(500px 180px at 12% 0%, rgba(245,158,11,0.16), transparent 60%),
+    radial-gradient(500px 180px at 90% 10%, rgba(124,58,237,0.12), transparent 60%);
+  pointer-events:none;
 }
 
 .mcqNum{
   flex: 0 0 auto;
-  padding: 4px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.70);
-  background:
-    linear-gradient(135deg, rgba(124,58,237,0.20), rgba(6,182,212,0.12)),
-    rgba(255,255,255,0.55);
-  box-shadow: 0 10px 18px rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.10);
+  font-weight: 1300;
   font-size: 12px;
-  font-weight: 1200;
 }
 
 .mcqTxt{
   flex:1;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--ink);
 }
 
@@ -1012,7 +993,6 @@ onBeforeUnmount(() => {
   transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, filter .16s ease;
   box-shadow: 0 14px 26px rgba(0,0,0,0.10);
   overflow:hidden;
-  transform: translateZ(0);
 }
 
 .mcqOpt::after{
@@ -1142,7 +1122,6 @@ onBeforeUnmount(() => {
   transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease, filter .16s ease;
   position: relative;
   overflow:hidden;
-  transform: translateZ(0);
 }
 
 .bqBtn::before{
@@ -1192,7 +1171,6 @@ onBeforeUnmount(() => {
   box-shadow: var(--sh2);
   position: relative;
   overflow: hidden;
-  transform: translateZ(0);
 }
 
 .bqResult.isPerfect{
@@ -1222,6 +1200,16 @@ onBeforeUnmount(() => {
   font-size: 12px;
   opacity: 0.90;
   color: var(--sub);
+}
+
+/* ===== Confetti (STATIC / disabled) =====
+   If you want confetti but static, we just hide it.
+*/
+.confetti{
+  display: none;
+}
+.confettiPiece{
+  display: none;
 }
 
 /* ===== Essay ===== */
@@ -1264,91 +1252,6 @@ onBeforeUnmount(() => {
   opacity: 0.85;
   text-align: center;
   color: rgba(16, 185, 129, 0.95);
-}
-
-/* ===== Confetti (kept) ===== */
-.confetti{
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  border-radius: inherit;
-  z-index: 0;
-}
-
-.confettiPiece{
-  position: absolute;
-  top: -18px;
-  width: 10px;
-  height: 14px;
-  border-radius: 4px;
-  opacity: 0.95;
-  background: linear-gradient(135deg, rgba(124,58,237,0.95), rgba(6,182,212,0.90));
-  animation: confettiFall 1.9s ease-in forwards;
-  filter: drop-shadow(0 10px 16px rgba(0,0,0,0.12));
-}
-
-.confettiPiece:nth-child(1){ left: 6%;  animation-delay: 0.00s; transform: rotate(12deg); }
-.confettiPiece:nth-child(2){ left: 12%; animation-delay: 0.05s; transform: rotate(-20deg); }
-.confettiPiece:nth-child(3){ left: 18%; animation-delay: 0.10s; transform: rotate(32deg); }
-.confettiPiece:nth-child(4){ left: 24%; animation-delay: 0.15s; transform: rotate(-10deg); }
-.confettiPiece:nth-child(5){ left: 30%; animation-delay: 0.20s; transform: rotate(24deg); }
-.confettiPiece:nth-child(6){ left: 36%; animation-delay: 0.25s; transform: rotate(-28deg); }
-.confettiPiece:nth-child(7){ left: 42%; animation-delay: 0.30s; transform: rotate(14deg); }
-.confettiPiece:nth-child(8){ left: 48%; animation-delay: 0.35s; transform: rotate(-16deg); }
-.confettiPiece:nth-child(9){ left: 54%; animation-delay: 0.40s; transform: rotate(26deg); }
-.confettiPiece:nth-child(10){ left: 60%; animation-delay: 0.45s; transform: rotate(-30deg); }
-.confettiPiece:nth-child(11){ left: 66%; animation-delay: 0.50s; transform: rotate(18deg); }
-.confettiPiece:nth-child(12){ left: 72%; animation-delay: 0.55s; transform: rotate(-14deg); }
-.confettiPiece:nth-child(13){ left: 78%; animation-delay: 0.60s; transform: rotate(34deg); }
-.confettiPiece:nth-child(14){ left: 84%; animation-delay: 0.65s; transform: rotate(-22deg); }
-.confettiPiece:nth-child(15){ left: 90%; animation-delay: 0.70s; transform: rotate(10deg); }
-.confettiPiece:nth-child(16){ left: 96%; animation-delay: 0.75s; transform: rotate(-12deg); }
-
-.confettiPiece:nth-child(17){ left: 9%;  animation-delay: 0.08s; transform: rotate(28deg); }
-.confettiPiece:nth-child(18){ left: 21%; animation-delay: 0.18s; transform: rotate(-26deg); }
-.confettiPiece:nth-child(19){ left: 33%; animation-delay: 0.28s; transform: rotate(16deg); }
-.confettiPiece:nth-child(20){ left: 45%; animation-delay: 0.38s; transform: rotate(-18deg); }
-.confettiPiece:nth-child(21){ left: 57%; animation-delay: 0.48s; transform: rotate(30deg); }
-.confettiPiece:nth-child(22){ left: 69%; animation-delay: 0.58s; transform: rotate(-12deg); }
-.confettiPiece:nth-child(23){ left: 81%; animation-delay: 0.68s; transform: rotate(22deg); }
-.confettiPiece:nth-child(24){ left: 93%; animation-delay: 0.78s; transform: rotate(-24deg); }
-
-.confettiPiece:nth-child(3n){
-  width: 8px;
-  height: 12px;
-  background: linear-gradient(135deg, rgba(245,158,11,0.95), rgba(255,255,255,0.55));
-}
-.confettiPiece:nth-child(4n){
-  width: 12px;
-  height: 8px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, rgba(34,197,94,0.95), rgba(6,182,212,0.65));
-}
-.confettiPiece:nth-child(5n){
-  width: 9px;
-  height: 16px;
-  background: linear-gradient(135deg, rgba(239,68,68,0.92), rgba(255,255,255,0.55));
-}
-
-@keyframes confettiFall{
-  0%{ transform: translateY(-10px) rotate(0deg); opacity: 0.0; }
-  12%{ opacity: 0.95; }
-  100%{ transform: translateY(260px) rotate(360deg); opacity: 0; }
-}
-
-.bqResult > *{
-  position: relative;
-  z-index: 1;
-}
-
-.bqResult.isPerfect .confetti{
-  animation: confettiFadeOut 2.0s ease-out forwards;
-}
-
-@keyframes confettiFadeOut{
-  0%{ opacity: 1; }
-  100%{ opacity: 0; }
 }
 
 /* ===== Dark Mode ===== */
@@ -1397,6 +1300,18 @@ onBeforeUnmount(() => {
   border-color: rgba(255,255,255,0.16);
 }
 
+:global(html[data-mk-theme="dark"]) .timerWrap,
+:global(html.ion-palette-dark) .timerWrap,
+:global(html.dark) .timerWrap,
+:global(body.dark) .timerWrap,
+:global(ion-app.dark) .timerWrap,
+:global(ion-app.ion-palette-dark) .timerWrap{
+  background:
+    radial-gradient(900px 260px at 12% 0%, rgba(34,197,94,0.16), transparent 60%),
+    rgba(0,0,0,0.34);
+  border-color: rgba(255,255,255,0.16);
+}
+
 :global(html[data-mk-theme="dark"]) .mcqOpt,
 :global(html.ion-palette-dark) .mcqOpt,
 :global(html.dark) .mcqOpt,
@@ -1434,12 +1349,13 @@ onBeforeUnmount(() => {
   box-shadow: 0 22px 50px rgba(0,0,0,0.50);
 }
 
-/* ===== Reduce Motion ===== */
+/* ===== Reduce Motion =====
+   (Already static, but keep it harmless)
+*/
 @media (prefers-reduced-motion: reduce){
   .bqWrap::before,
   .bqWrap::after,
-  .bqCard::before,
-  .timerFill{
+  .bqCard::before{
     animation: none !important;
   }
   .mcqOpt,
@@ -1448,53 +1364,6 @@ onBeforeUnmount(() => {
   .essayBox{
     transition: none !important;
   }
-  .timerWarn{
-    animation: none !important;
-  }
-}
-.mcqQ{
-  display:flex;
-  gap: 10px;
-  align-items:flex-start;
-  font-weight: 1200;
-  line-height: 1.9;
-  margin-bottom: 12px;
-
-  padding: 14px 12px;
-  border-radius: 18px;
-
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.55));
-  border: 1px solid rgba(8,16,32,0.10);
-
-  box-shadow:
-    0 18px 42px rgba(0,0,0,0.14),
-    inset 0 1px 0 rgba(255,255,255,0.75);
-
-  position: relative;
-}
-
-.mcqQ::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius: 18px;
-  background:
-    radial-gradient(500px 180px at 12% 0%, rgba(245,158,11,0.16), transparent 60%),
-    radial-gradient(500px 180px at 90% 10%, rgba(124,58,237,0.12), transparent 60%);
-  pointer-events:none;
-}
-
-.mcqNum{
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(0,0,0,0.06);
-  border: 1px solid rgba(0,0,0,0.10);
-  font-weight: 1300;
-}
-
-.mcqTxt{
-  font-size: 16px;
 }
 
 </style>
