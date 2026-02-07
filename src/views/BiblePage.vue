@@ -399,27 +399,56 @@ function onGroupChange(ev: any) {
   </script>
   
   <style scoped>
-  /* =========================
-  Bible Page – Mobile Safe (Light + Dark)
-  FIXED for iOS & Android Dark Mode
+ /* =========================
+  Bible Page – Clean Light/Dark
+  - No white strips on mobile
+  - Segment readable
+  - Accordion cards consistent
+  - Chapter buttons: solid grey (not transparent)
 ========================= */
 
 .bible{
+  /* ------- LIGHT TOKENS ------- */
   --mk-bg1: #eef4f8;
   --mk-bg2: #ffffff;
+
   --mk-text: #0b2b40;
-  --mk-card: #ffffff;
-  --mk-accent: #1fb6aa;
+  --mk-text-dim: rgba(11,43,64,0.68);
+
+  --mk-surface: #ffffff;                 /* cards */
+  --mk-surface-2: rgba(255,255,255,0.92);/* toolbar/segment bg */
   --mk-border: rgba(11,43,64,0.10);
+
+  --mk-accent: #1fb6aa;
+  --mk-accent-weak: rgba(31,182,170,0.14);
+  --mk-accent-mid: rgba(31,182,170,0.22);
+
+  /* greys for chapters */
+  --mk-grey: rgba(11,43,64,0.08);
+  --mk-grey-2: rgba(11,43,64,0.12);
+  --mk-grey-text: rgba(11,43,64,0.58);
 
   font-family:"Noto Naskh Arabic","Noto Kufi Arabic",system-ui,sans-serif;
   color: var(--mk-text);
-  background: linear-gradient(to bottom, var(--mk-bg1), var(--mk-bg2));
-}
 
-/* =========================
-   Dark Mode TOKENS (mobile first)
-========================= */
+  /* background */
+  background: linear-gradient(to bottom, var(--mk-bg1), var(--mk-bg2));
+  --mk-disabled-bg: rgba(11,43,64,0.10);
+  --mk-disabled-border: rgba(11,43,64,0.14);
+  --mk-disabled-text: rgba(11,43,64,0.72);
+}
+/* ===== Better disabled contrast (DARK) ===== */
+:global(html.ion-palette-dark) .bible,
+:global(html.dark) .bible,
+:global(body.dark) .bible,
+:global(ion-app.ion-palette-dark) .bible,
+:global(ion-app.dark) .bible{
+  /* ✅ new tokens للـ disabled في الدارك */
+  --mk-disabled-bg: rgba(255,255,255,0.10);
+  --mk-disabled-border: rgba(255,255,255,0.16);
+  --mk-disabled-text: rgba(255,255,255,0.62);
+}
+/* ------- DARK TOKENS ------- */
 :global(html.ion-palette-dark) .bible,
 :global(html.dark) .bible,
 :global(body.dark) .bible,
@@ -427,43 +456,62 @@ function onGroupChange(ev: any) {
 :global(ion-app.dark) .bible{
   --mk-bg1: #0b1620;
   --mk-bg2: #0a0f14;
-  --mk-text: rgba(255,255,255,0.94);
-  --mk-card: rgba(255,255,255,0.08);
+
+  --mk-text: rgba(255,255,255,0.95);
+  --mk-text-dim: rgba(255,255,255,0.70);
+
+  --mk-surface: rgba(255,255,255,0.08);
+  --mk-surface-2: rgba(12,18,26,0.88);
+  --mk-border: rgba(255,255,255,0.14);
+
   --mk-accent: #28d6cc;
-  --mk-border: rgba(255,255,255,0.16);
+  --mk-accent-weak: rgba(40,214,204,0.16);
+  --mk-accent-mid: rgba(40,214,204,0.24);
+
+  --mk-grey: rgba(255,255,255,0.08);
+  --mk-grey-2: rgba(255,255,255,0.12);
+  --mk-grey-text: rgba(255,255,255,0.58);
 
   background: linear-gradient(to bottom, var(--mk-bg1), var(--mk-bg2));
 }
 
 /* =========================
-   ion-content (NO transparent on mobile)
+   IONIC GLOBAL FIXES (mobile)
 ========================= */
+
+/* ion-content bg transparent is OK since bible has background */
 :global(ion-content){
-  --background: transparent;
+  --background: transparent !important;
 }
 
-/* =========================
-   Header & Toolbar (CRITICAL FIX)
-========================= */
+/* header should not inject white */
 :global(ion-header){
-  background: transparent;
+  background: transparent !important;
 }
 
+/* Toolbar: force solid background + correct text */
 :global(ion-toolbar){
-  --background: var(--mk-bg1);
-  --color: var(--mk-text);
-  --border-color: var(--mk-border);
+  --background: var(--mk-surface-2) !important;
+  --color: var(--mk-text) !important;
+  --border-color: var(--mk-border) !important;
 }
 
-/* Force solid toolbar in dark (no translucency) */
-:global(html.ion-palette-dark) ion-toolbar,
-:global(html.dark) ion-toolbar,
-:global(body.dark) ion-toolbar{
-  --background: #0b1620;
+/* Title/back button */
+:global(ion-title){ color: var(--mk-text) !important; }
+:global(ion-back-button){ color: var(--mk-text) !important; }
+
+/* =========================
+   Layout
+========================= */
+.wrap{
+  padding: 16px;
+  padding-top: calc(env(safe-area-inset-top) + 10px);
+  max-width: 860px;
+  margin: 0 auto;
 }
 
 /* =========================
-   Segment (Mobile Safe)
+   Segment
 ========================= */
 .segWrap{
   padding: 8px 12px 12px;
@@ -472,100 +520,125 @@ function onGroupChange(ev: any) {
 .seg{
   border-radius: 14px;
   overflow: hidden;
-  background: var(--mk-card);
+
+  background: var(--mk-surface);
   border: 1px solid var(--mk-border);
   padding: 4px;
 }
 
+/* Segment buttons */
 .seg :deep(ion-segment-button){
-  --color: color-mix(in srgb, var(--mk-text) 85%, transparent);
+  --color: var(--mk-text-dim);
   --color-checked: var(--mk-text);
-  --indicator-color: rgba(31,182,170,0.25);
+  --indicator-color: var(--mk-accent-weak);
   --indicator-height: 100%;
   --border-radius: 12px;
-  font-weight: 900;
+
+  font-weight: 1000;
 }
 
+/* Checked button feel */
 .seg :deep(.segment-button-checked){
-  background: rgba(31,182,170,0.22);
+  background: var(--mk-accent-weak);
 }
 
 /* =========================
    Accordion / Books
 ========================= */
 .bookHeader{
-  --background: var(--mk-card);
-  --color: var(--mk-text);
+  --background: var(--mk-surface) !important;
+  --color: var(--mk-text) !important;
+
   border: 1px solid var(--mk-border);
   border-radius: 16px;
   margin-bottom: 10px;
 }
 
-.bookContent{
-  margin: -4px 0 12px;
-  padding: 12px;
-  background: var(--mk-card);
-  border: 1px solid var(--mk-border);
-  border-radius: 16px;
+/* make sure ion-item inside doesn't flash white */
+.bookHeader :deep(.item-native){
+  background: transparent !important;
 }
 
 .bookName{
-  font-weight: 900;
+  font-weight: 1000;
 }
 
 .bookMeta{
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
   opacity: 0.7;
+}
+
+.bookContent{
+  margin: -4px 0 12px;
+  padding: 12px;
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-border);
+  border-radius: 16px;
 }
 
 /* =========================
    Chapters Grid
 ========================= */
 .chapGrid{
-  display:grid;
-  grid-template-columns: repeat(8, 1fr);
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 8px;
 }
 
 @media (max-width: 520px){
-  .chapGrid{ grid-template-columns: repeat(6, 1fr); }
+  .chapGrid{ grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
 
+/* Base button */
 .chapBtn{
   height: 38px;
   border-radius: 12px;
   border: 1px solid var(--mk-border);
-  background: rgba(31,182,170,0.15);
+
+  background: var(--mk-grey);     /* ✅ solid grey base */
   color: var(--mk-text);
-  font-weight: 900;
+  font-weight: 1000;
+
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, transform 120ms ease;
 }
 
-/* available */
+/* Available: clear accent */
 .chapBtn.available{
-  background: rgba(31,182,170,0.22);
-  border-color: rgba(31,182,170,0.45);
+  background: var(--mk-accent-weak);
+  border-color: color-mix(in srgb, var(--mk-accent) 45%, var(--mk-border));
 }
 
-/* neutral */
+/* Neutral: "not checked yet" — grey dashed but still solid */
 .chapBtn.neutral{
-  background: rgba(255,255,255,0.06);
+  background: var(--mk-grey);
+  border-color: var(--mk-grey-2);
   border-style: dashed;
-  opacity: 0.75;
+  color: var(--mk-grey-text);
+  opacity: 0.95;
 }
 
-/* disabled */
+/* ✅ Disabled: numbers always visible */
 .chapBtn.disabled,
 .chapBtn:disabled{
-  background: rgba(255,255,255,0.05);
-  color: rgba(255,255,255,0.45);
+  background: var(--mk-disabled-bg);
+  border-color: var(--mk-disabled-border);
+  color: var(--mk-disabled-text);
   cursor: not-allowed;
-  opacity: 0.7;
+
+  /* مهم: ما نقللش opacity علشان الأرقام ما تختفيش */
+  opacity: 1;
+  filter: saturate(0.9);
 }
 
-/* =========================
-   Hint
-========================= */
+
+/* Press (only for enabled available/neutral) */
+.chapBtn:not(:disabled):active{
+  transform: scale(0.98);
+}
+
+/* Hint */
 .hint{
   margin-top: 10px;
   font-size: 13px;
