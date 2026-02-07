@@ -188,8 +188,6 @@
 { key: 'Baruch', slug: 'baruch', nameAr: 'باروخ', maxChapters: 6, testament: 'ot' },
 { key: '1Maccabees', slug: '1maccabees', nameAr: '١ مكابيين', maxChapters: 16, testament: 'ot' },
 { key: '2Maccabees', slug: '2maccabees', nameAr: '٢ مكابيين', maxChapters: 15, testament: 'ot' },
-{ key: '3Maccabees', slug: '3maccabees', nameAr: '٣ مكابيين', maxChapters: 7, testament: 'ot' },
-{ key: '4Maccabees', slug: '4maccabees', nameAr: '٤ مكابيين', maxChapters: 18, testament: 'ot' },
 
   ]
   
