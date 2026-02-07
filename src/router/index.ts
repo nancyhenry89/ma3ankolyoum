@@ -32,7 +32,7 @@ const routes: Array<RouteRecordRaw> = [
       { path: 'agbia-audio/:date', name: 'AgbiaAudio', component: () => import('@/views/AgbiaAudioPage.vue') },
       { path: 'occasional/:file', name: 'Occasional', component: () => import('@/views/OccasionalPage.vue') },
       { path: 'daily-audio/:iso', name: 'DailyAudio', component: () => import('@/views/DailyAudioPage.vue') },
-      { path: '/bible', name: 'Bible', component: () => import('@/views/BiblePage.vue') },
+      { path: 'bible', name: 'Bible', component: () => import('@/views/BiblePage.vue') },
     ],
   },
 

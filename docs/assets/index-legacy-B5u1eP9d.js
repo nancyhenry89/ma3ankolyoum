@@ -1,0 +1,1 @@
+System.register(["./index-legacy-CGE48GN3.js"],function(e,r){"use strict";var t,s;return{setters:[e=>{t=e.r,s=e._}],execute:function(){e("B",t("Browser",{web:()=>s(()=>r.import("./web-legacy-Ba9TxB5f.js"),void 0).then(e=>new e.BrowserWeb)}))}}});

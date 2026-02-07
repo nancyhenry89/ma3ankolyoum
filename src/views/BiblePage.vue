@@ -140,52 +140,62 @@
     { key: 'Jude', slug: 'jude', nameAr: 'يهوذا', maxChapters: 1, testament: 'nt' },
     { key: 'Revelation', slug: 'revelation', nameAr: 'رؤيا يوحنا', maxChapters: 22, testament: 'nt' },
   
-    // ===== Old Testament (canonical) =====
-    { key: 'Genesis', slug: 'genesis', nameAr: 'التكوين', maxChapters: 50, testament: 'ot' },
-    { key: 'Exodus', slug: 'exodus', nameAr: 'الخروج', maxChapters: 40, testament: 'ot' },
-    { key: 'Leviticus', slug: 'leviticus', nameAr: 'اللاويين', maxChapters: 27, testament: 'ot' },
-    { key: 'Numbers', slug: 'numbers', nameAr: 'العدد', maxChapters: 36, testament: 'ot' },
-    { key: 'Deuteronomy', slug: 'deuteronomy', nameAr: 'التثنية', maxChapters: 34, testament: 'ot' },
-    { key: 'Joshua', slug: 'joshua', nameAr: 'يشوع', maxChapters: 24, testament: 'ot' },
-    { key: 'Judges', slug: 'judges', nameAr: 'القضاة', maxChapters: 21, testament: 'ot' },
-    { key: 'Ruth', slug: 'ruth', nameAr: 'راعوث', maxChapters: 4, testament: 'ot' },
-    { key: '1Samuel', slug: '1samuel', nameAr: '١ صموئيل', maxChapters: 31, testament: 'ot' },
-    { key: '2Samuel', slug: '2samuel', nameAr: '٢ صموئيل', maxChapters: 24, testament: 'ot' },
-    { key: '1Kings', slug: '1kings', nameAr: '١ ملوك', maxChapters: 22, testament: 'ot' },
-    { key: '2Kings', slug: '2kings', nameAr: '٢ ملوك', maxChapters: 25, testament: 'ot' },
-    { key: '1Chronicles', slug: '1chronicles', nameAr: '١ أخبار', maxChapters: 29, testament: 'ot' },
-    { key: '2Chronicles', slug: '2chronicles', nameAr: '٢ أخبار', maxChapters: 36, testament: 'ot' },
-    { key: 'Ezra', slug: 'ezra', nameAr: 'عزرا', maxChapters: 10, testament: 'ot' },
-    { key: 'Nehemiah', slug: 'nehemiah', nameAr: 'نحميا', maxChapters: 13, testament: 'ot' },
-    { key: 'Esther', slug: 'esther', nameAr: 'أستير', maxChapters: 10, testament: 'ot' },
-    { key: 'Job', slug: 'job', nameAr: 'أيوب', maxChapters: 42, testament: 'ot' },
-    { key: 'Psalms', slug: 'psalms', nameAr: 'المزامير', maxChapters: 150, testament: 'ot' },
-    { key: 'Proverbs', slug: 'proverbs', nameAr: 'الأمثال', maxChapters: 31, testament: 'ot' },
-    { key: 'Ecclesiastes', slug: 'ecclesiastes', nameAr: 'الجامعة', maxChapters: 12, testament: 'ot' },
-    { key: 'SongOfSolomon', slug: 'songofsolomon', nameAr: 'نشيد الأنشاد', maxChapters: 8, testament: 'ot' },
-    { key: 'Isaiah', slug: 'isaiah', nameAr: 'إشعياء', maxChapters: 66, testament: 'ot' },
-    { key: 'Jeremiah', slug: 'jeremiah', nameAr: 'إرميا', maxChapters: 52, testament: 'ot' },
-    { key: 'Lamentations', slug: 'lamentations', nameAr: 'مراثي إرميا', maxChapters: 5, testament: 'ot' },
-    { key: 'Ezekiel', slug: 'ezekiel', nameAr: 'حزقيال', maxChapters: 48, testament: 'ot' },
-    { key: 'Daniel', slug: 'daniel', nameAr: 'دانيال', maxChapters: 12, testament: 'ot' },
-    { key: 'Hosea', slug: 'hosea', nameAr: 'هوشع', maxChapters: 14, testament: 'ot' },
-    { key: 'Joel', slug: 'joel', nameAr: 'يوئيل', maxChapters: 3, testament: 'ot' },
-    { key: 'Amos', slug: 'amos', nameAr: 'عاموس', maxChapters: 9, testament: 'ot' },
-    { key: 'Obadiah', slug: 'obadiah', nameAr: 'عوبديا', maxChapters: 1, testament: 'ot' },
-    { key: 'Jonah', slug: 'jonah', nameAr: 'يونان', maxChapters: 4, testament: 'ot' },
-    { key: 'Micah', slug: 'micah', nameAr: 'ميخا', maxChapters: 7, testament: 'ot' },
-    { key: 'Nahum', slug: 'nahum', nameAr: 'ناحوم', maxChapters: 3, testament: 'ot' },
-    { key: 'Habakkuk', slug: 'habakkuk', nameAr: 'حبقوق', maxChapters: 3, testament: 'ot' },
-    { key: 'Zephaniah', slug: 'zephaniah', nameAr: 'صفنيا', maxChapters: 3, testament: 'ot' },
-    { key: 'Haggai', slug: 'haggai', nameAr: 'حجي', maxChapters: 2, testament: 'ot' },
-    { key: 'Zechariah', slug: 'zechariah', nameAr: 'زكريا', maxChapters: 14, testament: 'ot' },
-    { key: 'Malachi', slug: 'malachi', nameAr: 'ملاخي', maxChapters: 4, testament: 'ot' },
-    // Old Testament (with Deuterocanon)
+  // ===== Old Testament (canonical + Deuterocanon) =====
+{ key: 'Genesis', slug: 'genesis', nameAr: 'التكوين', maxChapters: 50, testament: 'ot' },
+{ key: 'Exodus', slug: 'exodus', nameAr: 'الخروج', maxChapters: 40, testament: 'ot' },
+{ key: 'Leviticus', slug: 'leviticus', nameAr: 'اللاويين', maxChapters: 27, testament: 'ot' },
+{ key: 'Numbers', slug: 'numbers', nameAr: 'العدد', maxChapters: 36, testament: 'ot' },
+{ key: 'Deuteronomy', slug: 'deuteronomy', nameAr: 'التثنية', maxChapters: 34, testament: 'ot' },
+{ key: 'Joshua', slug: 'joshua', nameAr: 'يشوع', maxChapters: 24, testament: 'ot' },
+{ key: 'Judges', slug: 'judges', nameAr: 'القضاة', maxChapters: 21, testament: 'ot' },
+{ key: 'Ruth', slug: 'ruth', nameAr: 'راعوث', maxChapters: 4, testament: 'ot' },
+{ key: '1Samuel', slug: '1samuel', nameAr: '١ صموئيل', maxChapters: 31, testament: 'ot' },
+{ key: '2Samuel', slug: '2samuel', nameAr: '٢ صموئيل', maxChapters: 24, testament: 'ot' },
+{ key: '1Kings', slug: '1kings', nameAr: '١ ملوك', maxChapters: 22, testament: 'ot' },
+{ key: '2Kings', slug: '2kings', nameAr: '٢ ملوك', maxChapters: 25, testament: 'ot' },
+
+{ key: '1Chronicles', slug: '1chronicles', nameAr: '١ أخبار', maxChapters: 29, testament: 'ot' },
+{ key: '2Chronicles', slug: '2chronicles', nameAr: '٢ أخبار', maxChapters: 36, testament: 'ot' },
+{ key: 'PrayerOfManasseh', slug: 'prayerofmanasseh', nameAr: 'صلاة منسّى', maxChapters: 1, testament: 'ot' },
+
+{ key: 'Ezra', slug: 'ezra', nameAr: 'عزرا', maxChapters: 10, testament: 'ot' },
+{ key: 'Nehemiah', slug: 'nehemiah', nameAr: 'نحميا', maxChapters: 13, testament: 'ot' },
+
+// ===== Deuterocanonical – Historical =====
 { key: 'Tobit', slug: 'tobit', nameAr: 'طوبيا', maxChapters: 14, testament: 'ot' },
 { key: 'Judith', slug: 'judith', nameAr: 'يهوديت', maxChapters: 16, testament: 'ot' },
+{ key: 'Esther', slug: 'esther', nameAr: 'أستير', maxChapters: 10, testament: 'ot' },
+
+// ===== Poetic / Wisdom =====
+{ key: 'Job', slug: 'job', nameAr: 'أيوب', maxChapters: 42, testament: 'ot' },
+{ key: 'Psalms', slug: 'psalms', nameAr: 'المزامير', maxChapters: 150, testament: 'ot' },
+{ key: 'Proverbs', slug: 'proverbs', nameAr: 'الأمثال', maxChapters: 31, testament: 'ot' },
+{ key: 'Ecclesiastes', slug: 'ecclesiastes', nameAr: 'الجامعة', maxChapters: 12, testament: 'ot' },
+{ key: 'SongOfSolomon', slug: 'songofsolomon', nameAr: 'نشيد الأنشاد', maxChapters: 8, testament: 'ot' },
 { key: 'Wisdom', slug: 'wisdom', nameAr: 'الحكمة', maxChapters: 19, testament: 'ot' },
 { key: 'Sirach', slug: 'sirach', nameAr: 'يشوع بن سيراخ', maxChapters: 51, testament: 'ot' },
+
+// ===== Major Prophets =====
+{ key: 'Isaiah', slug: 'isaiah', nameAr: 'إشعياء', maxChapters: 66, testament: 'ot' },
+{ key: 'Jeremiah', slug: 'jeremiah', nameAr: 'إرميا', maxChapters: 52, testament: 'ot' },
+{ key: 'Lamentations', slug: 'lamentations', nameAr: 'مراثي إرميا', maxChapters: 5, testament: 'ot' },
 { key: 'Baruch', slug: 'baruch', nameAr: 'باروخ', maxChapters: 6, testament: 'ot' },
+{ key: 'Ezekiel', slug: 'ezekiel', nameAr: 'حزقيال', maxChapters: 48, testament: 'ot' },
+{ key: 'Daniel', slug: 'daniel', nameAr: 'دانيال', maxChapters: 12, testament: 'ot' },
+
+// ===== Minor Prophets =====
+{ key: 'Hosea', slug: 'hosea', nameAr: 'هوشع', maxChapters: 14, testament: 'ot' },
+{ key: 'Joel', slug: 'joel', nameAr: 'يوئيل', maxChapters: 3, testament: 'ot' },
+{ key: 'Amos', slug: 'amos', nameAr: 'عاموس', maxChapters: 9, testament: 'ot' },
+{ key: 'Obadiah', slug: 'obadiah', nameAr: 'عوبديا', maxChapters: 1, testament: 'ot' },
+{ key: 'Jonah', slug: 'jonah', nameAr: 'يونان', maxChapters: 4, testament: 'ot' },
+{ key: 'Micah', slug: 'micah', nameAr: 'ميخا', maxChapters: 7, testament: 'ot' },
+{ key: 'Nahum', slug: 'nahum', nameAr: 'ناحوم', maxChapters: 3, testament: 'ot' },
+{ key: 'Habakkuk', slug: 'habakkuk', nameAr: 'حبقوق', maxChapters: 3, testament: 'ot' },
+{ key: 'Zephaniah', slug: 'zephaniah', nameAr: 'صفنيا', maxChapters: 3, testament: 'ot' },
+{ key: 'Haggai', slug: 'haggai', nameAr: 'حجي', maxChapters: 2, testament: 'ot' },
+{ key: 'Zechariah', slug: 'zechariah', nameAr: 'زكريا', maxChapters: 14, testament: 'ot' },
+{ key: 'Malachi', slug: 'malachi', nameAr: 'ملاخي', maxChapters: 4, testament: 'ot' },
 { key: '1Maccabees', slug: '1maccabees', nameAr: '١ مكابيين', maxChapters: 16, testament: 'ot' },
 { key: '2Maccabees', slug: '2maccabees', nameAr: '٢ مكابيين', maxChapters: 15, testament: 'ot' },
 
@@ -389,6 +399,14 @@ function onGroupChange(ev: any) {
   </script>
   
   <style scoped>
+  /* =========================
+    Bible Page (Light + Dark)
+    - fixes header/toolbar white
+    - fixes segment in dark
+    - fixes accordion/ion-item bg
+    - fixes chapter buttons contrast
+  ========================= */
+  
   .bible{
     --mk-bg1: #eef4f8;
     --mk-bg2: #ffffff;
@@ -396,9 +414,12 @@ function onGroupChange(ev: any) {
     --mk-card: #ffffff;
     --mk-accent: #1fb6aa;
     --mk-border: rgba(11,43,64,0.10);
+  
     font-family:"Noto Naskh Arabic","Noto Kufi Arabic",system-ui,sans-serif;
     color: var(--mk-text);
   }
+  
+  /* Dark mode tokens */
   :global(html.ion-palette-dark) .bible,
   :global(html.dark) .bible,
   :global(body.dark) .bible,
@@ -406,13 +427,14 @@ function onGroupChange(ev: any) {
   :global(ion-app.dark) .bible{
     --mk-bg1: #0b1620;
     --mk-bg2: #0a0f14;
-    --mk-text: #ffffff;
+    --mk-text: rgba(255,255,255,0.94);
     --mk-card: rgba(255,255,255,0.07);
-    --mk-accent: #1fb6aa;
+    --mk-accent: #28d6cc;
     --mk-border: rgba(255,255,255,0.14);
   }
   
-  :global(ion-content){ --background: transparent; }
+  /* Background */
+  :global(ion-content){ --background: transparent !important; }
   
   .bible::before{
     content:"";
@@ -422,6 +444,7 @@ function onGroupChange(ev: any) {
     background: linear-gradient(to bottom, var(--mk-bg1), var(--mk-bg2));
   }
   
+  /* Layout */
   .wrap{
     padding:16px;
     padding-top: calc(env(safe-area-inset-top) + 10px);
@@ -429,45 +452,109 @@ function onGroupChange(ev: any) {
     margin: 0 auto;
   }
   
+  /* =========================
+    FIX: Header + Toolbar in Dark
+    (prevents white strips / white-on-white)
+  ========================= */
+  :global(html.ion-palette-dark) ion-header,
+  :global(html.dark) ion-header,
+  :global(body.dark) ion-header{
+    background: transparent !important;
+  }
+  
+  :global(html.ion-palette-dark) ion-toolbar,
+  :global(html.dark) ion-toolbar,
+  :global(body.dark) ion-toolbar{
+    --background: rgba(10,15,20,0.85);
+    --color: rgba(255,255,255,0.95);
+    --border-color: rgba(255,255,255,0.12);
+  }
+  
+  :global(html.ion-palette-dark) ion-title,
+  :global(html.dark) ion-title,
+  :global(body.dark) ion-title{
+    color: rgba(255,255,255,0.95) !important;
+  }
+  
+  :global(html.ion-palette-dark) ion-back-button,
+  :global(html.dark) ion-back-button,
+  :global(body.dark) ion-back-button{
+    color: rgba(255,255,255,0.95) !important;
+  }
+  
+  /* Segment wrapper */
   .segWrap{
     padding: 8px 12px 12px;
   }
+  
+  /* Segment */
   .seg{
-  border-radius: 14px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--mk-card) 92%, transparent);
-  border: 1px solid var(--mk-border);
-  padding: 4px;
-}
-
-.seg :deep(ion-segment-button){
-  --color: color-mix(in srgb, var(--mk-text) 80%, transparent);
-  --color-checked: var(--mk-text);              /* ✅ مش أبيض */
-  --indicator-color: rgba(31,182,170,0.22);     /* ✅ indicator “خلفية” */
-  --indicator-height: 100%;
-  --border-radius: 12px;
-  font-weight: 1000;
-}
-
-.seg :deep(.segment-button-checked){
-  background: rgba(31,182,170,0.18);            /* ✅ واضح في light/dark */
-}
-
+    border-radius: 14px;
+    overflow: hidden;
+  
+    background: color-mix(in srgb, var(--mk-card) 88%, transparent);
+    border: 1px solid var(--mk-border);
+    padding: 4px;
+  }
+  
+  /* Segment buttons */
+  .seg :deep(ion-segment-button){
+    --color: color-mix(in srgb, var(--mk-text) 85%, transparent);
+    --color-checked: var(--mk-text);
+    --indicator-color: rgba(31,182,170,0.22);
+    --indicator-height: 100%;
+    --border-radius: 12px;
+  
+    font-weight: 1000;
+  }
+  
+  /* Checked style */
+  .seg :deep(.segment-button-checked){
+    background: rgba(31,182,170,0.18);
+  }
+  
+  /* Dark segment background a bit stronger */
+  :global(html.ion-palette-dark) .seg,
+  :global(html.dark) .seg,
+  :global(body.dark) .seg{
+    background: rgba(255,255,255,0.06);
+  }
+  
+  /* =========================
+    Accordion / Books
+  ========================= */
+  
+  /* Accordion header item */
   .bookHeader{
-    --background: var(--mk-card);
+    --background: var(--mk-card) !important;
+    --color: var(--mk-text) !important;
+  
     border: 1px solid var(--mk-border);
     border-radius: 16px;
     margin-bottom: 10px;
   }
+  
+  /* extra safety for dark (Ionic sometimes injects white) */
+  :global(html.ion-palette-dark) .bookHeader,
+  :global(html.dark) .bookHeader,
+  :global(body.dark) .bookHeader{
+    --background: rgba(255,255,255,0.06) !important;
+    --color: rgba(255,255,255,0.94) !important;
+  }
+  
+  /* Book title */
   .bookName{
     font-weight: 1000;
   }
+  
+  /* Loading meta */
   .bookMeta{
     font-size: 12px;
     font-weight: 900;
     opacity: 0.7;
   }
   
+  /* Accordion content box */
   .bookContent{
     margin: -4px 0 12px;
     padding: 12px;
@@ -476,27 +563,46 @@ function onGroupChange(ev: any) {
     border-radius: 16px;
   }
   
+  /* =========================
+    Chapters grid
+  ========================= */
   .chapGrid{
     display:grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
     gap: 8px;
   }
+  
   @media (max-width: 520px){
     .chapGrid{ grid-template-columns: repeat(6, minmax(0, 1fr)); }
   }
   
+  /* Buttons */
   .chapBtn{
     height: 38px;
     border-radius: 12px;
     border: 1px solid var(--mk-border);
-    background: rgba(31,182,170,0.10);
+  
+    background: rgba(31,182,170,0.12);
     color: var(--mk-text);
+  
     font-weight: 1000;
     cursor: pointer;
   }
+  
+  /* available */
   .chapBtn.available{
-    border-color: rgba(31,182,170,0.35);
+    background: rgba(31,182,170,0.18);
+    border-color: rgba(31,182,170,0.45);
   }
+  
+  /* neutral (not checked yet) */
+  .chapBtn.neutral{
+    background: rgba(0,0,0,0.03);
+    border-style: dashed;
+    opacity: 0.78;
+  }
+  
+  /* disabled (missing) */
   .chapBtn.disabled,
   .chapBtn:disabled{
     background: rgba(0,0,0,0.06);
@@ -504,12 +610,35 @@ function onGroupChange(ev: any) {
     cursor: not-allowed;
     opacity: 0.7;
   }
-  :global(html.ion-palette-dark) .chapBtn.disabled,
-  :global(html.ion-palette-dark) .chapBtn:disabled{
-    background: rgba(255,255,255,0.06);
-    color: rgba(255,255,255,0.45);
+  
+  /* Dark tuning */
+  :global(html.ion-palette-dark) .chapBtn,
+  :global(html.dark) .chapBtn,
+  :global(body.dark) .chapBtn{
+    background: rgba(40,214,204,0.12);
+    border-color: rgba(255,255,255,0.14);
   }
   
+  :global(html.ion-palette-dark) .chapBtn.neutral,
+  :global(html.dark) .chapBtn.neutral,
+  :global(body.dark) .chapBtn.neutral{
+    background: rgba(255,255,255,0.05);
+    border-style: dashed;
+    opacity: 0.82;
+  }
+  
+  :global(html.ion-palette-dark) .chapBtn.disabled,
+  :global(html.ion-palette-dark) .chapBtn:disabled,
+  :global(html.dark) .chapBtn.disabled,
+  :global(html.dark) .chapBtn:disabled,
+  :global(body.dark) .chapBtn.disabled,
+  :global(body.dark) .chapBtn:disabled{
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.45);
+    opacity: 0.75;
+  }
+  
+  /* hint */
   .hint{
     margin-top: 10px;
     font-size: 13px;
@@ -517,43 +646,6 @@ function onGroupChange(ev: any) {
     opacity: 0.75;
     text-align: center;
   }
-  .chapBtn{
-  height: 38px;
-  border-radius: 12px;
-  border: 1px solid var(--mk-border);
-  background: rgba(31,182,170,0.10);
-  color: var(--mk-text);
-  font-weight: 1000;
-}
-
-/* قبل الفحص (unknown): شكل محايد */
-.chapBtn.neutral{
-  background: rgba(0,0,0,0.03);
-}
-
-/* available */
-.chapBtn.available{
-  background: rgba(31,182,170,0.14);
-  border-color: rgba(31,182,170,0.35);
-}
-
-/* disabled (missing) */
-.chapBtn.disabled,
-.chapBtn:disabled{
-  background: rgba(0,0,0,0.06);
-  color: color-mix(in srgb, var(--mk-text) 45%, transparent);
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-.chapBtn.neutral{
-  background: rgba(0,0,0,0.04);
-  border-style: dashed;
-  opacity: 0.75;
-}
-:global(html.ion-palette-dark) .chapBtn.neutral{
-  background: rgba(255,255,255,0.05);
-  border-style: dashed;
-}
-
   </style>
+  
   
