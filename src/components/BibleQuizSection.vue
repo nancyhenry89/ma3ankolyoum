@@ -2,9 +2,24 @@
 <template>
   <section class="bqWrap" dir="rtl" lang="ar">
     <div class="bqHeader">
-      <div class="bqTitle">✌︎㋡ {{ quizTitle }}</div>
-      <div class="bqDate" v-if="dateIso">📅 {{ dateIso }}</div>
-    </div>
+  <div class="bqTitle">✌︎㋡ {{ quizTitle }}</div>
+
+  <div class="bqHeaderRight">
+    <button
+      class="sfxBtn"
+      type="button"
+      @click="toggleSfx"
+      :aria-label="sfxMuted ? 'تشغيل الصوت' : 'كتم الصوت'"
+      :title="sfxMuted ? 'تشغيل الصوت' : 'كتم الصوت'"
+    >
+      <span v-if="sfxMuted">🔇</span>
+      <span v-else>🔊</span>
+    </button>
+
+    <div class="bqDate" v-if="dateIso">📅 {{ dateIso }}</div>
+  </div>
+</div>
+
 
     <div v-if="loading" class="bqHint">جاري تحميل الأسئلة…</div>
     <div v-else-if="error" class="bqHint bqError">تعذر تحميل الأسئلة.</div>
@@ -212,6 +227,38 @@ const sfxFail = new Audio(SFX_FAIL)
   a.preload = "auto"
   a.volume = 0.9
 })
+// =========================
+// SFX Mute / Unmute
+// default: muted
+// =========================
+const SFX_MUTED_KEY = "mk_sfx_muted"
+const sfxMuted = ref(true)
+
+function loadSfxMuted() {
+  try {
+    const v = localStorage.getItem(SFX_MUTED_KEY)
+    // لو أول مرة -> يفضل muted
+    if (v === null) { sfxMuted.value = true; return }
+    sfxMuted.value = v === "1"
+  } catch {
+    sfxMuted.value = true
+  }
+}
+
+function saveSfxMuted() {
+  try { localStorage.setItem(SFX_MUTED_KEY, sfxMuted.value ? "1" : "0") } catch {}
+}
+
+function toggleSfx() {
+  sfxMuted.value = !sfxMuted.value
+  saveSfxMuted()
+}
+
+// استعمل ده بدل playAudio مباشرة (يحترم الميوت)
+function playSfxAudio(a: HTMLAudioElement) {
+  if (sfxMuted.value) return
+  playAudio(a)
+}
 
 function playAudio(a: HTMLAudioElement) {
   try {
@@ -543,13 +590,13 @@ function submit(reason: SubmitReason) {
   // ✅ 3 cases
   if (s === mcqList.value.length && mcqList.value.length > 0) {
     // both correct (perfect)
-    playAudio(sfxClap)
+    playSfxAudio(sfxClap)
   } else if (s === 1) {
     // one correct
-    playAudio(sfxSuccess)
+    playSfxAudio(sfxSuccess)
   } else {
     // two wrong (0 correct)
-    playAudio(sfxFail)
+    playSfxAudio(sfxFail)
   }
 }
 
@@ -563,10 +610,12 @@ watch(
 )
 
 onMounted(() => {
+  loadSfxMuted()
   try { sfxClap.load(); sfxSuccess.load(); sfxFail.load(); } catch {}
   loadEssay()
   loadFromSheet()
 })
+
 
 onBeforeUnmount(() => {
   clearTick()
@@ -1347,6 +1396,47 @@ onBeforeUnmount(() => {
     rgba(0,0,0,0.36);
   border-color: rgba(255,255,255,0.18);
   box-shadow: 0 22px 50px rgba(0,0,0,0.50);
+}
+.bqHeaderRight{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+
+.sfxBtn{
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.65);
+  background:
+    linear-gradient(135deg, rgba(124,58,237,0.16), rgba(6,182,212,0.12)),
+    rgba(255,255,255,0.58);
+  box-shadow: var(--sh1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor: pointer;
+  user-select:none;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.sfxBtn:active{
+  transform: scale(0.98);
+}
+:global(html[data-mk-theme="dark"]) .sfxBtn,
+:global(html.ion-palette-dark) .sfxBtn,
+:global(html.dark) .sfxBtn,
+:global(body.dark) .sfxBtn,
+:global(ion-app.dark) .sfxBtn,
+:global(ion-app.ion-palette-dark) .sfxBtn{
+  background:
+    linear-gradient(135deg, rgba(124,58,237,0.22), rgba(6,182,212,0.18)),
+    rgba(0,0,0,0.38);
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45);
 }
 
 /* ===== Reduce Motion =====
