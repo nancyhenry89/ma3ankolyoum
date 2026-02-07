@@ -19,13 +19,7 @@
         <div class="wrap">
           <!-- Header: Data -->
           <div class="header" v-if="!isLoading && !noData">
-<!-- Burger -->
-<ion-menu-button
-  class="burgerBtn mkNoCapture"
-  menu="main-menu"
-  :auto-hide="false"
-  aria-label="Menu"
-/>
+
             <!-- Language switch -->
             <ion-button
               class="langBtn mkNoCapture"
@@ -813,6 +807,9 @@ function setLang(v: Lang) {
   lang.value = v
   localStorage.setItem('mk_lang', v)
 
+  // ✅ مهم: بلغ كل اللي بيسمع (TabsLayout وغيره)
+  window.dispatchEvent(new CustomEvent('mk:lang-changed', { detail: v }))
+
   // remove lang query if present so it doesn't override later
   const q = { ...route.query }
   if ((q as any).lang) delete (q as any).lang
@@ -821,6 +818,7 @@ function setLang(v: Lang) {
   const iso = String(selectedDateISO.value).substring(0, 10)
   loadByDate(iso).catch(console.error)
 }
+
 function openDailyAudio() {
   if (!isArabic.value || !hasDailyAudio.value) return
   const iso = String(selectedDateISO.value).substring(0, 10)
@@ -2723,7 +2721,7 @@ onMounted(async () => {
     opacity: 1;
     position: absolute;
     top: 4px;
-    left: 50px;
+    left: 0px;
     color: var(--mk-text);
     background: transparent;
     border-radius: 12px;
@@ -2749,7 +2747,10 @@ onMounted(async () => {
   :deep(.share-sheet .action-sheet-header) {
     text-align: center !important;
   }
-  
+  :deep(ion-content.content){
+  --padding-bottom: calc(16px + 72px + env(safe-area-inset-bottom));
+}
+
   /* Skeleton alignment (RTL friendly) */
   .skeleton{
     margin: 10px 0;
@@ -3299,7 +3300,7 @@ onMounted(async () => {
 .bible2026Btn{
   position: absolute;
   top: 4px;
-  left: 77px; /* جنب زر الشير */
+  left: 37px; /* جنب زر الشير */
   z-index: 3;
   border-radius: 12px;
   backdrop-filter: blur(8px);
