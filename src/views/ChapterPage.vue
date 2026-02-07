@@ -12,31 +12,30 @@
     <ion-content :fullscreen="true">
       <div class="wrap">
         <!-- مقدمة السفر -->
-        <div v-if="intro" class="introBox">
-          <div class="introTitle">{{ intro.title }}</div>
+        <div v-if="introAvailable" class="introBox">
+  <div class="introTitle">{{ introAvailable.title }}</div>
 
-          <div class="videoWrap">
-            <!-- ✅ iPhone/iOS Native: افتحي SafariViewController -->
-            <button
-              v-if="isIOSNative"
-              class="iosVideoBtn"
-              type="button"
-              @click="openIntroVideo"
-            >
-              ▶ تشغيل الفيديو
-            </button>
+  <div class="videoWrap">
+    <button
+      v-if="isIOSNative"
+      class="iosVideoBtn"
+      type="button"
+      @click="openIntroVideo"
+    >
+      ▶ تشغيل الفيديو
+    </button>
 
-            <!-- ✅ Android + Web: iframe زي ما هو -->
-            <iframe
-              v-else
-              :src="`https://www.youtube.com/embed/${intro.youtubeId}`"
-              :title="intro.title"
-              frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen
-            />
-          </div>
-        </div>
+    <iframe
+      v-else
+      :src="`https://www.youtube.com/embed/${introAvailable.youtubeId}`"
+      :title="introAvailable.title"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen
+    />
+  </div>
+</div>
+
 
         <div class="videoNote">💡 اضغط على الآية لعرض التفسير</div>
 
@@ -626,10 +625,17 @@ function getTafsirForVerse(n: number): string | null {
 
   return row?.tafsir || null
 }
+const introAvailable = computed(() => {
+  const i = data.value?.intro
+  if (!i) return null
+  const id = String(i.youtubeId || '').trim()
+  if (!id) return null
+  return { ...i, youtubeId: id }
+})
 
 // ===== Chapter load =====
 async function openIntroVideo() {
-  const id = intro.value?.youtubeId
+  const id = introAvailable.value?.youtubeId
   if (!id) return
   await Browser.open({ url: `https://www.youtube.com/watch?v=${id}` })
 }
