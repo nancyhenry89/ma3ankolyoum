@@ -240,78 +240,101 @@
   --color-selected: var(--mk-accent);
 }
 
-/* ✅ stop white flash / activated backgrounds */
+/* =========================
+   Stop any flash/jump + freeze layout
+========================= */
 .mkTabBar :deep(ion-tab-button){
+  /* base colors */
   --color: color-mix(in srgb, var(--mk-text) 65%, transparent);
   --color-selected: var(--mk-accent);
 
+  /* ✅ no activated bg / no ripple */
   --background: transparent !important;
   --background-focused: transparent !important;
   --background-hover: transparent !important;
   --background-activated: transparent !important;
+  --ripple-color: transparent !important;
 
-  --ripple-color: transparent !important; /* مهم جدًا */
+  /* IMPORTANT: prevent Ionic from changing spacing */
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* ✅ ثبّتي مساحة كل زر (ممنوع reflow) */
+/* ✅ freeze the actual clickable area */
 .mkTabBar :deep(ion-tab-button::part(native)){
   background: transparent !important;
   -webkit-tap-highlight-color: transparent;
 
-  /* ثابت */
+  /* fixed height */
   min-height: 58px !important;
   height: 58px !important;
 
-  /* layout ثابت */
+  /* fixed layout */
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
 
-  /* padding ثابت (لا يتغير مع selected/active) */
-  padding-top: 8px !important;
-  padding-bottom: 8px !important;
+  /* ✅ fixed gap (no jump on press/selected) */
+  gap: 3px !important;
 
-  /* ممنوع أي transform */
+  /* fixed padding */
+  padding: 8px 0 !important;
+
+  /* ✅ no transforms ever */
   transform: none !important;
   transition: color 140ms ease !important; /* color only */
 }
 
-/* ✅ icon size ثابت */
+/* ✅ icon fixed size */
 .mkTabBar :deep(ion-tab-button ion-icon){
   font-size: 22px !important;
   width: 22px !important;
   height: 22px !important;
   flex: 0 0 22px !important;
+  margin: 0 !important;
+  padding: 0 !important;
   transform: none !important;
 }
 
-/* ✅ label: مساحة كفاية + no clipping */
+/* ✅ label fixed size + no clipping */
 .mkTabBar :deep(ion-tab-button ion-label){
   font-size: 11px !important;
   font-weight: 900 !important;
-
   line-height: 1.15 !important;
-  margin-top: 3px !important;
 
-  /* يمنع قص/اختفاء */
+  margin: 0 !important;
+  padding: 0 !important;
+
   display: block !important;
   white-space: nowrap !important;
   overflow: visible !important;
+
   transform: none !important;
   opacity: 1 !important;
 }
 
-/* ✅ Selected: color only (no jump, no size change) */
+/* =========================
+   ✅ Disable Ionic automatic "tab-selected" coloring
+   (WITHOUT using inherit)
+========================= */
 .mkTabBar :deep(ion-tab-button.tab-selected){
-  transform: none !important;
+  /* keep layout, but do NOT color */
+  --color: color-mix(in srgb, var(--mk-text) 65%, transparent) !important;
+  --color-selected: color-mix(in srgb, var(--mk-text) 65%, transparent) !important;
 }
 .mkTabBar :deep(ion-tab-button.tab-selected ion-icon),
 .mkTabBar :deep(ion-tab-button.tab-selected ion-label){
-  color: var(--mk-accent) !important;
+  color: color-mix(in srgb, var(--mk-text) 65%, transparent) !important;
 }
 
-/* ✅ manual selected for computed tabs (intros/stories/noor/more/settings) */
+/* =========================
+   ✅ Our ONLY selected state (mkSelected)
+========================= */
+.mkTabBar :deep(ion-tab-button.mkSelected){
+  --color: var(--mk-accent) !important;
+  --color-selected: var(--mk-accent) !important;
+}
 .mkTabBar :deep(ion-tab-button.mkSelected) ion-icon,
 .mkTabBar :deep(ion-tab-button.mkSelected) ion-label{
   color: var(--mk-accent) !important;
@@ -330,65 +353,6 @@
 
   background: var(--mk-bg);
   border-top: 1px solid var(--mk-border);
-}
-/* ================================
-   FIX: space jump between icon & label
-================================ */
-
-/* ثبّتي ترتيب الزر */
-.mkTabBar :deep(ion-tab-button::part(native)){
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-
-  /* ✅ gap ثابت (Ionic بيغيره otherwise) */
-  gap: 3px !important;
-}
-
-/* امنعي Ionic من لعب في margin بتاع اللابل */
-.mkTabBar :deep(ion-tab-button ion-label){
-  margin: 0 !important;
-  padding: 0 !important;
-  line-height: 1.15 !important;
-}
-
-/* حتى أثناء الضغط أو الاختيار */
-.mkTabBar :deep(ion-tab-button:active ion-label),
-.mkTabBar :deep(ion-tab-button.tab-selected ion-label),
-.mkTabBar :deep(ion-tab-button:focus ion-label){
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* نفس الكلام للأيقونة */
-.mkTabBar :deep(ion-tab-button ion-icon){
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* امنعي أي gap Ionic داخلي */
-.mkTabBar :deep(ion-tab-button){
-  gap: 0 !important;
-}
-/* ✅ امنعي Ionic من اختيار tab-selected تلقائيًا (prefix problem) */
-.mkTabBar :deep(ion-tab-button.tab-selected){
-  --color: inherit !important;
-  --color-selected: inherit !important;
-}
-.mkTabBar :deep(ion-tab-button.tab-selected) ion-icon,
-.mkTabBar :deep(ion-tab-button.tab-selected) ion-label{
-  color: inherit !important;
-}
-
-/* ✅ خلي اختيارنا احنا هو اللي يلوّن */
-.mkTabBar :deep(ion-tab-button.mkSelected){
-  --color: var(--mk-accent) !important;
-  --color-selected: var(--mk-accent) !important;
-}
-.mkTabBar :deep(ion-tab-button.mkSelected) ion-icon,
-.mkTabBar :deep(ion-tab-button.mkSelected) ion-label{
-  color: var(--mk-accent) !important;
 }
 
 
