@@ -9,7 +9,7 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content :fullscreen="true">
+    <ion-content ref="contentRef" :fullscreen="true" >
       <div class="wrap">
         <!-- مقدمة السفر -->
         <div v-if="introAvailable" class="introBox">
@@ -108,6 +108,21 @@
 
             <!-- Tafsir -->
             <div v-if="isOpen(v.n)" class="tafsirBox">
+              <!-- Refs -->
+              <div v-if="getRefs(v.n).length" class="refsInline">
+  <button
+    v-for="r in getRefs(v.n)"
+    :key="`${r.toBookUsfm}-${r.toChapter}-${r.toVerse}`"
+    class="refChip"
+    type="button"
+    @click.stop="openVerseRefsModal(v.n)"
+  >
+    {{ r.labelAr }}
+  </button>
+</div>
+
+
+
               <div v-if="tafsirLoading" class="tafsirHint">جاري تحميل التفسير…</div>
 
               <div v-else>
@@ -288,6 +303,42 @@
 >
   <div class="bmTip">{{ bmPopoverText }}</div>
 </ion-popover>
+<ion-modal
+  dir="rtl"
+  :is-open="showRefsModal"
+  @didDismiss="showRefsModal = false"
+  class="refModal"
+>
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>الشواهد</ion-title>
+      <ion-buttons slot="end">
+        <ion-button fill="clear" @click="showRefsModal = false">إغلاق</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="ion-padding">
+    <div v-if="refsModalLoading" class="tafsirHint">جاري التحميل…</div>
+
+    <div v-else-if="!refsModalItems.length" class="tafsirHint">
+      لا توجد شواهد لهذه الآية.
+    </div>
+
+    <div v-else class="refsPopupList">
+      <button
+        v-for="it in refsModalItems"
+        :key="`${it.toBookUsfm}-${it.toChapter}-${it.toVerse}`"
+        class="refsPopupItem"
+        type="button"
+        @click="goToRef(it)"
+      >
+        <div class="refsPopupLabel">{{ it.labelAr }}</div>
+        <div class="refsPopupText">{{ it.previewText }}</div>
+      </button>
+    </div>
+  </ion-content>
+</ion-modal>
 
   </ion-page>
 </template>
@@ -312,6 +363,7 @@ import Papa from 'papaparse'
 import { chevronForwardOutline, bookmarkOutline, bookmark } from 'ionicons/icons'
 import { Capacitor } from '@capacitor/core'
 import { Browser } from '@capacitor/browser'
+import { loadRefsIndex, getRefsFor, type RefLink } from '@/services/verseRefs'
 
 import {
   readChapterCache,
@@ -342,11 +394,78 @@ const todayISO = computed(() => {
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 });
+import { onIonViewWillLeave, onIonViewDidEnter } from '@ionic/vue'
+
+onIonViewWillLeave(() => {
+  openVerse.value = null
+  bmPopoverOpen.value = false
+  showRefsModal.value = false
+  refsModalVerse.value = null
+})
+
 const pageDateISO = computed(() => {
   const q = route.query.d
   if (typeof q === "string" && /^\d{4}-\d{2}-\d{2}$/.test(q)) return q
   return todayISO.value
 })
+const contentRef = ref<any>(null)
+  let restoreScroll = false
+let lastScrollTop = 0
+
+async function getIonScrollEl() {
+  const ion = contentRef.value?.$el ?? contentRef.value
+  if (!ion?.getScrollElement) return null
+  return await ion.getScrollElement()
+}
+
+async function saveScrollPos() {
+  const el = await getIonScrollEl()
+  if (!el) return
+  lastScrollTop = el.scrollTop || 0
+  restoreScroll = true
+}
+
+async function restoreScrollPos() {
+  if (!restoreScroll) return
+  const ion = contentRef.value?.$el ?? contentRef.value
+  if (ion?.scrollToPoint) {
+    await ion.scrollToPoint(0, lastScrollTop, 0) // instant
+  } else {
+    const el = await getIonScrollEl()
+    el?.scrollTo({ top: lastScrollTop, behavior: 'auto' })
+  }
+  restoreScroll = false
+}
+
+async function scrollToVerse(verseNum: number) {
+  await nextTick()
+
+  // ✅ لازم نجيب الـ scroll element بتاع ion-content
+  const contentEl = contentRef.value?.$el
+  const scrollEl: HTMLElement | null = contentEl?.getScrollElement
+    ? await contentEl.getScrollElement()
+    : null
+
+  if (!scrollEl) return
+
+  const target = document.getElementById(`v-${verseNum}`)
+  if (!target) return
+
+  // ✅ offsetTop بالنسبة للـ scroll container
+  const y = target.offsetTop - 16
+
+  // ✅ سكّري داخل ion-content
+  if (contentEl?.scrollToPoint) {
+    await contentEl.scrollToPoint(0, y, 350)
+  } else {
+    scrollEl.scrollTo({ top: y, behavior: 'smooth' })
+  }
+}
+
+function getRefs(n: number): RefLink[] {
+  // bookKey.value عندك route key (Mark / Matthew ..)
+  return getRefsFor(bookKey.value, chapterNum.value, n)
+}
 
 import BibleQuizSection from "@/components/BibleQuizSection.vue";
 
@@ -378,6 +497,11 @@ type ChapterJSON = {
   sections: { title: string; fromVerse: number; toVerse: number }[]
   verses: { n: number; t: string }[]
 }
+
+
+
+
+
 async function openTopModal() {
   showTopModal.value = true
 
@@ -436,6 +560,77 @@ const chapterNum = computed(() => Number(route.params.chapter || 1))
 
 // ✅ data
 const data = ref<ChapterJSON | null>(null)
+  const showRefModal = ref(false)
+const refModalLoading = ref(false)
+
+const refModal = ref<{
+  bookKeyRoute: string
+  chapter: number
+  verse: number
+  labelAr: string
+  text: string
+  refs: RefLink[]
+} | null>(null)
+type RefPreviewItem = RefLink & {
+  previewText: string
+}
+
+const showRefsModal = ref(false)
+const refsModalLoading = ref(false)
+const refsModalItems = ref<RefPreviewItem[]>([])
+
+const refsModalVerse = ref<number | null>(null)
+  const refsModalLinks = computed(() => {
+  if (refsModalVerse.value == null) return []
+  return getRefsFor(bookKey.value, chapterNum.value, refsModalVerse.value)
+})
+
+const refsModalVerseText = computed(() => {
+  if (refsModalVerse.value == null) return ''
+  return verseTextByNum(refsModalVerse.value)
+})
+async function openVerseRefsModal(verseNum: number) {
+  refsModalVerse.value = verseNum
+  showRefsModal.value = true
+
+  // تأكدي ان index محمّل
+  await loadRefsIndex(REFS_CSV_URL)
+
+  const links = getRefsFor(bookKey.value, chapterNum.value, verseNum)
+  if (!links.length) {
+    refsModalItems.value = []
+    refsModalLoading.value = false
+    return
+  }
+
+  refsModalLoading.value = true
+  refsModalItems.value = []
+
+  try {
+    const items: RefPreviewItem[] = []
+    for (const r of links) {
+      const txt = await getVerseText(r.toBookRoute, r.toChapter, r.toVerse)
+      items.push({ ...r, previewText: txt || '—' })
+    }
+    refsModalItems.value = items
+  } catch (e) {
+    console.error(e)
+    refsModalItems.value = links.map(r => ({ ...r, previewText: 'تعذر تحميل النص.' }))
+  } finally {
+    refsModalLoading.value = false
+  }
+}
+
+async function goToVerseInModal(bookRoute: string, ch: number, v: number) {
+  showRefsModal.value = false
+
+  await router.push({
+    path: `/chapter/${bookRoute}/${ch}`,
+    query: { v: String(v) }
+  })
+  // عندك jumpToVerseFromQuery شغال وبيعمل scroll ✅
+}
+
 const intro = computed(() => data.value?.intro || null)
 const sections = computed(() => data.value?.sections || [])
 const verses = computed(() => data.value?.verses || [])
@@ -454,6 +649,8 @@ const bookSlugMap: Record<string, string> = {
   Luke: 'luke',
   John: 'john'
 }
+const REFS_CSV_URL =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQjzkvPhVlUkLK8r6Wgw__Xsz_axf1a5KNfLEYKylE5nAg5Totczxl_2Z-rTRKpjsLCiu2n2C15G2--/pub?gid=0&single=true&output=csv'
 
 // ✅ Tafsir CSV
 const TAFSIR_CSV_URL =
@@ -465,6 +662,7 @@ const savedAll = ref<SavedVerse[]>([])
 const savedQuery = ref('')
 const bmBusy = ref<Record<number, boolean>>({})
 
+
 function refreshSavedList() {
   savedAll.value = listSavedVerses()
 }
@@ -473,6 +671,73 @@ function openSavedSheet() {
   refreshSavedList()
   showSaved.value = true
 }
+function getSlug(routeBookKey: string) {
+  return String(routeBookKey).toLowerCase()
+}
+
+async function fetchChapterJson(routeBookKey: string, ch: number) {
+  const slug = bookSlugMap[routeBookKey] || String(routeBookKey).toLowerCase()
+  const url = `${CONTENT_BASE}/bible/${slug}/${ch}.json`
+  const res = await fetch(url, { cache: 'no-store' })
+  if (!res.ok) throw new Error('Chapter not found')
+  return await res.json()
+}
+const chapterJsonCache = new Map<string, any>()
+
+function chapterCacheKey(routeBookKey: string, ch: number) {
+  return `${String(routeBookKey).toLowerCase()}|${ch}`
+}
+
+async function getChapterJsonCached(routeBookKey: string, ch: number) {
+  const k = chapterCacheKey(routeBookKey, ch)
+  if (chapterJsonCache.has(k)) return chapterJsonCache.get(k)
+  const json = await fetchChapterJson(routeBookKey, ch)
+  chapterJsonCache.set(k, json)
+  return json
+}
+
+async function getVerseText(routeBookKey: string, ch: number, v: number) {
+  // نفس الصفحة: أسرع
+  if (
+    String(routeBookKey).toLowerCase() === String(bookKey.value).toLowerCase() &&
+    Number(ch) === Number(chapterNum.value)
+  ) {
+    return verseTextByNum(v)
+  }
+
+  const chJson = await getChapterJsonCached(routeBookKey, ch)
+  const vv = (chJson?.verses || []).find((x: any) => Number(x.n) === Number(v))
+  return String(vv?.t || '').trim()
+}
+
+
+
+async function goToRefVerse() {
+  if (!refModal.value) return
+  const m = refModal.value
+  showRefModal.value = false
+
+  await router.push({
+    path: `/chapter/${m.bookKeyRoute}/${m.chapter}`,
+    query: { v: String(m.verse) }
+  })
+  // jumpToVerseFromQuery عندك already ✅
+}
+
+async function goToRef(item: RefPreviewItem) {
+  await saveScrollPos()        // ✅ مهم جدا
+  showRefsModal.value = false
+
+  await router.push({
+    path: `/chapter/${item.toBookRoute}/${item.toChapter}`,
+    query: { v: String(item.toVerse) }
+  })
+}
+onIonViewDidEnter(async () => {
+  await nextTick()
+  await restoreScrollPos()
+})
+
 
 const filteredSaved = computed(() => {
   const q = savedQuery.value.trim()
@@ -543,6 +808,15 @@ function onNoteInput(item: SavedVerse, ev: any) {
 watch(showSaved, (v) => {
   if (v) refreshSavedList()
 })
+watch(
+  () => [bookKey.value, chapterNum.value],
+  () => {
+    showRefsModal.value = false
+    refsModalVerse.value = null
+    refsModalItems.value = []
+    refsModalLoading.value = false
+  }
+)
 
 // ===== Sections inline title =====
 function sectionTitleAt(verseNum: number): string | null {
@@ -604,11 +878,18 @@ async function toggleVerse(n: number) {
     openVerse.value = null
     return
   }
+
   openVerse.value = n
+
   if (!tafsirRows.value.length) {
     await loadTafsirOnce()
   }
+
+
 }
+
+
+
 
 function getTafsirForVerse(n: number): string | null {
   const b = String(bookKey.value || '').trim().toLowerCase()
@@ -666,7 +947,6 @@ async function refreshChapterFromNetwork(bk: string, ch: number) {
   writeChapterCache(bk, ch, json)
 }
 
-// jump to verse from query ?v=
 async function jumpToVerseFromQuery() {
   const qv = typeof route.query.v === 'string' ? Number(route.query.v) : NaN
   if (!Number.isFinite(qv)) return
@@ -674,10 +954,25 @@ async function jumpToVerseFromQuery() {
   openVerse.value = qv
   if (!tafsirRows.value.length) await loadTafsirOnce()
 
+  // ✅ مهم: استنى الـ verses تتعمل render
   await nextTick()
-  const el = document.getElementById(`v-${qv}`)
-  el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  await nextTick()
+
+  // ✅ بدل scrollIntoView
+  await scrollToVerse(qv)
+
 }
+
+
+watch(
+  () => [route.query.v, verses.value.length],
+  async () => {
+    if (!verses.value.length) return
+    await jumpToVerseFromQuery()
+  },
+  { immediate: true }
+)
+
 
 // ===== Firebase Bookmarks (NEW) =====
 const bmCounts = ref<Record<number, number>>({})
@@ -789,12 +1084,20 @@ watch([bookKey, chapterNum], () => {
   attachBmListeners()
 })
 
-onMounted(() => {
-  loadChapter().catch(console.error)
-  refreshSavedList()
-  jumpToVerseFromQuery().catch(console.error)
-  attachBmListeners()
+onMounted(async () => {
+  try {
+    await loadChapter()                  // ✅ استنى الداتا
+    refreshSavedList()
+    attachBmListeners()
+    loadRefsIndex(REFS_CSV_URL).catch(console.error)
+
+    await nextTick()                     // ✅ استنى الـ DOM
+    await jumpToVerseFromQuery()         // ✅ اعملي scroll بعد render
+  } catch (e) {
+    console.error(e)
+  }
 })
+
 </script>
 
 <style scoped>
@@ -1550,6 +1853,41 @@ onMounted(() => {
 :global(html[data-mk-theme="dark"]) .topModalSave.isSaved{
   color: #2fe6d8;
 }
+.refsPopupList{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding-bottom: 14px;
+}
+
+.refsPopupItem{
+  width:100%;
+  border: 1px solid var(--mk-border);
+  background: var(--mk-card);
+  border-radius: 16px;
+  padding: 12px;
+  text-align:right;
+  cursor:pointer;
+  box-shadow: var(--mk-shadow);
+}
+
+.refsPopupLabel{
+  font-weight: 1000;
+  margin-bottom: 8px;
+  color: var(--mk-text);
+}
+
+.refsPopupText{
+  font-weight: 800;
+  line-height: 1.9;
+  opacity: 0.95;
+  color: var(--mk-text);
+  white-space: pre-wrap;
+}
+:global(html[data-mk-theme="dark"]) .refsPopupItem{
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+}
 
 .topModalOpen{
   width: 100%;
@@ -1580,6 +1918,202 @@ onMounted(() => {
 .saveBtn:disabled{
   opacity: 0.55;
   cursor: not-allowed;
+}
+.refsBox{
+  margin-top:10px;
+  padding-top:10px;
+  border-top: 1px dashed var(--mk-border);
+}
+.refVerseBtn{
+  width:100%;
+  border:0;
+  background:transparent;
+  padding:0;
+  text-align:right;
+  cursor:pointer;
+}
+
+.refTextBtn{
+  width:100%;
+  text-align:right;
+}
+
+.refsTitle{
+  font-weight: 1000;
+  margin-bottom: 8px;
+}
+.refsList{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.refChip{
+  border: 1px solid var(--mk-border);
+  background: rgba(0,0,0,0.04);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 900;
+  cursor:pointer;
+  color: var(--mk-text);
+}
+:global(html[data-mk-theme="dark"]) .refChip{
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+}
+.refsEmpty{
+  font-size: 13px;
+  opacity: 0.75;
+  text-align:center;
+  font-weight: 900;
+}
+.refsInline{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding: 0 8px 12px;
+}
+.refChip{
+  border: 1px solid var(--mk-border);
+  background: rgba(31,182,170,0.12);
+  color: var(--mk-text);
+  font-weight: 1000;
+  padding: 7px 10px;
+  border-radius: 999px;
+  cursor:pointer;
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+}
+:global(html[data-mk-theme="dark"]) .refChip{
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.16);
+  color: rgba(255,255,255,0.92);
+}
+
+.refModal::part(content){
+  height: 85vh;
+  max-height: 85vh;
+  border-radius: 22px 22px 0 0;
+  overflow:hidden;
+}
+.refHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom: 10px;
+}
+.refHeadTitle{
+  font-weight: 1000;
+  font-size: 18px;
+}
+.refGoBtn{
+  border: 1px solid var(--mk-border);
+  background: rgba(31,182,170,0.14);
+  color: var(--mk-text);
+  font-weight: 1000;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor:pointer;
+}
+.refTextBox{
+  border: 1px solid var(--mk-border);
+  border-radius: 16px;
+  padding: 12px;
+  line-height: 1.95;
+  font-weight: 800;
+  background: rgba(0,0,0,0.03);
+  margin-bottom: 12px;
+}
+:global(html[data-mk-theme="dark"]) .refTextBox{
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+}
+
+
+/* =========================
+   Refs Modal – Typography
+========================= */
+
+.refModal{
+  --refs-font: "Cairo", "Noto Kufi Arabic", system-ui, sans-serif;
+}
+
+/* Header */
+.refModal :deep(ion-title){
+  font-family: var(--refs-font);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+/* Content base */
+.refModal :deep(ion-content){
+  font-family: var(--refs-font);
+}
+
+/* Loading / empty text */
+.refModal .tafsirHint{
+  font-family: var(--refs-font);
+  font-size: 16px;
+  font-weight: 700;
+}
+/* =========================
+   Refs Popup Card
+========================= */
+
+.refsPopupItem{
+  background:
+    linear-gradient(135deg,
+      rgba(31,182,170,0.10),
+      rgba(255,255,255,0.85)
+    );
+  border-radius: 18px;
+  padding: 14px 14px 16px;
+}
+
+/* Dark mode */
+:global(html[data-mk-theme="dark"]) .refsPopupItem{
+  background:
+    linear-gradient(135deg,
+      rgba(40,214,204,0.18),
+      rgba(255,255,255,0.06)
+    );
+}
+
+/* Reference label (متّى 15 : 32) */
+.refsPopupLabel{
+  font-family: var(--refs-font);
+  font-size: 15px;
+  font-weight: 900;
+  opacity: 0.9;
+  margin-bottom: 10px;
+}
+
+/* Verse text itself */
+.refsPopupText{
+  font-family: var(--refs-font);
+  font-size: 19px;       /* 👈 أكبر ومريح */
+  line-height: 2.05;
+  font-weight: 700;
+  color: var(--mk-text);
+}
+.refsPopupText{
+  position: relative;
+  padding-right: 10px;
+}
+
+.refsPopupText::before{
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  border-radius: 2px;
+  background: rgba(31,182,170,0.55);
+}
+
+:global(html[data-mk-theme="dark"]) .refsPopupText::before{
+  background: rgba(40,214,204,0.75);
 }
 
 </style>
