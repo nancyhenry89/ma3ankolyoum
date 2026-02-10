@@ -515,6 +515,7 @@ function onGroupChange(ev: any) {
 ========================= */
 .segWrap{
   padding: 8px 12px 12px;
+  background:#fff
 }
 
 .seg{
@@ -536,7 +537,7 @@ function onGroupChange(ev: any) {
 
   font-weight: 1000;
 }
-
+.accordion-animated,.accordion-collapsed{background: #fff;}
 /* Checked button feel */
 .seg :deep(.segment-button-checked){
   background: var(--mk-accent-weak);

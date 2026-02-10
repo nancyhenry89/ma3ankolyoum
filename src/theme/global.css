@@ -30,3 +30,32 @@ body {
     text-rendering: optimizeLegibility;
   }
   
+  /* ===============================
+   Global Toolbar Styling
+   =============================== */
+.toolbar-container {
+  padding-inline: 12px !important;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+
+  /* شكل */
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.12),
+    rgba(6, 182, 212, 0.10)
+  );
+
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+html.dark .toolbar-container,
+html[data-mk-theme="dark"] .toolbar-container,
+ion-app.dark .toolbar-container {
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.22),
+    rgba(6, 182, 212, 0.18)
+  );
+
+  border-bottom: 1px solid rgba(255,255,255,0.14);
+}
