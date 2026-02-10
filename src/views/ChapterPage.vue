@@ -137,7 +137,12 @@
         </div>
 
         <div class="space"></div>
-        <BibleQuizSection :date-iso="pageDateISO" :key="pageDateISO" />
+        <BibleQuizSection
+  :book="bookKey"
+  :chapter="chapterNum"
+  :mcq-count="2"
+  :seconds="90"
+/>
 
 
       </div>
@@ -856,7 +861,11 @@ async function loadTafsirOnce() {
   try {
     const res = await fetch(TAFSIR_CSV_URL, { cache: 'no-store' })
     const csv = await res.text()
-    const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true })
+    const parsed = Papa.parse(csv, {
+  header: true,
+  skipEmptyLines: true,
+  transformHeader: (h) => String(h || "").replace(/^\uFEFF/, "").trim()
+})
 
     const all = (parsed.data as any[])
       .filter(r => r.bookKey && r.chapter && r.fromVerse && r.toVerse)

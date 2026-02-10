@@ -16,7 +16,7 @@
       <span v-else>🔊</span>
     </button>
 
-    <div class="bqDate" v-if="dateIso">📅 {{ dateIso }}</div>
+    <div class="bqDate" v-if="props.dateIso">📅 {{ props.dateIso }}</div>
   </div>
 </div>
 
@@ -199,12 +199,22 @@ type Mcq = {
 }
 
 const props = defineProps<{
-  dateIso: string
+  dateIso?: string // اختياري للعرض فقط
+  book: string
+  chapter: string | number
   quizTitle?: string
   ta2amolTitle?: string
   mcqCount?: number
-  seconds?: number // optional (default 60)
+  seconds?: number
 }>()
+
+const bookKey = computed(() => String(props.book || "").trim().toLowerCase())
+const chapterNum = computed(() => {
+  const n = Number(String(props.chapter ?? "").trim())
+  return Number.isFinite(n) ? n : 0
+})
+
+
 
 const quizTitle = computed(() => props.quizTitle || "مين فاكر؟")
 const ta2amolTitle = computed(() => props.ta2amolTitle || "خلوة مع الكتاب المقدس")
@@ -350,11 +360,12 @@ const essaySavedTick = ref(false)
 
 // ===== keys =====
 function essayKey() {
-  return `mk_ta2amol_${props.dateIso}`
+  return `mk_ta2amol_${bookKey.value}_${chapterNum.value}`
 }
 function quizAttemptKey() {
-  return `mk_quiz_attempt_${props.dateIso}`
+  return `mk_quiz_attempt_${bookKey.value}_${chapterNum.value}`
 }
+
 
 // ===== attempt persistence =====
 type QuizAttempt = {
@@ -454,7 +465,8 @@ function buildMcqFromRow(r: SheetRow): Mcq | null {
   const correctKey = keyByIndex[Math.max(0, correctIndex)]
 
   return {
-    id: `${props.dateIso}-${numify(r.question_number)}`,
+    id: `${bookKey.value}-${chapterNum.value}-${numify(r.question_number)}`,
+
     questionNumber: numify(r.question_number),
     question: q,
     correctKey,
@@ -493,33 +505,46 @@ async function loadFromSheet() {
     const csv = await res.text()
 
     const parsed = Papa.parse(csv, {
-      header: true,
-      skipEmptyLines: true
-    })
+  header: true,
+  skipEmptyLines: true,
+  transformHeader: (h) => String(h || "").trim().toLowerCase(),
+})
+
 
     const raw = (parsed.data as any[]) || []
 
     const cleaned: SheetRow[] = raw
-      .map((x) => {
-        const qt = normalizeType(x.quetion_type)
-        return {
-          date_iso: safeText(x.date_iso),
-          quetion_type: (qt || "mcq") as any,
-          question_number: x.question_number,
-          question: safeText(x.question),
-          "correct answer": safeText(x["correct answer"]),
-          distractor_b: safeText(x.distractor_b),
-          distractor_c: safeText(x.distractor_c),
-          distractor_d: safeText(x.distractor_d),
-          book: safeText(x.book),
-          chapter: safeText(x.chapter)
-        } as SheetRow
-      })
-      .filter((r) => !!r.date_iso && !!r.question && !!normalizeType(r.quetion_type))
-      .filter((r) => r.date_iso === props.dateIso)
-      .sort((a, b) => numify(a.question_number) - numify(b.question_number))
+  .map((x) => {
+    const qt = normalizeType(x.quetion_type ?? x.question_type)
+
+    return {
+      date_iso: safeText(x.date_iso),
+      quetion_type: (qt || "mcq") as any,
+      question_number: x.question_number,
+      question: safeText(x.question),
+
+      // بعد transformHeader هتبقى بالظبط كده
+      "correct answer": safeText(x["correct answer"]),
+      distractor_b: safeText(x.distractor_b),
+      distractor_c: safeText(x.distractor_c),
+      distractor_d: safeText(x.distractor_d),
+
+      book: safeText(x.book),
+      chapter: safeText(x.chapter),
+    } as SheetRow
+  })
+  .filter((r) => !!r.question && !!normalizeType(r.quetion_type))
+  .filter((r) => {
+    const rb = String(r.book || "").trim().toLowerCase()
+    const rc = Number(String(r.chapter ?? "").trim())
+    return rb === bookKey.value && rc === chapterNum.value
+  })
+  .sort((a, b) => numify(a.question_number) - numify(b.question_number))
+
+      console.log("[Quiz] props", { book: props.book, chapter: props.chapter, bookKey: bookKey.value, chapterNum: chapterNum.value })
 
     rows.value = cleaned
+    console.log("[Quiz] cleaned rows", cleaned.length, cleaned.slice(0, 3))
 
     const mcqRows = cleaned.filter((r) => normalizeType(r.quetion_type) === "mcq")
     const ta2 = cleaned.find((r) => normalizeType(r.quetion_type) === "ta2amol")
@@ -602,12 +627,14 @@ function submit(reason: SubmitReason) {
 
 
 watch(
-  () => props.dateIso,
+  () => [props.book, props.chapter, props.dateIso],
   () => {
     loadEssay()
     loadFromSheet()
-  }
+  },
+  { immediate: true }
 )
+
 
 onMounted(() => {
   loadSfxMuted()
