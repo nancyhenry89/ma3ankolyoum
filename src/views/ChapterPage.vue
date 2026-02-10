@@ -59,6 +59,7 @@
             v-for="v in verses"
             :key="v.n"
             class="verseBlock"
+             :class="{ flashVerse: flashVerse === v.n }"
             :id="`v-${v.n}`"
           >
             <!-- Section title -->
@@ -117,7 +118,7 @@
     type="button"
     @click.stop="openVerseRefsModal(v.n)"
   >
-    {{ r.labelAr }}
+  🔗 {{ r.labelAr }}
   </button>
 </div>
 
@@ -333,7 +334,7 @@
         type="button"
         @click="goToRef(it)"
       >
-        <div class="refsPopupLabel">{{ it.labelAr }}</div>
+        <div class="refsPopupLabel">ᯓ➤ {{ it.labelAr }}</div>
         <div class="refsPopupText">{{ it.previewText }}</div>
       </button>
     </div>
@@ -534,6 +535,14 @@ function matchesQuery(haystack: string, q: string) {
   const qq = normalizeArabic(q).toLowerCase()
   if (!qq) return true
   return hh.includes(qq)
+}
+const flashVerse = ref<number | null>(null)
+
+function flashVerseOnce(n: number) {
+  flashVerse.value = n
+  window.setTimeout(() => {
+    if (flashVerse.value === n) flashVerse.value = null
+  }, 1200) // مدة الهايلايت
 }
 
 function verseTextByNum(n: number) {
@@ -960,6 +969,7 @@ async function jumpToVerseFromQuery() {
 
   // ✅ بدل scrollIntoView
   await scrollToVerse(qv)
+flashVerseOnce(qv)
 
 }
 
@@ -1875,6 +1885,7 @@ onMounted(async () => {
   font-weight: 1000;
   margin-bottom: 8px;
   color: var(--mk-text);
+  font-size :17px;
 }
 
 .refsPopupText{
@@ -1947,15 +1958,7 @@ onMounted(async () => {
   flex-wrap:wrap;
   gap:8px;
 }
-.refChip{
-  border: 1px solid var(--mk-border);
-  background: rgba(0,0,0,0.04);
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-weight: 900;
-  cursor:pointer;
-  color: var(--mk-text);
-}
+
 :global(html[data-mk-theme="dark"]) .refChip{
   background: rgba(255,255,255,0.06);
   border-color: rgba(255,255,255,0.14);
@@ -1974,13 +1977,14 @@ onMounted(async () => {
 }
 .refChip{
   border: 1px solid var(--mk-border);
-  background: rgba(31,182,170,0.12);
-  color: var(--mk-text);
-  font-weight: 1000;
-  padding: 7px 10px;
-  border-radius: 999px;
-  cursor:pointer;
-  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+    background: radial-gradient(600px 200px at 20% 0%, rgba(32, 178, 170, 0.35), transparent 60%), linear-gradient(135deg, #182a44, rgba(16, 27, 47, 0.90));
+    color: #fff;
+    font-weight: 1000;
+    padding: 7px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+    font-size: 15px;
 }
 :global(html[data-mk-theme="dark"]) .refChip{
   background: rgba(255,255,255,0.10);
@@ -1993,6 +1997,7 @@ onMounted(async () => {
   max-height: 85vh;
   border-radius: 22px 22px 0 0;
   overflow:hidden;
+  background: #fff;
 }
 .refHead{
   display:flex;
@@ -2074,18 +2079,21 @@ onMounted(async () => {
 :global(html[data-mk-theme="dark"]) .refsPopupItem{
   background:
     linear-gradient(135deg,
-      rgba(40,214,204,0.18),
-      rgba(255,255,255,0.06)
+      rgba(31,182,170,0.10),
+      rgba(255,255,255,0.85)
     );
 }
 
 /* Reference label (متّى 15 : 32) */
 .refsPopupLabel{
   font-family: var(--refs-font);
-  font-size: 15px;
   font-weight: 900;
-  opacity: 0.9;
   margin-bottom: 10px;
+  background: radial-gradient(600px 200px at 20% 0%, rgba(32,178,170,0.35), transparent 60%),
+  linear-gradient(135deg, #182a44, rgba(16,27,47,0.90));
+    color: #fff;
+    padding: 7px;
+    border-radius: 7px;
 }
 
 /* Verse text itself */
@@ -2094,7 +2102,7 @@ onMounted(async () => {
   font-size: 19px;       /* 👈 أكبر ومريح */
   line-height: 2.05;
   font-weight: 700;
-  color: var(--mk-text);
+  color: #000;
 }
 .refsPopupText{
   position: relative;
@@ -2114,6 +2122,23 @@ onMounted(async () => {
 
 :global(html[data-mk-theme="dark"]) .refsPopupText::before{
   background: rgba(40,214,204,0.75);
+}
+.verseBlock.flashVerse{
+  border-radius: 16px;
+  background: rgba(255, 214, 0, 0.18);
+  box-shadow: 0 0 0 2px rgba(255, 214, 0, 0.35) inset, var(--mk-shadow);
+  animation: verseFlash 1.2s ease-out;
+}
+
+:global(html[data-mk-theme="dark"]) .verseBlock.flashVerse{
+  background: rgba(255, 214, 0, 0.14);
+  box-shadow: 0 0 0 2px rgba(255, 214, 0, 0.28) inset, var(--mk-shadow-strong);
+}
+
+@keyframes verseFlash{
+  0%   { transform: scale(1.00); }
+  20%  { transform: scale(1.01); }
+  100% { transform: scale(1.00); }
 }
 
 </style>
