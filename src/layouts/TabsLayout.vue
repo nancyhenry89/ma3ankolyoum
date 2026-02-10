@@ -8,7 +8,7 @@
           <!-- Home -->
           <ion-tab-button
             tab="home"
-            href="/home"
+            href="/tabs/home"
             class="mkTabBtn"
             :class="{ mkSelected: activeTab === 'home' }"
           >
@@ -19,7 +19,7 @@
           <!-- Bible -->
           <ion-tab-button
             tab="bible"
-            href="/bible"
+            href="/tabs/bible"
             class="mkTabBtn"
             :class="{ mkSelected: activeTab === 'bible' }"
           >
@@ -30,7 +30,7 @@
           <!-- Intros -->
           <ion-tab-button
             tab="intros"
-            href="/bible-intros"
+            href="/tabs/bible-intros"
             class="mkTabBtn"
             :class="{ mkSelected: activeTab === 'intros' }"
           >
@@ -41,7 +41,7 @@
           <!-- Stories -->
           <ion-tab-button
             tab="stories"
-            href="/bible-stories"
+            href="/tabs/bible-stories"
             class="mkTabBtn"
             :class="{ mkSelected: activeTab === 'stories' }"
           >
@@ -162,21 +162,22 @@
   }
   
   // ✅ active tab (stable + fixes bible prefix problem)
-  const activeTab = computed<'home' | 'bible' | 'intros' | 'stories' | 'settings' | 'more'>(() => {
-    if (showMore.value) return 'more'
-    if (route.query.modal === 'settings') return 'settings'
-  
-    const p = route.path || ''
-  
-    if (p === '/home' || p.startsWith('/home/')) return 'home'
-    if (p === '/bible-intros' || p.startsWith('/bible-intros/')) return 'intros'
-    if (p === '/bible-stories' || p.startsWith('/bible-stories/')) return 'stories'
-  
-    // ✅ Bible EXACT /bible or chapter pages only
-    if (p === '/bible' || p.startsWith('/chapter/')) return 'bible'
-  
-    return 'home'
-  })
+  const activeTab = computed<'home'|'bible'|'intros'|'stories'|'settings'|'more'>(() => {
+  if (showMore.value) return 'more'
+  if (route.query.modal === 'settings') return 'settings'
+
+  const p = route.path || ''
+
+  if (p === '/tabs/home' || p.startsWith('/tabs/home/')) return 'home'
+  if (p === '/tabs/bible-intros' || p.startsWith('/tabs/bible-intros/')) return 'intros'
+  if (p === '/tabs/bible-stories' || p.startsWith('/tabs/bible-stories/')) return 'stories'
+
+  // ✅ Bible root + chapter pages
+  if (p === '/tabs/bible' || p.startsWith('/tabs/chapter/')) return 'bible'
+
+  return 'home'
+})
+
   
   // ActionSheet buttons (✅ Noor moved here)
   const moreButtons = computed(() => {

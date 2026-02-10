@@ -2128,7 +2128,7 @@ onMounted(async () => {
   border-radius: 2px;
   background: rgba(31,182,170,0.55);
 }
-
+ion-toolbar{background-color: #fff;}
 :global(html[data-mk-theme="dark"]) .refsPopupText::before{
   background: rgba(40,214,204,0.75);
 }

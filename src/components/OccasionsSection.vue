@@ -9,17 +9,33 @@
         </div>
   
         <!-- video -->
-        <div v-if="hasVideo" class="ocVideo">
-          <iframe
-            class="ocFrame"
-            :src="embedUrl"
-            :title="title || 'Occasion video'"
-            frameborder="0"
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen
-          />
-        </div>
+<!-- video -->
+<div v-if="hasVideo" class="ocVideo">
+  <!-- ✅ iOS Native: لا iframe -->
+  <button
+    v-if="isIOSNative"
+    type="button"
+    class="ocPlayBtn"
+    @click="openYoutube"
+    aria-label="تشغيل فيديو المناسبة"
+  >
+    <span class="ocPlayIcon">▶</span>
+    <span class="ocPlayTxt">تشغيل الفيديو</span>
+  </button>
+
+  <!-- ✅ Android/Web: inline iframe -->
+  <iframe
+    v-else
+    class="ocFrame"
+    :src="embedUrl"
+    :title="title || 'Occasion video'"
+    frameborder="0"
+    allow="autoplay; encrypted-media; picture-in-picture"
+    allowfullscreen
+    playsinline
+  />
+</div>
+
   
         <!-- bottom expand -->
         <button
@@ -58,7 +74,24 @@
   
   <script setup lang="ts">
   import { computed, ref } from "vue"
-  
+  import { Capacitor } from "@capacitor/core"
+import { Browser } from "@capacitor/browser"
+
+const isIOSNative = computed(() => Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios")
+
+async function openYoutube() {
+  const id = String(props.youtubeId || "").trim()
+  if (!id) return
+
+  const url = `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`
+
+  // ✅ يفتح داخل التطبيق (Safari View Controller) — مضمون على iOS
+  await Browser.open({
+    url,
+    presentationStyle: "popover", // iPhone هيتعامل معها كويس
+  })
+}
+
   type Props = {
     youtubeId?: string
     title?: string
@@ -100,13 +133,12 @@
    * ✅ YouTube inline:
    * - playsinline=1 مهم للـ iPhone
    */
-  const embedUrl = computed(() => {
-    const id = String(props.youtubeId || "").trim()
-    if (!id) return ""
-    const origin = encodeURIComponent(window.location.origin)
-    return `https://www.youtube-nocookie.com/embed/${id}?playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&fs=1&origin=${origin}`
-  })
-  
+   const embedUrl = computed(() => {
+  const id = String(props.youtubeId || "").trim()
+  if (!id) return ""
+  return `https://www.youtube.com/embed/${id}?playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&controls=1`
+})
+
   /**
    * oc_content formatting:
    * **text** => <strong>
@@ -362,5 +394,37 @@
     background: rgba(0,0,0,0.22);
     border-color: rgba(255,255,255,0.14);
   }
+  .ocPlayBtn{
+  width: 100%;
+  border: 0;
+  background: rgba(0,0,0,0.06);
+  padding: 18px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  font-weight: 1000;
+  border-radius: 18px;
+  cursor:pointer;
+}
+
+.ocPlayIcon{
+  width: 42px;
+  height: 42px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius: 999px;
+  background: var(--oc-accent);
+  color: #fff;
+  font-size: 18px;
+  box-shadow: 0 12px 26px rgba(0,0,0,0.18);
+}
+
+.ocPlayTxt{
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  font-size: 15px;
+}
+
   </style>
   

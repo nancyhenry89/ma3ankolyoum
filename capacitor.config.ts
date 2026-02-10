@@ -10,11 +10,20 @@ const config: CapacitorConfig = {
     allowNavigation: [
       'nancyhenry89.github.io',
       'docs.google.com',
-      '*.googleusercontent.com'
+      '*.googleusercontent.com',
+      "youtube.com",
+      "*.youtube.com",
+      "www.youtube.com",
+      "youtu.be",
+      "googlevideo.com",
+      "*.googlevideo.com",
+      "youtube-nocookie.com",
+      "*.youtube-nocookie.com",
     ]
   },
   ios: {
     allowsInlineMediaPlayback: true,
+    limitsNavigationsToAppBoundDomains: false,
   },
   plugins: {
     LocalNotifications: {
