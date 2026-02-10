@@ -13,6 +13,9 @@ const config: CapacitorConfig = {
       '*.googleusercontent.com'
     ]
   },
+  ios: {
+    allowsInlineMediaPlayback: true,
+  },
   plugins: {
     LocalNotifications: {
       smallIcon: 'ic_stat_notify',

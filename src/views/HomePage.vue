@@ -105,6 +105,18 @@
             <div class="dates" @click="showDatePicker = true">
               {{ gregorianDate }} – {{ copticDate }}
             </div>
+            <OccasionsSection
+            class="mkNoCapture"
+  :youtube-id="oc_vid"
+  :title="oc_title"
+  :sub-title="oc_sub_title"
+  :content="oc_content"
+  :media-url="oc_media"
+  :bg-color="oc_bg"
+  :lang="lang"
+/>
+
+
 <!-- Daily Audio CTA (Arabic only) -->
 <div v-if="isArabic && hasDailyAudio" class="audioCtaWrap mkNoCapture">
   <button class="audioPill" type="button" @click="openDailyAudio()">
@@ -672,6 +684,7 @@ import {
   IonIcon
 } from '@ionic/vue'
 import HomePopup from "@/components/HomePopup.vue"
+import OccasionsSection from "@/components/OccasionsSection.vue"
 
 import { onMounted, onBeforeUnmount, ref, computed, watch } from 'vue'
 import { onIonViewDidEnter, onIonViewWillLeave } from '@ionic/vue'
@@ -1439,6 +1452,12 @@ const gregorianDate = ref('')
 const copticDate = ref('')
 const saint = ref('')
 const saintStory = ref('')
+const oc_vid = ref('')
+const oc_title = ref('')
+const oc_sub_title = ref('')
+const oc_content = ref('')
+const oc_media = ref('')
+const oc_bg = ref('') // optional
 
 const title = ref('')
 const story = ref('')
@@ -1664,6 +1683,10 @@ function applyCachedDay(c: any) {
   gregorianDate.value = c.gregorianDate || ''
   copticDate.value = c.copticDate || ''
   saint.value = c.saint || ''
+  oc_content.value = c.oc_content || ''
+oc_media.value = c.oc_media || ''
+oc_bg.value = c.oc_bg || ''
+
   saintStory.value = c.saintStory || ''
   announcement.value = c.announcement || ''
   occasional.value = c.occasional || ''
@@ -1680,6 +1703,9 @@ function applyCachedDay(c: any) {
 
   agbia.value = c.agbia || ''
   agbia_author.value = c.agbia_author || ''
+  oc_vid.value = c.oc_vid || ''
+oc_title.value = c.oc_title || ''
+oc_sub_title.value = c.oc_sub_title || ''
 
   agbia_baker.value  = c.baker  || ''
   agbia_third.value  = c.third  || ''
@@ -1708,8 +1734,16 @@ function clearData() {
   copticDate.value = ''
   saint.value = ''
   saintStory.value = ''
+  oc_content.value = ''
+oc_media.value = ''
+oc_bg.value = ''
+
   title.value = ''
   story.value = ''
+  oc_vid.value = ''
+oc_title.value = ''
+oc_sub_title.value = ''
+
   verseText.value = ''
   verseRef.value = ''
   reflection.value = ''
@@ -1764,6 +1798,9 @@ function applyRow(rowRaw: any) {
 
   const vr = pick(row, 'verse_ref', 'verse_reference')
   verseRef.value = vr ? `(${vr})` : ''
+  oc_content.value = pick(row, 'oc_content')
+oc_media.value = pick(row, 'oc_media')
+oc_bg.value = pick(row, 'oc_bg', 'oc_bg_color', 'oc_color')
 
   reflection.value = pick(row, 'reflection')
   announcement.value = pick(row, 'announcement', 'إعلان', 'announcements')
@@ -1786,6 +1823,13 @@ function applyRow(rowRaw: any) {
   const sheetHasBible = !!sheetBook || !!sheetChapterRaw || !!sheetTitle || !!sheetItems
   bibleFromSheet.value = sheetHasBible
   bibleIsEmptyFromSheet.value = !sheetHasBible
+// Occasions (YouTube)
+oc_vid.value = pick(row, 'oc_vid', 'ocvid', 'oc_video', 'occasion_vid')
+
+// ⚠️ مهم: بلاش اسمها title/sub_title لو أنت أصلاً مستخدم title للعنوان الرئيسي.
+// الأفضل في الشيت: oc_title / oc_sub_title
+oc_title.value = pick(row, 'oc_title', 'occasions_title', 'occasion_title')
+oc_sub_title.value = pick(row, 'oc_sub_title', 'occasions_sub_title', 'occasion_sub_title')
 
   // Occasional
   occasional.value = pick(row, 'occasional', 'occasion', 'audio')
@@ -1861,6 +1905,10 @@ async function refreshHomeFromNetwork(targetISO: string) {
     story: story.value,
     verseText: verseText.value,
     verseRef: verseRef.value,
+    oc_content: oc_content.value,
+oc_media: oc_media.value,
+oc_bg: oc_bg.value,
+
     reflection: reflection.value,
     agbia: agbia.value,
     agbia_author: agbia_author.value,
@@ -1874,6 +1922,9 @@ async function refreshHomeFromNetwork(targetISO: string) {
     occasional: occasional.value,
     occasional_data: occasional_data.value,
     daily_audio: daily_audio.value,
+    oc_vid: oc_vid.value,
+oc_title: oc_title.value,
+oc_sub_title: oc_sub_title.value,
 
     baker: pick(normalizeKeys(found), 'baker') || '',
     third: pick(normalizeKeys(found), 'third') || '',
