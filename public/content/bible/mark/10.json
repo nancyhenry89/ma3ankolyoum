@@ -1,18 +1,42 @@
 {
-  "bookKey": "",
-  "bookName": "",
-  "bookNameEn": "",
+  "bookKey": "Mark",
+  "bookName": "انجيل مرقس",
+  "bookNameEn": "Mark",
   "chapter": 10,
   "intro": {
-    "title": "",
-    "youtubeId": ""
+        "title": "مقدمة انجيل مرقس",
+        "youtubeId": "eiiG-AJEEiI"
   },
-  "chapterTitle": "",
+  "chapterTitle": "معطلات الوصول إلى اللـه - الطـلاق و محبة المال و الرئاسـة",
   "sections": [
     {
-      "title": "",
-      "fromVerse": 0,
-      "toVerse": 0
+      "title": "الطلاق (ع 1-13)",
+      "fromVerse": 1,
+      "toVerse": 13
+    },{
+      "title": "بركة الأولاد (ع 13-16)",
+      "fromVerse": 13,
+      "toVerse": 16
+    },{
+      "title": " محبة المال (ع 17-27)",
+      "fromVerse": 17,
+      "toVerse": 27
+    },{
+      "title": "الترك من أجل الله (ع 28-31)",
+      "fromVerse": 28,
+      "toVerse": 31
+    },{
+      "title": "الإنباء بموته (ع 32-34)",
+      "fromVerse": 32,
+      "toVerse": 34
+    },{
+      "title": " مفهوم الرئاسة (ع 35-45)",
+      "fromVerse": 35,
+      "toVerse": 45
+    },{
+      "title":"شفاء بَارْتِيمَاوُسُ الأعمى (ع 46-52)",
+      "fromVerse": 46,
+      "toVerse": 52
     }
   ],
   "verses": [

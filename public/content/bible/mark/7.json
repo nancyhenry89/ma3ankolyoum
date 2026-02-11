@@ -1,18 +1,33 @@
 {
-  "bookKey": "",
-  "bookName": "",
-  "bookNameEn": "",
+  "bookKey": "Mark",
+  "bookName": "انجيل مرقس",
+  "bookNameEn": "Mark",
   "chapter": 7,
   "intro": {
-    "title": "",
-    "youtubeId": ""
+        "title": "مقدمة انجيل مرقس",
+        "youtubeId": "eiiG-AJEEiI"
   },
-  "chapterTitle": "",
+  "chapterTitle": "الطاهـر والنجس و شـفاء ابـنة الكنعانيـة و شفاء الأصم الأعقد",
   "sections": [
     {
-      "title": "",
-      "fromVerse": 0,
-      "toVerse": 0
+      "title": "الرد على الكتبة والفرّيسيّين وتوبيخهم (ع 1-13)",
+      "fromVerse":1 ,
+      "toVerse": 13
+    },
+    {
+      "title": "الطاهر والنجس (ع 14-23)",
+      "fromVerse": 14,
+      "toVerse": 23
+    },
+    {
+      "title": "المرأة الكنعانية (ع 24-30)",
+      "fromVerse": 24,
+      "toVerse": 30
+    },
+    {
+      "title": "شفاء الأصم الأعقد (ع 31-37)",
+      "fromVerse": 31,
+      "toVerse": 37
     }
   ],
   "verses": [
