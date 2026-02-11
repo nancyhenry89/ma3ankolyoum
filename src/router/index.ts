@@ -19,6 +19,7 @@ const routes: Array<RouteRecordRaw> = [
       { path: 'bible', name: 'Bible', component: () => import('@/views/BiblePage.vue') },
       { path: 'bible-intros', name: 'BibleIntros', component: () => import('@/views/BibleIntrosPage.vue') },
       { path: 'bible-stories', name: 'BibleStories', component: () => import('@/views/BibleStoriesPage.vue') },
+      { path: 'books', name: 'Books', component: () => import('@/views/BooksTab.vue') },
 
       // More / extra pages
       { path: 'noor-alalam', name: 'NoorAlAlam', component: () => import('@/views/NourAlAlamPage.vue') },
@@ -50,6 +51,10 @@ const routes: Array<RouteRecordRaw> = [
   { path: '/agbia-audio/:date', redirect: to => `/tabs/agbia-audio/${to.params.date}` },
   { path: '/occasional/:file', redirect: to => `/tabs/occasional/${to.params.file}` },
   { path: '/daily-audio/:iso', redirect: to => `/tabs/daily-audio/${to.params.iso}` },
+
+  { path: '/books', redirect: '/tabs/books' },
+{ path: '/book/:bookId', component: () => import('@/views/BookTocPage.vue') },
+{ path: '/book/:bookId/:chapterId/:sectionId', component: () => import('@/views/BookReaderPage.vue') },
 
   // ===== Fallback =====
   { path: '/:pathMatch(.*)*', redirect: '/tabs/home' },

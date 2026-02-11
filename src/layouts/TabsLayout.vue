@@ -48,7 +48,17 @@
             <ion-icon :icon="filmOutline" />
             <ion-label>{{ isArabic ? 'حكايات' : 'Stories' }}</ion-label>
           </ion-tab-button>
-  
+  <!-- ✅ Books -->
+<ion-tab-button
+  tab="books"
+  href="/tabs/books"
+  class="mkTabBtn"
+  :class="{ mkSelected: activeTab === 'books' }"
+>
+  <ion-icon :icon="albumsOutline" />
+  <ion-label>{{ isArabic ? 'كتب' : 'Books' }}</ion-label>
+</ion-tab-button>
+
           <!-- ✅ Settings (outside More) -->
           <ion-tab-button
             tab="settings"
@@ -105,6 +115,7 @@
     settingsOutline,
     informationCircleOutline,
     libraryOutline,
+    albumsOutline,
   } from 'ionicons/icons'
   import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
   import { useRouter, useRoute } from 'vue-router'
@@ -162,8 +173,8 @@
   }
   
   // ✅ active tab (stable + fixes bible prefix problem)
-  const activeTab = computed<'home'|'bible'|'intros'|'stories'|'settings'|'more'>(() => {
-  if (showMore.value) return 'more'
+  const activeTab = computed<'home'|'bible'|'intros'|'stories'|'books'|'settings'|'more'>(() => {
+    if (showMore.value) return 'more'
   if (route.query.modal === 'settings') return 'settings'
 
   const p = route.path || ''
@@ -171,6 +182,8 @@
   if (p === '/tabs/home' || p.startsWith('/tabs/home/')) return 'home'
   if (p === '/tabs/bible-intros' || p.startsWith('/tabs/bible-intros/')) return 'intros'
   if (p === '/tabs/bible-stories' || p.startsWith('/tabs/bible-stories/')) return 'stories'
+  if (p === '/tabs/books' || p.startsWith('/tabs/books/')) return 'books'
+if (p.startsWith('/book/')) return 'books' // ✅ so reader pages still highlight Books tab
 
   // ✅ Bible root + chapter pages
   if (p === '/tabs/bible' || p.startsWith('/tabs/chapter/')) return 'bible'
