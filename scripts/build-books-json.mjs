@@ -80,15 +80,26 @@ function makeBlock(r) {
   throw new Error(`Unknown block type: ${type}`)
 }
 
-async function fetchText(url) {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`Failed to fetch ${url} (${res.status})`)
-  return await res.text()
-}
-
+async function fetchText(source) {
+    // If it's a URL
+    if (source.startsWith("http://") || source.startsWith("https://")) {
+      const res = await fetch(source)
+      if (!res.ok) throw new Error(`Failed to fetch ${source} (${res.status})`)
+      return await res.text()
+    }
+  
+    // Otherwise treat as local file path
+    const fullPath = path.resolve(source)
+    if (!fs.existsSync(fullPath)) {
+      throw new Error(`Local file not found: ${fullPath}`)
+    }
+    return fs.readFileSync(fullPath, "utf8")
+  }
+  
 // ===== MAIN =====
-const indexUrl = process.env.BOOKS_INDEX_CSV
-const blocksUrl = process.env.BOOK_BLOCKS_CSV
+const indexUrl = process.env.BOOKS_INDEX_CSV || "./books_out/books_index.csv"
+const blocksUrl = process.env.BOOK_BLOCKS_CSV || "./books_out/book_blocks.csv"
+
 
 if (!indexUrl || !blocksUrl) {
   console.log("❌ Missing env vars.")
