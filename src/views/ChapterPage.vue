@@ -1312,8 +1312,8 @@ onMounted(async () => {
 .verseRow{
   position: relative;
   display:grid;
-  grid-template-columns: 1fr 52px;
-  gap: 10px;
+  grid-template-columns: 1fr 42px;
+  gap: 5px;
   align-items: start;
   padding:12px 8px;
 }
@@ -1321,7 +1321,7 @@ onMounted(async () => {
 .verseMain{
   width:100%;
   display:grid;
-  grid-template-columns:42px 1fr 18px;
+  grid-template-columns:32px 1fr 0px;
   gap:10px;
   background:transparent;
   border:0;
@@ -1339,17 +1339,19 @@ onMounted(async () => {
   font-weight:900;
   padding:6px 0;
   height:fit-content;
+  margin-top: 8px;
 }
 
 .txt{
-  font-size:18px;
+  font-family: "Scheherazade New", serif;
+  font-size:22px;
   line-height:1.95;
   white-space:pre-wrap;
   font-weight:800;
-  font-family:"Noto Kufi Arabic", system-ui, sans-serif;
 }
 
 .chev{
+  display:none;
   color: var(--mk-text);
   font-weight:900;
   padding-top:6px;
