@@ -330,6 +330,36 @@
 :global(html[data-mk-theme="dark"]) .mkSelect{
   background: rgba(12,18,26,0.55) !important;
 }
+/* ✅ Dark mode: selected value (after picking) becomes invisible */
+:global(html[data-mk-theme="dark"]) ion-select.mkSelect{
+  color: var(--mk-text) !important;
+  opacity: 1 !important;
+}
+
+/* ✅ The real rendered text/placeholder/icon in Ionic (Shadow Parts) */
+:global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(text){
+  color: var(--mk-text) !important;
+  opacity: 1 !important;
+  font-weight: 900;
+}
+
+:global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(placeholder){
+  color: var(--mk-text) !important;
+  opacity: 0.75 !important;
+}
+
+:global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(icon){
+  color: var(--mk-text) !important;
+  opacity: 0.95 !important;
+}
+
+/* ✅ Some Ionic versions still use these internal classes */
+:global(html[data-mk-theme="dark"]) ion-select.mkSelect :deep(.select-text),
+:global(html[data-mk-theme="dark"]) ion-select.mkSelect :deep(.select-placeholder){
+  color: var(--mk-text) !important;
+  opacity: 1 !important;
+  font-weight: 900;
+}
 
   </style>
   
