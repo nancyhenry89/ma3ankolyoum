@@ -294,5 +294,42 @@
     color: var(--mk-text);
     opacity: 0.85;
   }
+/* ✅ Fix ion-select text visibility in dark mode */
+:global(html[data-mk-theme="dark"]) .mkSelect{
+  color: var(--mk-text) !important;
+  opacity: 1 !important;
+}
+
+/* select text + placeholder داخل ion-select */
+:global(html[data-mk-theme="dark"]) .mkSelect :deep(.select-text),
+:global(html[data-mk-theme="dark"]) .mkSelect :deep(.select-placeholder){
+  color: var(--mk-text) !important;
+  opacity: 1 !important;
+  font-weight: 900;
+}
+
+/* أحيانًا الأيقونة كمان بتبقى باهتة */
+:global(html[data-mk-theme="dark"]) .mkSelect :deep(.select-icon){
+  color: var(--mk-text) !important;
+  opacity: 0.95 !important;
+}
+
+/* لو نسخة Ionic بتستخدم part="text" */
+:global(html[data-mk-theme="dark"]) .mkSelect::part(text){
+  color: var(--mk-text) !important;
+  opacity: 1 !important;
+}
+:global(html[data-mk-theme="dark"]) .mkSelect::part(placeholder){
+  color: var(--mk-text) !important;
+  opacity: 0.75 !important;
+}
+:global(html[data-mk-theme="dark"]) .mkSelect::part(icon){
+  color: var(--mk-text) !important;
+  opacity: 0.95 !important;
+}
+:global(html[data-mk-theme="dark"]) .mkSelect{
+  background: rgba(12,18,26,0.55) !important;
+}
+
   </style>
   

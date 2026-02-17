@@ -306,8 +306,6 @@
     height: 0px;
     transition: height .2s ease;
   }
-  .mkPlayerSpacer.open{
-    height: 130px; /* space for mini player */
-  }
+
   </style>
   
