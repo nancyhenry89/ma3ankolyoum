@@ -370,5 +370,39 @@
     opacity: 1 !important;
     font-weight: 900;
   }
+  /* ================================
+   FIX: ion-select value invisible in DARK mode
+   (don't rely on --mk-text existing)
+================================ */
+:global(html[data-mk-theme="dark"]) ion-select.mkSelect{
+  /* Ionic variables that actually drive the rendered text */
+  --color: #f5f7fa !important;                 /* selected value */
+  --placeholder-color: #f5f7fa !important;     /* placeholder */
+  --placeholder-opacity: 0.78 !important;
+
+  /* ensure background is dark enough */
+  background: rgba(12,18,26,0.70) !important;
+  border-color: rgba(255,255,255,0.16) !important;
+
+  color: #f5f7fa !important;   /* fallback */
+  opacity: 1 !important;
+}
+
+/* Shadow parts (newer Ionic) */
+:global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(text),
+:global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(placeholder),
+:global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(icon){
+  color: #f5f7fa !important;
+  opacity: 1 !important;
+}
+
+/* Older Ionic internals fallback */
+:global(html[data-mk-theme="dark"]) ion-select.mkSelect :deep(.select-text),
+:global(html[data-mk-theme="dark"]) ion-select.mkSelect :deep(.select-placeholder),
+:global(html[data-mk-theme="dark"]) ion-select.mkSelect :deep(.select-icon){
+  color: #f5f7fa !important;
+  opacity: 1 !important;
+}
+
   </style>
   
