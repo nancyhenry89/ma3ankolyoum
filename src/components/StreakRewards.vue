@@ -26,7 +26,9 @@
           </span>
         </ion-button>
 
+        <!-- ✅ hide Mark Today until user clicks Recover (when Recover is offered) -->
         <ion-button
+          v-if="showTodayCta"
           size="small"
           class="srTodayBtn"
           :class="{ on: readToday }"
@@ -200,6 +202,16 @@
         <ion-button size="small" fill="outline" @click="seedStreak(365)">365</ion-button>
         <ion-button size="small" color="danger" @click="resetAll">{{ ui.debugResetAll }}</ion-button>
       </div>
+
+      <!-- (اختياري) لو عايزة تشوفي القيم - سيبيه معلق -->
+      <!--
+      <div style="margin-top:10px; font-size:12px; opacity:.8">
+        last={{ maxISO(readDays) || "-" }} |
+        today={{ effectiveTodayISO }} |
+        longest={{ computeLongestRun(readDays) }} |
+        can={{ canSoftReset }}
+      </div>
+      -->
     </div>
   </section>
 </template>
@@ -312,7 +324,16 @@ const ui = computed(() => {
 });
 
 const route = useRoute();
-const isDebug = computed(() => route.query.debug === "1");
+
+/**
+ * ✅ IMPORTANT FIX:
+ * query values in vue-router can be "1" | 1 | true | "true" | "on"
+ * so we normalize to string.
+ */
+const isDebug = computed(() => {
+  const v = String(route.query.debug ?? "");
+  return v === "1" || v === "true" || v === "on";
+});
 
 /** Fake today (debug) */
 const fakeToday = ref<string | null>(null);
@@ -320,21 +341,44 @@ const effectiveTodayISO = computed(() => fakeToday.value ?? props.todayISO);
 
 /** helpers */
 function pad(n: number) { return String(n).padStart(2, "0"); }
+
 function addDaysISO(iso: string, n: number) {
   const d = new Date(`${iso}T00:00:00`);
   d.setDate(d.getDate() + n);
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
+
 function diffDaysISO(aISO: string, bISO: string) {
   const a = new Date(`${aISO}T00:00:00`).getTime();
   const b = new Date(`${bISO}T00:00:00`).getTime();
   return Math.round((a - b) / (1000 * 60 * 60 * 24));
 }
 
+function maxISO(list: string[]) {
+  return list.length ? [...list].sort().pop()! : null;
+}
+
+function computeLongestRun(days: string[]) {
+  if (!days.length) return 0;
+  const sorted = [...new Set(days)].sort(); // YYYY-MM-DD sorts ok
+  let best = 1;
+  let cur = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = sorted[i - 1];
+    const now = sorted[i];
+    const gap = diffDaysISO(now, prev);
+    if (gap === 1) cur++;
+    else cur = 1;
+    if (cur > best) best = cur;
+  }
+  return best;
+}
+
 function shiftFakeDay(delta: number) {
   const base = fakeToday.value ?? props.todayISO;
   fakeToday.value = addDaysISO(base, delta);
 }
+
 function resetFakeToday() { fakeToday.value = null; }
 
 /** Milestones */
@@ -355,7 +399,6 @@ const rewards = ref(computeRewards(0));
 const recentDays = computed(() => [...readDays.value].sort().reverse().slice(0, 14));
 function formatDay(iso: string) {
   const d = new Date(`${iso}T00:00:00`);
-  // EN: mm/dd , AR: dd/mm
   if (!isArabic.value) return `${d.getMonth() + 1}/${d.getDate()}`;
   return `${d.getDate()}/${d.getMonth() + 1}`;
 }
@@ -390,6 +433,7 @@ const softResetActive = computed(() => {
 const justToggled = ref(false);
 const weekPop = ref(false);
 const rewardsPop = ref(false);
+
 function pulseFlag(flag: { value: boolean }, ms = 420) {
   flag.value = true;
   window.setTimeout(() => (flag.value = false), ms);
@@ -400,13 +444,17 @@ function recompute() {
   const s = computeStreak(readDays.value, effectiveTodayISO.value);
   baseStreak.value = s.streak;
 
+  // ✅ bank milestone من "أقصى streak حصل قبل كده" مش من streak اليوم
+  const longest = computeLongestRun(readDays.value);
+  const earnedFromHistory = nearestMilestoneBelow(longest);
+
   const bank = meta.value.bankMilestone ?? 0;
-  const earned = nearestMilestoneBelow(baseStreak.value);
-  if (earned > bank) {
-    meta.value.bankMilestone = earned;
-    setStreakMeta(meta.value);
+  if (earnedFromHistory > bank) {
+    meta.value.bankMilestone = earnedFromHistory;
+    persistMeta(); // non-blocking save
   }
 
+  // clear armed if expired and still 0
   if (meta.value.softResetState === "armed") {
     const until = meta.value.softResetUntilISO;
     const expired = !until || diffDaysISO(until, effectiveTodayISO.value) < 0;
@@ -418,6 +466,7 @@ function recompute() {
     }
   }
 
+  // clear running if collapsed
   if (meta.value.softResetState === "running" && baseStreak.value === 0) {
     delete meta.value.softResetBase;
     delete meta.value.softResetState;
@@ -487,19 +536,35 @@ const monthsLabel = computed(() => (months.value >= 50 ? "50+" : String(months.v
 const weeksShown = computed(() => Math.min(weeks.value, 12));
 const monthsShown = computed(() => Math.min(months.value, 12));
 
+/**
+ * ✅ FINAL / GUARANTEED:
+ * Recover depends on HISTORY (readDays) directly.
+ */
 const canSoftReset = computed(() => {
   if (readToday.value) return false;
   if (!readDays.value.length) return false;
-
-  const sToday = computeStreak(readDays.value, effectiveTodayISO.value).streak;
-  if (sToday > 0) return false;
-
   if (softResetActive.value) return false;
-  return (meta.value.bankMilestone ?? 0) > 0;
+
+  const lastMarked = maxISO(readDays.value);
+  if (!lastMarked) return false;
+
+  const missed = diffDaysISO(effectiveTodayISO.value, lastMarked) > 0;
+  if (!missed) return false;
+
+  const longest = computeLongestRun(readDays.value);
+  const earnedFromHistory = nearestMilestoneBelow(longest);
+
+  return earnedFromHistory > 0;
+});
+
+// ✅ If recover is offered, hide "mark today" until recover is pressed
+const showTodayCta = computed(() => {
+  return !canSoftReset.value || softResetActive.value;
 });
 
 async function softResetToPrevMilestone() {
-  const bank = meta.value.bankMilestone ?? 0;
+  const longest = computeLongestRun(readDays.value);
+  const bank = nearestMilestoneBelow(longest);
   if (bank <= 0) return;
 
   meta.value.softResetBase = bank;
@@ -570,8 +635,6 @@ watch(() => props.todayISO, load);
 watch(effectiveTodayISO, recompute);
 </script>
 
-  
-  
 <style scoped>
   /* =====================================================
      THEME TOKENS (Light as default)  ✅ KEEP LIGHT SAME
@@ -887,47 +950,43 @@ watch(effectiveTodayISO, recompute);
   }
   .srMilestone.achieved:hover{ transform: translateY(-1px); }
   .srHeroText{
-  flex: 1;
-  min-width: 0;
-}
+    flex: 1;
+    min-width: 0;
+  }
 
-.srHeroMain{
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;          /* يسمح بالسطر التاني لو الشاشة ضيقة */
-  line-height: 1.25;
-}
+  .srHeroMain{
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    line-height: 1.25;
+  }
 
-.srHeroTitle{
-  font-weight: 1000;
-  display: block;
-  width:100%;
-  font-size:20px
-}
+  .srHeroTitle{
+    font-weight: 1000;
+    display: block;
+    width:100%;
+    font-size:20px
+  }
 
-.srHeroDot{
-  opacity: .5;
-}
+  .srHeroDot{ opacity: .5; }
 
-.srHeroLabel{
-  font-weight: 1000;
-}
+  .srHeroLabel{ font-weight: 1000; }
 
-.srHeroNum{
-  font-size: 22px;
-  font-weight: 1000;
-  direction: ltr;           /* مهم للأرقام مع RTL */
-  unicode-bidi: plaintext;  /* يمنع تقليب ترتيب الأرقام */
-}
+  .srHeroNum{
+    font-size: 22px;
+    font-weight: 1000;
+    direction: ltr;
+    unicode-bidi: plaintext;
+  }
 
-.srHeroSub{
-  margin-top: 6px;
-  font-weight: 900;
-  font-size: 13px;
-  color: var(--sr-muted);
-  line-height: 1.6;
-}
+  .srHeroSub{
+    margin-top: 6px;
+    font-weight: 900;
+    font-size: 13px;
+    color: var(--sr-muted);
+    line-height: 1.6;
+  }
 
   /* =====================================================
      DAYS CHIPS
