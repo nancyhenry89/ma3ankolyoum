@@ -33,16 +33,22 @@
       <div class="mkSettingCard">
         <div class="mkRowTop">
           <div class="mkLbl">خط الآيات</div>
+          <!-- ✅ ALWAYS visible selected label -->
+          <div class="mkValue">{{ selectedFontLabel }}</div>
         </div>
   
-        <!-- ✅ IMPORTANT: value is a SIMPLE KEY (not a long font-family string) -->
         <ion-select
           interface="popover"
-          :value="state.verseFontKey"
-          @ionChange="onFontKey"
+          :value="state.verseFont"
+          @ionChange="onFont"
           class="mkSelect"
+          placeholder="اختر خط"
         >
-          <ion-select-option v-for="f in resolvedFonts" :key="f.key" :value="f.key">
+          <ion-select-option
+            v-for="f in resolvedFonts"
+            :key="f.value"
+            :value="f.value"
+          >
             {{ f.label }}
           </ion-select-option>
         </ion-select>
@@ -56,16 +62,12 @@
   
   export type ChapterSettingsStateV2 = {
     fontScale: number
-    // ✅ keep your old contract: the actual CSS font-family string
     verseFont: string
   }
-  
-  type FontItem = { key: string; label: string; value: string }
   
   const props = defineProps<{
     modelValue: ChapterSettingsStateV2
     storageKey?: string
-    // if provided, can be the old shape {label,value}; we’ll convert to {key,label,value}
     fonts?: { label: string; value: string }[]
   }>()
   
@@ -75,64 +77,52 @@
   
   const STORAGE_KEY = props.storageKey || "mk_chapter_settings_v2"
   
-  const defaultFonts: FontItem[] = [
-    { key: "playpen", label: "Playpen Sans Arabic", value: `"Playpen Sans Arabic", system-ui, sans-serif` },
-    { key: "cairo", label: "Cairo", value: `"Cairo", system-ui, sans-serif` },
-    { key: "tajawal", label: "Tajawal", value: `"Tajawal", system-ui, sans-serif` },
-    { key: "scheh", label: "Scheherazade New", value: `"Scheherazade New", serif` },
-    { key: "amiri", label: "Amiri", value: `"Amiri", serif` },
-    { key: "naskh", label: "Noto Naskh Arabic", value: `"Noto Naskh Arabic", system-ui, sans-serif` },
-    { key: "kufi", label: "Noto Kufi Arabic", value: `"Noto Kufi Arabic", system-ui, sans-serif` },
-  ]
-  
-  // make a stable key from label/value (if props.fonts comes without keys)
-  function makeKey(label: string, value: string) {
-    const base = (label || value || "").toLowerCase().trim()
-    const k = base.replace(/["']/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
-    return k || "font"
+  /** Normalize font-family string to avoid invisible select (value mismatch) */
+  function normalizeFontValue(v: any) {
+    return String(v || "")
+      .trim()
+      .replace(/\s+/g, " ")     // collapse spaces
+      .replace(/,\s+/g, ", ")   // normalize comma spacing
   }
   
-  const resolvedFonts = computed<FontItem[]>(() => {
-    const incoming: FontItem[] = props.fonts?.length
-      ? props.fonts.map((f) => ({
-          key: makeKey(f.label, f.value),
-          label: f.label,
-          value: f.value,
-        }))
-      : defaultFonts
+  /** Default fonts */
+  const defaultFonts = [
+    { label: "Playpen Sans Arabic", value: `"Playpen Sans Arabic", system-ui, sans-serif` },
+    { label: "Cairo", value: `"Cairo", system-ui, sans-serif` },
+    { label: "Tajawal", value: `"Tajawal", system-ui, sans-serif` },
+    { label: "Scheherazade New", value: `"Scheherazade New", serif` },
+    { label: "Amiri", value: `"Amiri", serif` },
+    { label: "Noto Naskh Arabic", value: `"Noto Naskh Arabic", system-ui, sans-serif` },
+    { label: "Noto Kufi Arabic", value: `"Noto Kufi Arabic", system-ui, sans-serif` },
+  ].map(f => ({ ...f, value: normalizeFontValue(f.value) }))
   
-    // ✅ ensure these exist
-    const mustKeys = new Set(["playpen", "cairo", "tajawal"])
-    const out: FontItem[] = []
+  const resolvedFonts = computed(() => {
+    const incoming = (props.fonts?.length ? props.fonts : defaultFonts)
+      .map(f => ({ label: f.label, value: normalizeFontValue(f.value) }))
   
-    // 1) add must from defaults (guaranteed keys)
-    for (const f of defaultFonts) {
-      if (mustKeys.has(f.key)) out.push(f)
-    }
+    // must-have fonts
+    const must = [
+      { label: "Playpen Sans Arabic", value: normalizeFontValue(`"Playpen Sans Arabic", system-ui, sans-serif`) },
+      { label: "Cairo", value: normalizeFontValue(`"Cairo", system-ui, sans-serif`) },
+      { label: "Tajawal", value: normalizeFontValue(`"Tajawal", system-ui, sans-serif`) },
+    ]
   
-    // 2) add incoming without duplicating keys
-    const seen = new Set(out.map((x) => x.key))
-    for (const f of incoming) {
-      if (!seen.has(f.key)) {
-        out.push(f)
-        seen.add(f.key)
-      }
-    }
+    const map = new Map<string, { label: string; value: string }>()
+    for (const f of incoming) map.set(f.value, f)
+    for (const m of must) if (!map.has(m.value)) map.set(m.value, m)
   
-    return out
+    return Array.from(map.values())
   })
   
-  function fontKeyFromValue(fontValue: string) {
-    const v = String(fontValue || "").trim()
-    if (!v) return resolvedFonts.value[0]?.key || "cairo"
-    const found = resolvedFonts.value.find((f) => f.value === v)
-    return found?.key || resolvedFonts.value[0]?.key || "cairo"
+  function ensureValidFontValue(v: string) {
+    const norm = normalizeFontValue(v)
+    const ok = resolvedFonts.value.some(f => f.value === norm)
+    return ok ? norm : resolvedFonts.value[0].value
   }
   
-  const state = reactive({
+  const state = reactive<ChapterSettingsStateV2>({
     fontScale: props.modelValue?.fontScale ?? 1,
-    // key is what ion-select uses (stable)
-    verseFontKey: fontKeyFromValue(props.modelValue?.verseFont || ""),
+    verseFont: ensureValidFontValue(props.modelValue?.verseFont ?? resolvedFonts.value[0].value),
   })
   
   const scaleLabel = computed(() => {
@@ -140,37 +130,34 @@
     return `${pct}%`
   })
   
-  function push() {
-    const picked =
-      resolvedFonts.value.find((f) => f.key === state.verseFontKey) || resolvedFonts.value[0] || defaultFonts[0]
+  const selectedFontLabel = computed(() => {
+    const v = ensureValidFontValue(state.verseFont)
+    return resolvedFonts.value.find(f => f.value === v)?.label || "—"
+  })
   
+  function push() {
     const v: ChapterSettingsStateV2 = {
       fontScale: Number(state.fontScale || 1),
-      verseFont: String(picked.value || defaultFonts[0].value),
+      verseFont: ensureValidFontValue(state.verseFont),
     }
-  
     emit("update:modelValue", v)
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(v))
     } catch {}
   }
   
-  function onScaleInput() {
-    push()
-  }
+  function onScaleInput() { push() }
+  function onScaleCommit() { push() }
   
-  function onScaleCommit() {
-    push()
-  }
-  
-  function onFontKey(e: CustomEvent) {
-    state.verseFontKey = String((e as any)?.detail?.value || resolvedFonts.value[0]?.key || "cairo")
+  function onFont(e: CustomEvent) {
+    const raw = String((e as any)?.detail?.value || "")
+    state.verseFont = ensureValidFontValue(raw)
     push()
   }
   
   function resetAll() {
     state.fontScale = 1
-    state.verseFontKey = resolvedFonts.value[0]?.key || "cairo"
+    state.verseFont = resolvedFonts.value[0].value
     push()
   }
   
@@ -179,15 +166,15 @@
       const raw = localStorage.getItem(STORAGE_KEY)
       if (!raw) return
       const saved = JSON.parse(raw)
-      if (!saved) return
+      if (saved) {
+        const fs = Number(saved.fontScale)
+        state.fontScale = Number.isFinite(fs) ? fs : 1
   
-      const fs = Number(saved.fontScale)
-      state.fontScale = Number.isFinite(fs) ? fs : 1
+        const vf = ensureValidFontValue(saved.verseFont || "")
+        state.verseFont = vf
   
-      // saved.verseFont is the old string -> convert to key
-      state.verseFontKey = fontKeyFromValue(String(saved.verseFont || ""))
-  
-      push()
+        push()
+      }
     } catch {}
   })
   
@@ -197,212 +184,191 @@
       if (!v) return
       const fs = Number(v.fontScale)
       if (Number.isFinite(fs)) state.fontScale = fs
-  
-      if (v.verseFont) {
-        state.verseFontKey = fontKeyFromValue(String(v.verseFont))
-      }
+      if (v.verseFont) state.verseFont = ensureValidFontValue(v.verseFont)
     },
     { deep: true }
   )
   </script>
   
   <style scoped>
-  .mkSettingsBox {
+  .mkSettingsBox{
     margin: 10px 0 12px;
     padding: 14px;
     border-radius: 20px;
-    border: 1px solid var(--mk-border);
-    background: radial-gradient(700px 260px at 20% 0%, rgba(31, 182, 170, 0.16), transparent 60%),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.6));
-    box-shadow: var(--mk-shadow);
+    border: 1px solid var(--mk-border, rgba(0,0,0,0.10));
+    background:
+      radial-gradient(700px 260px at 20% 0%, rgba(31,182,170,0.16), transparent 60%),
+      linear-gradient(135deg, rgba(255,255,255,0.88), rgba(255,255,255,0.60));
+    box-shadow: var(--mk-shadow, 0 8px 18px rgba(0,0,0,0.08));
     backdrop-filter: blur(8px);
   }
   
-  :global(html[data-mk-theme="dark"]) .mkSettingsBox {
-    background: radial-gradient(700px 260px at 20% 0%, rgba(31, 182, 170, 0.14), transparent 62%),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
-    border-color: rgba(255, 255, 255, 0.14);
+  /* ✅ define safe local vars for dark mode even if page doesn't provide mk vars */
+  :global(html[data-mk-theme="dark"]) .mkSettingsBox{
+    --mk-text-local: #f5f7fa;
+    --mk-border-local: rgba(255,255,255,0.14);
+  
+    background:
+      radial-gradient(700px 260px at 20% 0%, rgba(31,182,170,0.14), transparent 62%),
+      linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+    border-color: var(--mk-border, var(--mk-border-local));
   }
   
-  .mkSettingsHead {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+  .mkSettingsHead{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
     margin-bottom: 12px;
   }
   
-  .mkSettingsTitle {
+  .mkSettingsTitle{
     font-weight: 1000;
-    color: var(--mk-text);
+    color: var(--mk-text, #0b1f33);
     font-family: "Noto Kufi Arabic", system-ui, sans-serif;
     font-size: 16px;
   }
   
-  .mkSettingsReset {
-    border: 1px solid var(--mk-border);
-    background: rgba(0, 0, 0, 0.04);
-    color: var(--mk-text);
+  :global(html[data-mk-theme="dark"]) .mkSettingsTitle{
+    color: var(--mk-text, var(--mk-text-local));
+  }
+  
+  .mkSettingsReset{
+    border: 1px solid var(--mk-border, rgba(0,0,0,0.10));
+    background: rgba(0,0,0,0.04);
+    color: var(--mk-text, #0b1f33);
     font-weight: 900;
     padding: 7px 11px;
     border-radius: 999px;
     cursor: pointer;
   }
-  
-  :global(html[data-mk-theme="dark"]) .mkSettingsReset {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.16);
+  :global(html[data-mk-theme="dark"]) .mkSettingsReset{
+    background: rgba(255,255,255,0.08);
+    border-color: var(--mk-border, var(--mk-border-local));
+    color: var(--mk-text, var(--mk-text-local));
   }
   
-  .mkSettingCard {
+  .mkSettingCard{
     margin-top: 10px;
     padding: 12px 12px 10px;
     border-radius: 16px;
-    border: 1px solid var(--mk-border);
-    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid var(--mk-border, rgba(0,0,0,0.10));
+    background: rgba(0,0,0,0.02);
+  }
+  :global(html[data-mk-theme="dark"]) .mkSettingCard{
+    background: rgba(255,255,255,0.06);
+    border-color: var(--mk-border, var(--mk-border-local));
   }
   
-  :global(html[data-mk-theme="dark"]) .mkSettingCard {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.14);
-  }
-  
-  .mkRowTop {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+  .mkRowTop{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
     margin-bottom: 8px;
   }
   
-  .mkLbl {
+  .mkLbl{
     font-weight: 1000;
-    color: var(--mk-text);
+    color: var(--mk-text, #0b1f33);
     font-family: "Noto Kufi Arabic", system-ui, sans-serif;
   }
+  :global(html[data-mk-theme="dark"]) .mkLbl{
+    color: var(--mk-text, var(--mk-text-local));
+  }
   
-  .mkValue {
+  .mkValue{
     font-weight: 1000;
-    color: var(--mk-text);
-    opacity: 0.9;
+    color: var(--mk-text, #0b1f33);
+    opacity: 0.95;
     font-variant-numeric: tabular-nums;
     padding: 3px 10px;
     border-radius: 999px;
-    border: 1px solid var(--mk-border);
-    background: rgba(31, 182, 170, 0.1);
+    border: 1px solid var(--mk-border, rgba(0,0,0,0.10));
+    background: rgba(31,182,170,0.10);
+    max-width: 55%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
-  
-  :global(html[data-mk-theme="dark"]) .mkValue {
-    background: rgba(31, 182, 170, 0.12);
-    border-color: rgba(255, 255, 255, 0.16);
+  :global(html[data-mk-theme="dark"]) .mkValue{
+    color: var(--mk-text, var(--mk-text-local));
+    background: rgba(31,182,170,0.12);
+    border-color: var(--mk-border, var(--mk-border-local));
   }
   
   /* ✅ Ensure the range truly behaves LTR even inside RTL containers */
-  .mkRange {
+  .mkRange{
     direction: ltr;
     unicode-bidi: isolate;
-    padding: 0;
+    padding:0;
   }
   
   /* ✅ nicer ion-range look */
-  ion-range {
+  ion-range{
     --bar-height: 8px;
     --knob-size: 24px;
-    --pin-background: rgba(0, 0, 0, 0.85);
+    --pin-background: rgba(0,0,0,0.85);
     --pin-color: #fff;
-    --knob-box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
-    --bar-background: rgba(31, 182, 170, 0.18);
+    --knob-box-shadow: 0 10px 20px rgba(0,0,0,0.18);
+    --bar-background: rgba(31,182,170,0.18);
     --bar-background-active: rgb(37 63 79);
     padding-inline: 2px;
   }
   
-  /* ion-select styling */
-  .mkSelect {
+  /* ================================
+     ✅ ion-select: REAL FIX (value + dark colors)
+  ================================ */
+  .mkSelect{
     width: 100%;
     margin-top: 2px;
     border-radius: 14px;
-    border: 1px solid var(--mk-border);
-    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--mk-border, rgba(0,0,0,0.10));
+    background: rgba(255,255,255,0.70);
     padding: 8px 10px;
+  
+    /* Ionic variables that drive text rendering */
+    --color: #0b1f33;
+    --placeholder-color: rgba(11,31,51,0.70);
+    --placeholder-opacity: 1;
   }
   
-  :global(html[data-mk-theme="dark"]) .mkSelect {
-    background: rgba(12, 18, 26, 0.55);
-    border-color: rgba(255, 255, 255, 0.16);
-  }
+  :global(html[data-mk-theme="dark"]) ion-select.mkSelect{
+    border-color: var(--mk-border, var(--mk-border-local)) !important;
   
-  /* ✅ Force visible selected value in dark mode (Shadow Parts) */
-  :global(html[data-mk-theme="dark"]) ion-select.mkSelect {
-    color: var(--mk-text) !important;
+    /* important Ionic vars */
+    --color: #f5f7fa !important;
+    --placeholder-color: rgba(245,247,250,0.80) !important;
+    --placeholder-opacity: 1 !important;
+  
+    background: rgba(12,18,26,0.70) !important;
+    color: #f5f7fa !important;
     opacity: 1 !important;
   }
   
-  :global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(text) {
-    color: var(--mk-text) !important;
+  /* shadow parts */
+  :global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(text),
+  :global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(placeholder),
+  :global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(icon){
+    color: #f5f7fa !important;
     opacity: 1 !important;
+  }
+  
+  /* older internals fallback */
+  .mkSelect :deep(.select-text){
     font-weight: 900;
-  }
-  
-  :global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(placeholder) {
-    color: var(--mk-text) !important;
-    opacity: 0.75 !important;
-  }
-  
-  :global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(icon) {
-    color: var(--mk-text) !important;
-    opacity: 0.95 !important;
-  }
-  
-  /* fallback for older ionic internals */
-  .mkSelect :deep(.select-text) {
-    font-weight: 900;
-    color: var(--mk-text);
+    color: #0b1f33;
     font-family: "Noto Kufi Arabic", system-ui, sans-serif;
   }
-  .mkSelect :deep(.select-icon) {
-    color: var(--mk-text);
-    opacity: 0.85;
+  .mkSelect :deep(.select-icon){
+    color: #0b1f33;
+    opacity: 0.9;
   }
-  
   :global(html[data-mk-theme="dark"]) ion-select.mkSelect :deep(.select-text),
-  :global(html[data-mk-theme="dark"]) ion-select.mkSelect :deep(.select-placeholder) {
-    color: var(--mk-text) !important;
+  :global(html[data-mk-theme="dark"]) ion-select.mkSelect :deep(.select-placeholder),
+  :global(html[data-mk-theme="dark"]) ion-select.mkSelect :deep(.select-icon){
+    color: #f5f7fa !important;
     opacity: 1 !important;
-    font-weight: 900;
   }
-  /* ================================
-   FIX: ion-select value invisible in DARK mode
-   (don't rely on --mk-text existing)
-================================ */
-:global(html[data-mk-theme="dark"]) ion-select.mkSelect{
-  /* Ionic variables that actually drive the rendered text */
-  --color: #f5f7fa !important;                 /* selected value */
-  --placeholder-color: #f5f7fa !important;     /* placeholder */
-  --placeholder-opacity: 0.78 !important;
-
-  /* ensure background is dark enough */
-  background: rgba(12,18,26,0.70) !important;
-  border-color: rgba(255,255,255,0.16) !important;
-
-  color: #f5f7fa !important;   /* fallback */
-  opacity: 1 !important;
-}
-
-/* Shadow parts (newer Ionic) */
-:global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(text),
-:global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(placeholder),
-:global(html[data-mk-theme="dark"]) ion-select.mkSelect::part(icon){
-  color: #f5f7fa !important;
-  opacity: 1 !important;
-}
-
-/* Older Ionic internals fallback */
-:global(html[data-mk-theme="dark"]) ion-select.mkSelect :deep(.select-text),
-:global(html[data-mk-theme="dark"]) ion-select.mkSelect :deep(.select-placeholder),
-:global(html[data-mk-theme="dark"]) ion-select.mkSelect :deep(.select-icon){
-  color: #f5f7fa !important;
-  opacity: 1 !important;
-}
-
   </style>
   
