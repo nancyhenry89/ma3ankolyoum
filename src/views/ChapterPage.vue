@@ -1639,4 +1639,5 @@ onMounted(async () => {
     transform: scale(1);
   }
 }
+.toolbar-container{background-color: #fff;}
 </style>

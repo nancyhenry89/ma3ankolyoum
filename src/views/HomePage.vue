@@ -5,10 +5,8 @@
     :dir="pageDir"
     :lang="lang"
   >
-
-
-<ion-content :fullscreen="true" class="content">
-  <div
+    <ion-content :fullscreen="true" class="content">
+      <div
         class="capture home"
         :class="[themeClass, { 'mk-capturing': isCapturing }]"
         ref="captureRef"
@@ -17,9 +15,10 @@
         <div class="bg"></div>
 
         <div class="wrap">
-          <!-- Header: Data -->
+          <!-- =========================
+               HEADER (DATA)
+          ========================== -->
           <div class="header" v-if="!isLoading && !noData">
-
             <!-- Language switch -->
             <ion-button
               class="langBtn mkNoCapture"
@@ -34,9 +33,14 @@
               </span>
             </ion-button>
 
-
-            <!-- Share -->
-            <ion-button v-if="isWeb" class="shareBtn mkNoCapture" fill="clear" size="small" @click="showShareSheet = true">
+            <!-- Share (Web only) -->
+            <ion-button
+              v-if="isWeb"
+              class="shareBtn mkNoCapture"
+              fill="clear"
+              size="small"
+              @click="showShareSheet = true"
+            >
               <IonIcon :icon="shareSocial" />
             </ion-button>
 
@@ -47,19 +51,22 @@
               :buttons="shareButtons"
               @didDismiss="showShareSheet = false"
             />
-<!-- Web Bible 2026 -->
-<ion-button
-  v-if="isWeb"
-  class="bible2026Btn mkNoCapture"
-  fill="clear"
-  size="small"
-  href="https://ma3ankolyoum.org/bible-2026"
-  target="_blank"
-  rel="noopener"
-  aria-label="Bible 2026"
->
-  <span class="bibleIcon">📖</span>
-</ion-button>
+
+            <!-- Web Bible 2026 -->
+            <ion-button
+              v-if="isWeb"
+              class="bible2026Btn mkNoCapture"
+              fill="clear"
+              size="small"
+              href="https://ma3ankolyoum.org/bible-2026"
+              target="_blank"
+              rel="noopener"
+              aria-label="Bible 2026"
+            >
+              <span class="bibleIcon">📖</span>
+            </ion-button>
+
+            <!-- Brand -->
             <div class="brand">
               <template v-if="isArabic">
                 <div class="brand_name">معاً كل يوم</div>
@@ -73,58 +80,63 @@
                 <div class="abouna">Fr. Yohanna Baky</div>
               </template>
             </div>
+
+            <!-- Stores badges (Web only) -->
             <div class="storesSoon mkNoCapture" v-if="isWeb && !isLoading && !noData">
-  <div class="storesTitle">{{ ui.comingSoon }}</div>
+              <div class="storesTitle">{{ ui.comingSoon }}</div>
 
-  <div class="storesRow mkNoCapture" aria-label="App Store and Google Play">
-    <!-- ✅ App Store – Live -->
-    <a
-      class="storeBadge"
-      href="https://apps.apple.com/app/%D9%85%D8%B9%D8%A7-%D9%83%D9%84-%D9%8A%D9%88%D9%85/id6756967997"
-      target="_blank"
-      rel="noopener"
-      aria-label="Download on the App Store"
-    >
-      <img src="/badges/appstore.png" alt="Download on the App Store" />
-    </a>
+              <div class="storesRow mkNoCapture" aria-label="App Store and Google Play">
+                <a
+                  class="storeBadge"
+                  href="https://apps.apple.com/app/%D9%85%D8%B9%D8%A7-%D9%83%D9%84-%D9%8A%D9%88%D9%85/id6756967997"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="Download on the App Store"
+                >
+                  <img src="/badges/appstore.png" alt="Download on the App Store" />
+                </a>
 
-    <!-- ✅ Google Play – Live -->
-    <a
-      class="storeBadge"
-      href="https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum&pcampaignid=web_share"
-      target="_blank"
-      rel="noopener"
-      aria-label="Get it on Google Play"
-    >
-      <img src="/badges/googleplay.png" alt="Get it on Google Play" />
-    </a>
-  </div>
-</div>
+                <a
+                  class="storeBadge"
+                  href="https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum&pcampaignid=web_share"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="Get it on Google Play"
+                >
+                  <img src="/badges/googleplay.png" alt="Get it on Google Play" />
+                </a>
+              </div>
+            </div>
 
             <!-- Dates -->
             <div class="dates" @click="showDatePicker = true">
               {{ gregorianDate }} – {{ copticDate }}
             </div>
+
+            <!-- Occasions -->
             <OccasionsSection
-            class="mkNoCapture"
-  :youtube-id="oc_vid"
-  :title="oc_title"
-  :sub-title="oc_sub_title"
-  :content="oc_content"
-  :media-url="oc_media"
-  :bg-color="oc_bg"
-  :lang="lang"
-/>
+              class="mkNoCapture"
+              :youtube-id="oc_vid"
+              :title="oc_title"
+              :sub-title="oc_sub_title"
+              :content="oc_content"
+              :media-url="oc_media"
+              :bg-color="oc_bg"
+              :lang="lang"
+            />
 
-
-<!-- Daily Audio CTA (Arabic only) -->
-<div v-if="isArabic && hasDailyAudio" class="audioCtaWrap mkNoCapture">
-  <button class="audioPill" type="button" @click="openDailyAudio()">
-    <span class="audioPillIcon">🎧</span>
-    <span class="audioPillText">اسمع رسالة اليوم</span>
-  </button>
-</div>
-
+            <!-- Daily Audio CTA (Arabic only) -->
+            <div v-if="isArabic && hasDailyAudio" class="audioCtaWrap mkNoCapture">
+              <button
+                class="audioPill"
+                type="button"
+                @click="openDailyAudioPlayer()"
+                aria-label="اسمع رسالة اليوم"
+              >
+                <span class="audioPillIcon">🎧</span>
+                <span class="audioPillText">اسمع رسالة اليوم</span>
+              </button>
+            </div>
 
             <!-- Announcement -->
             <div
@@ -137,8 +149,7 @@
               @keydown.enter.prevent="hasOccasional && openOccasional()"
               @keydown.space.prevent="hasOccasional && openOccasional()"
             >
-            <div class="md" v-html="announcementHtml"></div>
-
+              <div class="md" v-html="announcementHtml"></div>
             </div>
 
             <!-- Saint -->
@@ -157,7 +168,9 @@
             </div>
           </div>
 
-          <!-- Header: Loading -->
+          <!-- =========================
+               HEADER (LOADING)
+          ========================== -->
           <div class="header" v-else-if="isLoading">
             <div class="brand skeleton"></div>
             <div class="dates skeleton"></div>
@@ -165,43 +178,87 @@
             <div class="title skeleton titleSk"></div>
           </div>
 
-          <!-- Header: No data -->
+          <!-- =========================
+               HEADER (NO DATA)
+          ========================== -->
           <div class="header" v-else>
             <div class="brand">معًا كل يوم</div>
-            <div class="card" style="margin-top:12px">
+            <div class="card" style="margin-top: 12px">
               <p class="text alignRight">{{ noDataMsg || ui.noData }}</p>
             </div>
           </div>
 
-          <!-- Story -->
-          <div class="card shareable" v-if="!isLoading && !noData"   :ref="(el) => setSectionEl('story', el)">
-            <div v-if="hasStory" class="text alignRight md" v-html="storyHtml"></div>
-            <p v-else class="text alignRight emptyMsg">
-              {{ ui.noStory }}
-            </p>
+          <!-- =========================
+               DAILY AUDIO MINI PLAYER (fixed)
+               - keep INSIDE capture, outside header
+          ========================== -->
+          <div class="mkMiniPlayer mkNoCapture" :class="{ open: dailyAudioOpen }">
+            <div class="mkMiniInner">
+              <div class="mkMiniHead">
+                <div class="mkMiniMeta">
+                  <div class="mkMiniTitle">🎧 رسالة اليوم</div>
+                  <div class="mkMiniSub">{{ gregorianDate }} – {{ copticDate }}</div>
+                </div>
 
-            <!-- Reactions: Story -->
+                <button
+                  class="mkMiniClose"
+                  type="button"
+                  @click="closeDailyAudioPlayer()"
+                  aria-label="إغلاق"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <audio
+                ref="dailyAudioEl"
+                class="mkAudioPlayer"
+                :src="dailyAudioUrl"
+                controls
+                preload="none"
+                controlsList="nodownload"
+                @error="dailyAudioError = true"
+              />
+
+              <div v-if="dailyAudioError" class="mkAudioErr">
+                تعذر تشغيل الملف.
+              </div>
+            </div>
+          </div>
+
+          <!-- spacer to keep content readable above player -->
+          <div class="mkPlayerSpacer" :class="{ open: dailyAudioOpen }" />
+
+          <!-- =========================
+               STORY
+          ========================== -->
+          <div
+            class="card shareable"
+            v-if="!isLoading && !noData"
+            :ref="(el) => setSectionEl('story', el)"
+          >
+            <div v-if="hasStory" class="text alignRight md" v-html="storyHtml"></div>
+            <p v-else class="text alignRight emptyMsg">{{ ui.noStory }}</p>
+
             <div class="reactRow mkNoCapture" v-if="hasStory">
               <button
-  class="heartBtn"
-  :class="{ active: reactMine.story.heart }"
-  @click="onHeart('story')"
->
-  ❤️ <span class="count">{{ reactCounts.story.heart }}</span>
-</button>
-
-
+                class="heartBtn"
+                :class="{ active: reactMine.story.heart }"
+                @click="onHeart('story')"
+              >
+                ❤️ <span class="count">{{ reactCounts.story.heart }}</span>
+              </button>
             </div>
-            <ion-button
-  class="sectionShareBtn mkNoCapture"
-  fill="clear"
-  size="small"
-  @click.stop="shareSection('story')"
-  aria-label="Share story"
->
-  <IonIcon :icon="shareSocial" />
-</ion-button>
 
+            <ion-button
+              class="sectionShareBtn mkNoCapture"
+              fill="clear"
+              size="small"
+              @click.stop="shareSection('story')"
+              aria-label="Share story"
+            >
+              <IonIcon :icon="shareSocial" />
+            </ion-button>
           </div>
 
           <div class="card" v-else-if="isLoading">
@@ -210,42 +267,39 @@
             <div class="skeleton-line short"></div>
           </div>
 
-          <!-- Verse -->
+          <!-- =========================
+               VERSE
+          ========================== -->
           <div
-  class="verse shareable"
-  v-if="!isLoading && !noData"
-  :ref="(el) => setSectionEl('verse', el)"
->
+            class="verse shareable"
+            v-if="!isLoading && !noData"
+            :ref="(el) => setSectionEl('verse', el)"
+          >
             <template v-if="hasVerse">
               <div class="verse-text">"{{ verseText }}"</div>
               <div class="verse-ref">{{ verseRef }}</div>
             </template>
-            <div v-else class="verse-empty">
-              {{ ui.noVerse }}
-            </div>
+            <div v-else class="verse-empty">{{ ui.noVerse }}</div>
 
-            <!-- Reactions: Verse -->
             <div class="reactRow mkNoCapture" v-if="hasVerse">
               <button
-  class="heartBtn"
-  :class="{ active: reactMine.verse.heart }"
-  @click="onHeart('verse')"
->
-  ❤️ <span class="count">{{ reactCounts.verse.heart }}</span>
-</button>
-
-
+                class="heartBtn"
+                :class="{ active: reactMine.verse.heart }"
+                @click="onHeart('verse')"
+              >
+                ❤️ <span class="count">{{ reactCounts.verse.heart }}</span>
+              </button>
             </div>
-            <ion-button
-  class="sectionShareBtn mkNoCapture"
-  fill="clear"
-  size="small"
-  @click.stop="shareSection('verse')"
-  aria-label="Share verse"
->
-  <IonIcon :icon="shareSocial" />
-</ion-button>
 
+            <ion-button
+              class="sectionShareBtn mkNoCapture"
+              fill="clear"
+              size="small"
+              @click.stop="shareSection('verse')"
+              aria-label="Share verse"
+            >
+              <IonIcon :icon="shareSocial" />
+            </ion-button>
           </div>
 
           <div class="card" v-else-if="isLoading">
@@ -253,44 +307,40 @@
             <div class="skeleton-line short"></div>
           </div>
 
-          <!-- Reflection -->
+          <!-- =========================
+               REFLECTION
+          ========================== -->
           <div
-  class="card shareable"
-  v-if="!isLoading && !noData"
-  :ref="(el) => setSectionEl('reflection', el)"
->
-
+            class="card shareable"
+            v-if="!isLoading && !noData"
+            :ref="(el) => setSectionEl('reflection', el)"
+          >
             <div v-if="hasReflection" class="text alignRight">
               <div class="card-title">{{ ui.reflection }}</div>
               <div class="md" v-html="reflectionHtml"></div>
             </div>
 
-            <p v-else class="text alignRight emptyMsg">
-              {{ ui.noReflection }}
-            </p>
+            <p v-else class="text alignRight emptyMsg">{{ ui.noReflection }}</p>
 
-            <!-- Reactions: Reflection -->
             <div class="reactRow mkNoCapture" v-if="hasReflection">
               <button
-  class="heartBtn"
-  :class="{ active: reactMine.reflection.heart }"
-  @click="onHeart('reflection')"
->
-  ❤️ <span class="count">{{ reactCounts.reflection.heart }}</span>
-</button>
-
-
+                class="heartBtn"
+                :class="{ active: reactMine.reflection.heart }"
+                @click="onHeart('reflection')"
+              >
+                ❤️ <span class="count">{{ reactCounts.reflection.heart }}</span>
+              </button>
             </div>
-            <ion-button
-  class="sectionShareBtn mkNoCapture"
-  fill="clear"
-  size="small"
-  @click.stop="shareSection('reflection')"
-  aria-label="Share reflection"
->
-  <IonIcon :icon="shareSocial" />
-</ion-button>
 
+            <ion-button
+              class="sectionShareBtn mkNoCapture"
+              fill="clear"
+              size="small"
+              @click.stop="shareSection('reflection')"
+              aria-label="Share reflection"
+            >
+              <IonIcon :icon="shareSocial" />
+            </ion-button>
           </div>
 
           <div class="card" v-else-if="isLoading">
@@ -299,7 +349,52 @@
             <div class="skeleton-line short"></div>
           </div>
 
-          <!-- Bible + Agpeya -->
+          <!-- =========================
+               TRAINING
+          ========================== -->
+          <div
+            class="training shareable"
+            v-if="!isLoading && !noData"
+            :ref="(el) => setSectionEl('training', el)"
+          >
+            <div class="training-pill">{{ ui.training }}</div>
+
+            <div v-if="hasTraining" class="training-text alignRight">
+              {{ training }}
+            </div>
+            <div v-else class="training-text alignRight emptyMsg">
+              {{ ui.noTraining }}
+            </div>
+
+            <div class="reactRow mkNoCapture" v-if="hasTraining">
+              <button
+                class="heartBtn"
+                :class="{ active: reactMine.training.heart }"
+                @click="onHeart('training')"
+              >
+                ❤️ <span class="count">{{ reactCounts.training.heart }}</span>
+              </button>
+            </div>
+
+            <ion-button
+              class="sectionShareBtn mkNoCapture"
+              fill="clear"
+              size="small"
+              @click.stop="shareSection('training')"
+              aria-label="Share training"
+            >
+              <IonIcon :icon="shareSocial" />
+            </ion-button>
+          </div>
+
+          <div class="card" v-else-if="isLoading">
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+
+          <!-- =========================
+               BIBLE + AGPEYA
+          ========================== -->
           <div class="row" v-if="!isLoading && !noData">
             <!-- Bible card -->
             <button
@@ -312,7 +407,6 @@
               <div class="mini-head mini-head-row">
                 <span>{{ ui.bible }}</span>
 
-                <!-- Icon only in Arabic -->
                 <ion-button
                   v-if="isArabic"
                   class="audioBtn mkNoCapture"
@@ -325,10 +419,8 @@
               </div>
 
               <template v-if="hasBible">
-                <!-- Always show pill -->
                 <div class="mini-sub bible-pill">{{ previewLabel }}</div>
 
-                <!-- Arabic only -->
                 <template v-if="isArabic">
                   <div class="mini-title">{{ previewTitle }}</div>
                   <ul class="mini-list">
@@ -347,7 +439,6 @@
               <div class="mini-head mini-head-row">
                 <span>{{ ui.agbia }}</span>
 
-                <!-- Audio icon ONLY in Arabic -->
                 <ion-button
                   v-if="isArabic"
                   class="audioBtn mkNoCapture"
@@ -375,18 +466,20 @@
 
           <div class="row" v-else-if="isLoading">
             <div class="mini-card">
-              <div class="mini-head skeleton" style="height:44px;width:100%"></div>
+              <div class="mini-head skeleton" style="height: 44px; width: 100%"></div>
               <div class="skeleton-line"></div>
               <div class="skeleton-line short"></div>
             </div>
             <div class="mini-card">
-              <div class="mini-head skeleton" style="height:44px;width:100%"></div>
+              <div class="mini-head skeleton" style="height: 44px; width: 100%"></div>
               <div class="skeleton-line"></div>
               <div class="skeleton-line short"></div>
             </div>
           </div>
 
-          <!-- Coptic -->
+          <!-- =========================
+               COPTIC
+          ========================== -->
           <CopticSection
             v-if="!isLoading && !noData"
             :dateISO="selectedDateISO"
@@ -394,55 +487,14 @@
             :lang="lang"
           />
 
-          <!-- Training -->
-          <div
-  class="training shareable"
-  v-if="!isLoading && !noData"
-  :ref="(el) => setSectionEl('training', el)"
->
-            <div class="training-pill">{{ ui.training }}</div>
-
-            <div v-if="hasTraining" class="training-text alignRight">
-              {{ training }}
-            </div>
-            <div v-else class="training-text alignRight emptyMsg">
-              {{ ui.noTraining }}
-            </div>
-
-            <!-- Reactions: Training -->
-            <div class="reactRow mkNoCapture" v-if="hasTraining">
-              <button
-  class="heartBtn"
-  :class="{ active: reactMine.training.heart }"
-  @click="onHeart('training')"
->
-  ❤️ <span class="count">{{ reactCounts.training.heart }}</span>
-</button>
-
-
-            </div>
-            <ion-button
-  class="sectionShareBtn mkNoCapture"
-  fill="clear"
-  size="small"
-  @click.stop="shareSection('training')"
-  aria-label="Share training"
->
-  <IonIcon :icon="shareSocial" />
-</ion-button>
-
-          </div>
-
-          <div class="card" v-else-if="isLoading">
-            <div class="skeleton-line"></div>
-            <div class="skeleton-line short"></div>
-          </div>
           <div class="space"></div>
-          <SpiritualNotesCard             class="mkNoCapture"
+
+          <SpiritualNotesCard
+            class="mkNoCapture"
             v-if="!isLoading && !noData && isTodaySelected"
             :todayISO="todayISO()"
-            :lang="lang" />
-
+            :lang="lang"
+          />
 
           <div class="space"></div>
 
@@ -453,79 +505,76 @@
             :lang="lang"
           />
 
-          <!-- Stores (Web only) -->
+          <!-- Stores badges (Web only) - single instance -->
           <div class="storesSoon mkNoCapture" v-if="isWeb && !isLoading && !noData">
-  <div class="storesTitle">{{ ui.comingSoon }}</div>
+            <div class="storesTitle">{{ ui.comingSoon }}</div>
 
-  <div class="storesRow mkNoCapture" aria-label="App Store and Google Play">
-    <!-- ✅ App Store – Live -->
-    <a
-      class="storeBadge"
-      href="https://apps.apple.com/app/%D9%85%D8%B9%D8%A7-%D9%83%D9%84-%D9%8A%D9%88%D9%85/id6756967997"
-      target="_blank"
-      rel="noopener"
-      aria-label="Download on the App Store"
-    >
-      <img src="/badges/appstore.png" alt="Download on the App Store" />
-    </a>
+            <div class="storesRow mkNoCapture" aria-label="App Store and Google Play">
+              <a
+                class="storeBadge"
+                href="https://apps.apple.com/app/%D9%85%D8%B9%D8%A7-%D9%83%D9%84-%D9%8A%D9%88%D9%85/id6756967997"
+                target="_blank"
+                rel="noopener"
+                aria-label="Download on the App Store"
+              >
+                <img src="/badges/appstore.png" alt="Download on the App Store" />
+              </a>
 
-    <!-- ✅ Google Play – Live -->
-    <a
-      class="storeBadge"
-      href="https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum&pcampaignid=web_share"
-      target="_blank"
-      rel="noopener"
-      aria-label="Get it on Google Play"
-    >
-      <img src="/badges/googleplay.png" alt="Get it on Google Play" />
-    </a>
-  </div>
-</div>
-
+              <a
+                class="storeBadge"
+                href="https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum&pcampaignid=web_share"
+                target="_blank"
+                rel="noopener"
+                aria-label="Get it on Google Play"
+              >
+                <img src="/badges/googleplay.png" alt="Get it on Google Play" />
+              </a>
+            </div>
+          </div>
 
           <div class="space"></div>
         </div>
         <!-- end wrap -->
       </div>
       <!-- end capture -->
-<!-- ✅ ShareShot for SECTION share (native only) -->
-<div v-if="!isWeb" class="shareShotWrap mkNoCapture" aria-hidden="true">
-  <div class="shareShot" ref="sectionShotRef">
-    <div class="shotTop">
-      <div class="shotTitle">{{ isArabic ? 'معًا كل يوم' : 'Together Every Day' }}</div>
-      <div class="shotDate">{{ gregorianDate }} – {{ copticDate }}</div>
-    </div>
 
-    <!-- ✅ content by kind -->
-    <div class="shotBody">
-      <template v-if="shotKind === 'story'">
-        <div class="shotHeading">{{ isArabic ? 'القصة' : 'Story' }}</div>
-        <div class="md" v-html="storyHtml"></div>
-      </template>
+      <!-- ✅ ShareShot for SECTION share (native only) -->
+      <div v-if="!isWeb" class="shareShotWrap mkNoCapture" aria-hidden="true">
+        <div class="shareShot" ref="sectionShotRef">
+          <div class="shotTop">
+            <div class="shotTitle">{{ isArabic ? 'معًا كل يوم' : 'Together Every Day' }}</div>
+            <div class="shotDate">{{ gregorianDate }} – {{ copticDate }}</div>
+          </div>
 
-      <template v-else-if="shotKind === 'verse'">
-        <div class="shotHeading">{{ isArabic ? 'الآية' : 'Verse' }}</div>
-        <div class="shotVerse">"{{ verseText }}"</div>
-        <div class="shotVerseRef">{{ verseRef }}</div>
-      </template>
+          <div class="shotBody">
+            <template v-if="shotKind === 'story'">
+              <div class="shotHeading">{{ isArabic ? 'القصة' : 'Story' }}</div>
+              <div class="md" v-html="storyHtml"></div>
+            </template>
 
-      <template v-else-if="shotKind === 'reflection'">
-        <div class="shotHeading">{{ isArabic ? 'التأمل' : 'Meditation' }}</div>
-        <div class="md" v-html="reflectionHtml"></div>
-      </template>
+            <template v-else-if="shotKind === 'verse'">
+              <div class="shotHeading">{{ isArabic ? 'الآية' : 'Verse' }}</div>
+              <div class="shotVerse">"{{ verseText }}"</div>
+              <div class="shotVerseRef">{{ verseRef }}</div>
+            </template>
 
-      <template v-else-if="shotKind === 'training'">
-        <div class="shotHeading">{{ isArabic ? 'خطوة لقدام' : 'A Step Forward' }}</div>
-        <div class="shotTraining">{{ training }}</div>
-      </template>
-    </div>
+            <template v-else-if="shotKind === 'reflection'">
+              <div class="shotHeading">{{ isArabic ? 'التأمل' : 'Meditation' }}</div>
+              <div class="md" v-html="reflectionHtml"></div>
+            </template>
 
-    <div class="shotFooter">
-      <span>{{ title }}</span>
-      <span class="shotSmall">{{ isArabic ? 'مشاركة' : 'Share' }}</span>
-    </div>
-  </div>
-</div>
+            <template v-else-if="shotKind === 'training'">
+              <div class="shotHeading">{{ isArabic ? 'خطوة لقدام' : 'A Step Forward' }}</div>
+              <div class="shotTraining">{{ training }}</div>
+            </template>
+          </div>
+
+          <div class="shotFooter">
+            <span>{{ title }}</span>
+            <span class="shotSmall">{{ isArabic ? 'مشاركة' : 'Share' }}</span>
+          </div>
+        </div>
+      </div>
 
       <!-- Date picker -->
       <ion-modal :is-open="showDatePicker" @didDismiss="showDatePicker = false">
@@ -662,10 +711,12 @@
           </section>
         </ion-content>
       </ion-modal>
+
       <HomePopup :enabled="isArabic" />
     </ion-content>
   </ion-page>
 </template>
+
 
 <script setup lang="ts">
 import {
@@ -710,10 +761,10 @@ import { scheduleDailyReminder, disableDailyReminder, sendTestReminder } from '@
 import { listenReactions, toggleHeart } from '@/services/reactions'
 import { Share } from '@capacitor/share'
 import { Filesystem, Directory } from '@capacitor/filesystem'
-import { nextTick } from 'vue'
 
 import { hasReminderPermission, resyncReminderIfNeeded,requestReminderPermission  } from '@/services/reminder'
 
+import { nextTick } from "vue"
 
 function getShareFooter(lang: 'ar' | 'en') {
   const android = 'https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum'
@@ -739,6 +790,33 @@ function getShareFooter(lang: 'ar' | 'en') {
     '❤️ Start your day with God',
     '📲 Shared from the “Together Every Day” app',
   ].join('\n')
+}
+// ===== Daily Audio Mini Player (inline) =====
+const dailyAudioOpen = ref(false)
+const dailyAudioError = ref(false)
+const dailyAudioEl = ref<HTMLAudioElement | null>(null)
+
+const dailyAudioUrl = computed(() => {
+  // daily_audio already contains full url from sheet
+  return String(daily_audio.value || '').trim()
+})
+
+async function openDailyAudioPlayer() {
+  if (!isArabic.value || !hasDailyAudio.value) return
+  dailyAudioError.value = false
+  dailyAudioOpen.value = true
+
+  await nextTick()
+  try {
+    await dailyAudioEl.value?.play()
+  } catch {
+    // iOS might block autoplay; user can press play from controls
+  }
+}
+
+function closeDailyAudioPlayer() {
+  dailyAudioOpen.value = false
+  try { dailyAudioEl.value?.pause() } catch {}
 }
 
 function buildSectionShareText(kind: ShareKind, lang: 'ar'|'en') {
@@ -832,17 +910,7 @@ function setLang(v: Lang) {
   loadByDate(iso).catch(console.error)
 }
 
-function openDailyAudio() {
-  if (!isArabic.value || !hasDailyAudio.value) return
-  const iso = String(selectedDateISO.value).substring(0, 10)
 
-  router.push({
-    path: `/daily-audio/${iso}`,
-    query: {
-      url: daily_audio.value,
-    }
-  })
-}
 
 const ionRouter = useIonRouter()
 onMounted(() => {
@@ -3364,6 +3432,112 @@ onMounted(async () => {
 .bibleIcon{
   font-size: 20px;
   line-height: 1;
+}
+/* =========================
+   Bottom Mini Player (Daily Audio)
+========================= */
+.mkMiniPlayer{
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: calc(env(safe-area-inset-bottom) + 10px);
+  z-index: 9999;
+
+  transform: translateY(120%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .22s ease, opacity .22s ease;
+}
+
+.mkMiniPlayer.open{
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mkMiniInner{
+  border-radius: 22px;
+  border: 1px solid var(--mk-border);
+  background:
+    radial-gradient(700px 250px at 15% 0%, rgba(31,182,170,0.16), transparent 62%),
+    linear-gradient(135deg, rgba(255,255,255,0.94), rgba(255,255,255,0.70));
+  box-shadow: var(--mk-shadow-strong);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  padding: 12px 12px 10px;
+}
+
+.home.theme-dark .mkMiniInner{
+  background:
+    radial-gradient(700px 250px at 15% 0%, rgba(31,182,170,0.14), transparent 62%),
+    linear-gradient(135deg, rgba(12,18,26,0.92), rgba(12,18,26,0.78));
+  border-color: rgba(255,255,255,0.14);
+}
+
+.mkMiniHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.mkMiniMeta{ min-width: 0; }
+
+.mkMiniTitle{
+  font-weight: 1000;
+  color: var(--mk-text);
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  font-size: 15px;
+}
+
+.mkMiniSub{
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--mk-text);
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mkMiniClose{
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  border: 1px solid var(--mk-border);
+  background: rgba(0,0,0,0.03);
+  color: var(--mk-text);
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.home.theme-dark .mkMiniClose{
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.16);
+}
+
+/* Native audio controls */
+.mkAudioPlayer{
+  width: 100%;
+  height: 44px;
+  border-radius: 14px;
+  overflow: hidden;
+  outline: none;
+}
+
+.mkAudioErr{
+  margin-top: 8px;
+  font-weight: 900;
+  color: var(--mk-danger, #e23b3b);
+  font-size: 13px;
+}
+
+/* Spacer */
+.mkPlayerSpacer{
+  height: 0px;
+  transition: height .2s ease;
 }
 
   </style>
