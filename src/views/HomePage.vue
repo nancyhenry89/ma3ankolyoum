@@ -2635,7 +2635,7 @@ onMounted(async () => {
     font-size: 20px;
     display: inline-block;
     margin-bottom: 12px;
-    width: 50%;
+    width: 90%;
     margin-inline: auto;
     font-family:"Noto Kufi Arabic", system-ui, sans-serif;
   }

@@ -58,7 +58,10 @@
             v-for="v in verses"
             :key="v.n"
             class="verseBlock"
-            :class="{ flashVerse: flashVerse === v.n }"
+            :class="{
+    flashVerse: flashVerse === v.n,
+    hasVideo: verseHasVideo(v.n)
+  }"
             :id="`v-${v.n}`"
           >
             <!-- Section title -->
@@ -104,6 +107,21 @@
 
             <!-- Tafsir -->
             <div v-if="isOpen(v.n)" class="tafsirBox">
+              <!-- ✅ Verse Video (if available) -->
+<VerseVideo
+  v-if="getVideoForVerse(v.n)"
+  :type="getVideoForVerse(v.n)!.type"
+  :vid="getVideoForVerse(v.n)!.vid"
+/>
+
+<!-- ✅ Image (if available) -->
+<img
+  v-if="getImageForVerse(v.n)"
+  class="tafsirImage"
+  :src="getImageForVerse(v.n)!"
+  alt=""
+  loading="lazy"
+/>
               <!-- Refs -->
               <div v-if="getRefs(v.n).length" class="refsInline">
                 <button
@@ -327,7 +345,7 @@ import { listenChapterBookmarkCounts, listenTopBookmarkedVerses, toggleVerseBook
 import BibleQuizSection from "@/components/BibleQuizSection.vue"
 import ChapterSettingsBox, { type ChapterSettingsStateV2 } from "@/components/ChapterSettingsBox.vue"
 import ChapterAudioCta from "@/components/ChapterAudioCta.vue"
-
+import VerseVideo from "@/components/VerseVideo.vue"
 /* =========================
    SETTINGS (ONE STATE ONLY)
 ========================= */
@@ -379,6 +397,12 @@ type TafsirRow = {
   fromVerse: number
   toVerse: number
   tafsir: string
+
+  // ✅ new optional columns
+  verse_num?: number
+  vid?: string
+  type?: "youtube" | "r2" | string
+  image?: string
 }
 
 const data = ref<ChapterJSON | null>(null)
@@ -511,7 +535,60 @@ function verseTextByNum(n: number) {
   const vv = verses.value.find(x => Number(x.n) === n)
   return vv?.t || ""
 }
+async function loadTafsirOnce() {
+  const b = String(bookKey.value).trim()
+  const ch = Number(chapterNum.value)
 
+  const cached = readTafsirCache(b, ch)
+  if (cached && cached.length) {
+    tafsirRows.value = cached
+    return
+  }
+
+  tafsirLoading.value = true
+  try {
+    const res = await fetch(TAFSIR_CSV_URL, { cache: "no-store" })
+    const csv = await res.text()
+
+    const parsed = Papa.parse(csv, {
+  header: true,
+  skipEmptyLines: true,
+  transformHeader: h =>
+    String(h || "")
+      .replace(/^\uFEFF/, "")     // BOM
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_")       // spaces -> _
+})
+    console.log("TAFSIR HEADERS:", Object.keys((parsed.data as any[])[0] || {}))
+console.log("TAFSIR FIRST ROW:", (parsed.data as any[])[0])
+
+const all = (parsed.data as any[])
+  .filter(r => r.bookkey && r.chapter && r.fromverse && r.toverse)
+  .map(r => ({
+    bookKey: String(r.bookkey).trim(),
+    chapter: Number(r.chapter),
+    fromVerse: Number(r.fromverse),
+    toVerse: Number(r.toverse),
+    tafsir: String(r.tafsir || "").trim(),
+
+    verse_num: r.verse_num != null && String(r.verse_num).trim() !== "" ? Number(r.verse_num) : undefined,
+    vid: String(r.vid || "").trim() || undefined,
+    type: String(r.type || "").trim().toLowerCase() || undefined,
+    image: String(r.image || "").trim() || undefined
+  }))
+    const filtered = all.filter(
+      r => String(r.bookKey).trim().toLowerCase() === b.toLowerCase() && Number(r.chapter) === ch
+    )
+
+    tafsirRows.value = filtered
+    writeTafsirCache(b, ch, filtered)
+  } catch (e) {
+    console.error("Tafsir load failed", e)
+  } finally {
+    tafsirLoading.value = false
+  }
+}
 async function getVerseText(routeBookKey: string, ch: number, v: number) {
   if (String(routeBookKey).toLowerCase() === String(bookKey.value).toLowerCase() && Number(ch) === Number(chapterNum.value)) {
     return verseTextByNum(v)
@@ -693,49 +770,6 @@ function isOpen(n: number) {
   return openVerse.value === n
 }
 
-async function loadTafsirOnce() {
-  const b = String(bookKey.value).trim()
-  const ch = Number(chapterNum.value)
-
-  const cached = readTafsirCache(b, ch)
-  if (cached && cached.length) {
-    tafsirRows.value = cached
-    return
-  }
-
-  tafsirLoading.value = true
-  try {
-    const res = await fetch(TAFSIR_CSV_URL, { cache: "no-store" })
-    const csv = await res.text()
-    const parsed = Papa.parse(csv, {
-      header: true,
-      skipEmptyLines: true,
-      transformHeader: h => String(h || "").replace(/^\uFEFF/, "").trim()
-    })
-
-    const all = (parsed.data as any[])
-      .filter(r => r.bookKey && r.chapter && r.fromVerse && r.toVerse)
-      .map(r => ({
-        bookKey: String(r.bookKey).trim(),
-        chapter: Number(r.chapter),
-        fromVerse: Number(r.fromVerse),
-        toVerse: Number(r.toVerse),
-        tafsir: String(r.tafsir || "").trim()
-      }))
-
-    const filtered = all.filter(
-      r => String(r.bookKey).trim().toLowerCase() === b.toLowerCase() && Number(r.chapter) === ch
-    )
-
-    tafsirRows.value = filtered
-    writeTafsirCache(b, ch, filtered)
-  } catch (e) {
-    console.error("Tafsir load failed", e)
-  } finally {
-    tafsirLoading.value = false
-  }
-}
-
 async function toggleVerse(n: number) {
   if (openVerse.value === n) {
     openVerse.value = null
@@ -760,7 +794,44 @@ function getTafsirForVerse(n: number): string | null {
 
   return row?.tafsir || null
 }
+function getVideoForVerse(n: number): { type: "youtube" | "r2"; vid: string } | null {
+  const b = String(bookKey.value || "").trim().toLowerCase()
+  const ch = Number(chapterNum.value || 1)
 
+  const row = tafsirRows.value.find(r => {
+    return (
+      String(r.bookKey || "").trim().toLowerCase() === b &&
+      Number(r.chapter) === ch &&
+      Number(r.verse_num) === n &&
+      !!r.vid &&
+      (String(r.type || "").toLowerCase() === "youtube" || String(r.type || "").toLowerCase() === "r2")
+    )
+  })
+
+  if (!row?.vid) return null
+  const t = String(row.type).toLowerCase() as "youtube" | "r2"
+  return { type: t, vid: String(row.vid) }
+}
+
+function verseHasVideo(n: number): boolean {
+  return !!getVideoForVerse(n)
+}
+
+function getImageForVerse(n: number): string | null {
+  const b = String(bookKey.value || "").trim().toLowerCase()
+  const ch = Number(chapterNum.value || 1)
+
+  const row = tafsirRows.value.find(r => {
+    return (
+      String(r.bookKey || "").trim().toLowerCase() === b &&
+      Number(r.chapter) === ch &&
+      Number(r.verse_num) === n &&
+      !!r.image
+    )
+  })
+
+  return row?.image ? String(row.image) : null
+}
 /* =========================
    INTRO VIDEO (kept)
 ========================= */
@@ -931,11 +1002,13 @@ watch([bookKey, chapterNum], () => {
 onMounted(async () => {
   try {
     await loadChapter()
+    await loadTafsirOnce()
     refreshSavedList()
     attachBmListeners()
     loadRefsIndex(REFS_CSV_URL).catch(console.error)
     await nextTick()
     await jumpToVerseFromQuery()
+
   } catch (e) {
     console.error(e)
   }
@@ -1521,8 +1594,8 @@ onMounted(async () => {
 .refsPopupLabel {
   font-weight: 1000;
   margin-bottom: 8px;
-  color: var(--mk-text);
-  font-size: calc(17px * var(--mk-font-scale));
+  color: #214c5b;
+  font-size:22px 
 }
 .refsPopupText {
   font-weight: 800;
@@ -1530,7 +1603,7 @@ onMounted(async () => {
   opacity: 0.95;
   color: var(--mk-text);
   white-space: pre-wrap;
-  font-size: calc(19px * var(--mk-font-scale));
+  font-size: 21px
 }
 
 /* Top modal */
@@ -1608,7 +1681,7 @@ onMounted(async () => {
   font-weight: 900;
   line-height: 1.9;
   white-space: pre-wrap;
-  font-size: calc(20px * var(--mk-font-scale));
+  font-size: 20px;
 }
 .topEmpty {
   text-align: center;
@@ -1640,4 +1713,83 @@ onMounted(async () => {
   }
 }
 .toolbar-container{background-color: #fff;}
+/* ===== Verse has video (fancy) ===== */
+.verseBlock.hasVideo .verseRow {
+  position: relative;
+
+  /* ✨ spacing أفضل */
+  padding: 38px 16px 20px 20px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(31, 182, 170, 0.08),
+    rgba(255, 215, 0, 0.05)
+  );
+
+  box-shadow:
+    0 12px 22px rgba(0, 0, 0, 0.07),
+    0 0 0 1px rgba(31, 182, 170, 0.14) inset;
+}
+
+.verseBlock.hasVideo .verseRow::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  left: 4px;
+  width: 5px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(31,182,170,0.95),
+    rgba(255,215,0,0.85)
+  );
+}
+
+/* small badge */
+.verseBlock.hasVideo .verseRow::after {
+  content: "🎬 فيديو";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 1000;
+  line-height: 1;
+  letter-spacing: 0.2px;
+
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(11, 43, 64, 0.12);
+  color: rgba(11, 43, 64, 0.86);
+}
+
+/* Dark mode */
+:global(html[data-mk-theme="dark"]) .verseBlock.hasVideo .verseRow {
+  background: linear-gradient(
+    135deg,
+    rgba(31, 182, 170, 0.14),
+    rgba(255, 215, 0, 0.08)
+  );
+  box-shadow:
+    0 14px 26px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(255, 255, 255, 0.10) inset;
+}
+
+:global(html[data-mk-theme="dark"]) .verseBlock.hasVideo .verseRow::after {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.92);
+}
+.tafsirImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 14px;
+  margin: 0 8px 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+:global(html[data-mk-theme="dark"]) .tafsirImage {
+  border-color: rgba(255,255,255,0.12);
+}
 </style>

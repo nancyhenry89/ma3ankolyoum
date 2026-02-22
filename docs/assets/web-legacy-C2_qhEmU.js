@@ -1,1 +1,0 @@
-System.register(["./index-legacy-CquGmuL0.js"],function(e,n){"use strict";var r;return{setters:[e=>{r=e.aB}],execute:function(){e("AppLauncherWeb",class extends r{async canOpenUrl(e){return{value:!0}}async openUrl(e){return window.open(e.url,"_blank"),{completed:!0}}})}}});
