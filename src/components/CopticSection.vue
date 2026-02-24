@@ -492,6 +492,7 @@ margin-top:-10px
     font-size: 24px;     /* عدّلي حسب ذوقك */
   font-weight: 400;   /* Antinoou شكله أحلى regular */
   letter-spacing: 0.02em;
+  direction: ltr;
 }
 
 </style>
