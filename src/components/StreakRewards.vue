@@ -408,6 +408,7 @@ type LocalMeta = StreakMeta & {
   softResetBase?: number;
   softResetState?: "armed" | "running";
   softResetUntilISO?: string;
+  softResetStartISO?: string; // ✅ NEW
 };
 
 const meta = ref<LocalMeta>({});
@@ -441,12 +442,14 @@ function pulseFlag(flag: { value: boolean }, ms = 420) {
 
 /** recompute */
 function recompute() {
-  const s = computeStreak(readDays.value, effectiveTodayISO.value);
-  baseStreak.value = s.streak;
 
-  // ✅ bank milestone من "أقصى streak حصل قبل كده" مش من streak اليوم
-  const longest = computeLongestRun(readDays.value);
-  const earnedFromHistory = nearestMilestoneBelow(longest);
+  const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value);
+
+const s = computeStreak(safeDays, effectiveTodayISO.value);
+baseStreak.value = s.streak;
+
+  const longest = computeLongestRun(safeDays);
+    const earnedFromHistory = nearestMilestoneBelow(longest);
 
   const bank = meta.value.bankMilestone ?? 0;
   if (earnedFromHistory > bank) {
@@ -476,17 +479,22 @@ function recompute() {
 
   const state = meta.value.softResetState;
   const softBase = meta.value.softResetBase ?? 0;
-
+  const postReturn = (state === "running" && meta.value.softResetStartISO)
+  ? computeRunFrom(
+      safeDays,
+      effectiveTodayISO.value,
+      meta.value.softResetStartISO // ✅ لا ترجع قبل يوم الرجوع
+    )
+  : baseStreak.value;
   if (state === "armed") {
-    const until = meta.value.softResetUntilISO;
-    const ok = !!until && diffDaysISO(until, effectiveTodayISO.value) >= 0;
-    displayedStreak.value = (ok && baseStreak.value === 0) ? softBase : baseStreak.value;
-  } else if (state === "running") {
-    displayedStreak.value = baseStreak.value > 0 ? (softBase + baseStreak.value) : 0;
-  } else {
-    displayedStreak.value = baseStreak.value;
-  }
-
+  const until = meta.value.softResetUntilISO;
+  const ok = !!until && diffDaysISO(until, effectiveTodayISO.value) >= 0;
+  displayedStreak.value = (ok && baseStreak.value === 0) ? softBase : baseStreak.value;
+} else if (state === "running") {
+  displayedStreak.value = postReturn > 0 ? (softBase + postReturn) : 0;
+} else {
+  displayedStreak.value = baseStreak.value;
+}
   rewards.value = computeRewards(displayedStreak.value);
 }
 
@@ -541,18 +549,21 @@ const monthsShown = computed(() => Math.min(months.value, 12));
  * Recover depends on HISTORY (readDays) directly.
  */
 const canSoftReset = computed(() => {
+  const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value);
+if (!safeDays.length) return false;
   if (readToday.value) return false;
   if (!readDays.value.length) return false;
   if (softResetActive.value) return false;
 
-  const lastMarked = maxISO(readDays.value);
+  const lastMarked = maxISO(safeDays);
+
   if (!lastMarked) return false;
 
   const missed = diffDaysISO(effectiveTodayISO.value, lastMarked) > 0;
   if (!missed) return false;
 
-  const longest = computeLongestRun(readDays.value);
-  const earnedFromHistory = nearestMilestoneBelow(longest);
+  const longest = computeLongestRun(safeDays);
+    const earnedFromHistory = nearestMilestoneBelow(longest);
 
   return earnedFromHistory > 0;
 });
@@ -579,8 +590,52 @@ async function softResetToPrevMilestone() {
 
 /** load */
 async function load() {
-  readDays.value = await getReadDays();
-  meta.value = (await getStreakMeta()) || {};
+  const rawDays = await getReadDays();
+  const m = (await getStreakMeta()) || {};
+
+  const today = effectiveTodayISO.value; // respects fakeToday in debug
+
+  // 1) remove duplicates + future days
+  const safeDays = [...new Set(rawDays)]
+    .filter(d => d <= today)
+    .sort();
+
+  // 2) persist cleaned days (only if changed)
+  const changed =
+    safeDays.length !== rawDays.length ||
+    safeDays.some((d, i) => d !== rawDays[i]); // raw might not be sorted; ok, still catches some cases
+
+  if (changed) {
+    await clearReadDays();
+    for (const d of safeDays) {
+      await addReadDay(d);
+    }
+  }
+
+  // 3) cleanup invalid soft reset states (no softResetStartISO in your current code)
+  if (m.softResetState === "armed") {
+    const until = m.softResetUntilISO;
+    const expired = !until || diffDaysISO(until, today) < 0;
+    if (expired) {
+      delete m.softResetBase;
+      delete m.softResetState;
+      delete m.softResetUntilISO;
+      await setStreakMeta(m);
+    }
+  }
+
+  // (optional) if running but no base -> reset
+  if (
+  m.softResetState === "running" &&
+  (typeof m.softResetBase !== "number" || m.softResetBase <= 0)
+) {    delete m.softResetBase;
+    delete m.softResetState;
+    delete m.softResetUntilISO;
+    await setStreakMeta(m);
+  }
+
+  readDays.value = safeDays;
+  meta.value = m;
   recompute();
 }
 
@@ -602,11 +657,12 @@ async function toggleReadToday() {
   if (weeks.value > beforeWeeks || months.value > beforeMonths) pulseFlag(rewardsPop, 520);
 
   if (meta.value.softResetState === "armed" && (meta.value.softResetBase ?? 0) > 0 && baseStreak.value > 0) {
-    meta.value.softResetState = "running";
-    delete meta.value.softResetUntilISO;
-    await persistMeta();
-    recompute();
-  }
+  meta.value.softResetState = "running";
+  meta.value.softResetStartISO = effectiveTodayISO.value; // ✅ NEW
+  delete meta.value.softResetUntilISO;
+  await persistMeta();
+  recompute();
+}
 }
 
 /** debug seed */
@@ -629,7 +685,28 @@ async function resetAll() {
   await persistMeta();
   recompute();
 }
+function toSet(list: string[]) {
+  return new Set(list);
+}
 
+function clampDaysToToday(days: string[], todayISO: string) {
+  // ✅ تجاهل الأيام المستقبلية (device clock / sync)
+  return days.filter(d => d <= todayISO);
+}
+
+function computeRunFrom(days: string[], endISO: string, minISO?: string) {
+  const set = toSet(days);
+  let curISO = endISO;
+  let count = 0;
+
+  while (true) {
+    if (minISO && curISO < minISO) break;
+    if (!set.has(curISO)) break;
+    count++;
+    curISO = addDaysISO(curISO, -1);
+  }
+  return count;
+}
 onMounted(load);
 watch(() => props.todayISO, load);
 watch(effectiveTodayISO, recompute);
