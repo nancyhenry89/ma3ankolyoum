@@ -47,7 +47,7 @@
           aria-label="عرض التفاصيل"
         >
           <span class="ocExpandText">{{ open ? "إخفاء التفاصيل" : "عرض التفاصيل" }}</span>
-          <span class="ocArrow" aria-hidden="true">⤦</span>
+
         </button>
   
         <!-- drawer -->
@@ -290,6 +290,10 @@ async function openYoutube() {
     background: rgba(255,255,255,0.55);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+    background: radial-gradient(600px 200px at 20% 0%, rgba(32,178,170,0.35), transparent 60%),
+    linear-gradient(135deg, var(--mk-dark), rgba(16,27,47,0.90));
+    color: #fff;
   }
   
   .ocArrow{
