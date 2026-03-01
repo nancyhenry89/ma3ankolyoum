@@ -5,6 +5,7 @@
     :dir="dir"
     :lang="lang"
   >
+
     <!-- Header -->
     <header class="srHeader">
       <div class="srTitleWrap">
@@ -43,10 +44,12 @@
           </span>
         </ion-button>
       </div>
+      <!-- Reminders -->
+
     </header>
 
     <!-- Hero -->
-    <div class="srHero" :class="{ on: displayedStreak > 0 }">
+    <div class="srHero" :class="{ on: displayedStreak > 0 }" @click="secretTap">
       <div class="srHeroIcon">{{ displayedStreak === 0 ? "✨" : "🔥" }}</div>
 
       <div class="srHeroText">
@@ -175,7 +178,10 @@
     <!-- Debug -->
     <div v-if="isDebug" class="srDebug">
       <div class="srDebugTitle">⚙️ Debug</div>
-
+      <div class="srDebugRow">
+  <div class="srDebugLabel">{{ isArabic ? "أيام محفوظة" : "Saved days" }}</div>
+  <div class="srDebugValue">{{ readDays.length }}</div>
+</div>
       <div class="srDebugRow">
         <div class="srDebugLabel">{{ ui.debugTodayLabel }}</div>
         <div class="srDebugValue">
@@ -193,6 +199,26 @@
       </div>
 
       <div class="srDebugBtns" style="margin-top:10px">
+        <div class="srDebugRow" style="align-items:flex-start">
+  <div class="srDebugLabel">
+    {{ isArabic ? "تجربة رقم أيام" : "Seed exact days" }}
+  </div>
+
+  <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end; flex-wrap:wrap;">
+    <input
+      v-model="seedN"
+      type="number"
+      min="0"
+      max="4000"
+      class="srSeedInput"
+      :placeholder="isArabic ? 'مثال: 37' : 'e.g. 37'"
+    />
+
+    <ion-button size="small" fill="outline" @click="seedStreakExact">
+      {{ isArabic ? "تطبيق" : "Apply" }}
+    </ion-button>
+  </div>
+</div>
         <ion-button size="small" fill="outline" @click="seedStreak(7)">7</ion-button>
         <ion-button size="small" fill="outline" @click="seedStreak(14)">14</ion-button>
         <ion-button size="small" fill="outline" @click="seedStreak(21)">21</ion-button>
@@ -202,7 +228,9 @@
         <ion-button size="small" fill="outline" @click="seedStreak(365)">365</ion-button>
         <ion-button size="small" color="danger" @click="resetAll">{{ ui.debugResetAll }}</ion-button>
       </div>
-
+      <ion-button size="small" color="danger" fill="outline" @click="exitDebug">
+  {{ isArabic ? "خروج من الديباج" : "Exit Debug" }}
+</ion-button>
       <!-- (اختياري) لو عايزة تشوفي القيم - سيبيه معلق -->
       <!--
       <div style="margin-top:10px; font-size:12px; opacity:.8">
@@ -214,28 +242,69 @@
       -->
     </div>
   </section>
+  <ion-modal :is-open="showPinModal" @ionModalDidDismiss="showPinModal=false">
+  <div style="padding:16px">
+    <div style="font-weight:1000; margin-bottom:10px">
+      {{ isArabic ? "وضع الديباج" : "Debug Mode" }}
+    </div>
+
+    <ion-input
+  type="password"
+  inputmode="numeric"
+  :value="pin"
+  @ionInput="pin = String(($event.target as any)?.value ?? '')"
+  :placeholder="isArabic ? 'ادخل الكود' : 'Enter PIN'"
+/>
+
+    <div v-if="pinError" style="margin-top:8px; font-weight:900; opacity:.85">
+      {{ pinError }}
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:12px; justify-content:flex-end">
+      <ion-button fill="outline" @click="showPinModal=false">
+        {{ isArabic ? "إلغاء" : "Cancel" }}
+      </ion-button>
+      <ion-button @click="submitPin">
+        {{ isArabic ? "دخول" : "Unlock" }}
+      </ion-button>
+    </div>
+  </div>
+</ion-modal>
 </template>
-
 <script setup lang="ts">
-import { IonButton } from "@ionic/vue";
-import { ref, onMounted, computed, watch } from "vue";
-import { useRoute } from "vue-router";
+import { IonButton, IonModal, IonInput } from "@ionic/vue"
+import { ref, onMounted, computed, watch } from "vue"
+import { useRoute } from "vue-router"
+import { Preferences } from "@capacitor/preferences"
 
+import { getReadDays, addReadDay, removeReadDay, clearReadDays } from "@/utils/streakStore"
+import { computeRewards } from "@/utils/streakLogic"
+import { getStreakMeta, setStreakMeta, type StreakMeta } from "@/utils/streakMetaStore"
+
+import { isDebugUnlocked, unlockDebug, lockDebug } from "@/utils/debugGate"
 import {
-  getReadDays,
-  addReadDay,
-  removeReadDay,
-  clearReadDays,
-} from "@/utils/streakStore";
+  scheduleDailyReminder,
+  disableDailyReminder,
+  isDailyReminderEnabled,
+  getDailyReminderPrefsPublic,
+  hasReminderPermission,
+  requestReminderPermission,
+  isMissedDayWarningEnabled,
+  setMissedDayWarningEnabled,
+  maybeSendMissedOneDayWarning,
+} from "@/services/reminder"
+import { Capacitor } from "@capacitor/core"
+const PREF_FAKE_TODAY = "mk_fake_today"
+const BACKUP_KEY = "mk_read_days_backup_v1"
 
-import { computeStreak, computeRewards } from "@/utils/streakLogic";
-import { getStreakMeta, setStreakMeta, type StreakMeta } from "@/utils/streakMetaStore";
-
-const props = defineProps<{ todayISO: string; lang: "ar" | "en" }>();
-
-const isArabic = computed(() => props.lang !== "en");
-const dir = computed(() => (isArabic.value ? "rtl" : "ltr"));
-const lang = computed(() => (isArabic.value ? "ar" : "en"));
+const props = defineProps<{ todayISO: string; lang: "ar" | "en" }>()
+const isNative = computed(() => Capacitor.isNativePlatform())
+/* =========================
+   Locale / direction
+========================= */
+const isArabic = computed(() => props.lang !== "en")
+const dir = computed(() => (isArabic.value ? "rtl" : "ltr"))
+const lang = computed(() => (isArabic.value ? "ar" : "en"))
 
 const ui = computed(() => {
   if (!isArabic.value) {
@@ -278,7 +347,7 @@ const ui = computed(() => {
       debugMinus7: "-7 days",
       debugPlus7: "+7 days",
       debugResetAll: "Clear all",
-    };
+    }
   }
 
   return {
@@ -320,396 +389,711 @@ const ui = computed(() => {
     debugMinus7: "-7 أيام",
     debugPlus7: "+7 أيام",
     debugResetAll: "مسح الكل",
-  };
-});
-
-const route = useRoute();
-
-/**
- * ✅ IMPORTANT FIX:
- * query values in vue-router can be "1" | 1 | true | "true" | "on"
- * so we normalize to string.
- */
-const isDebug = computed(() => {
-  const v = String(route.query.debug ?? "");
-  return v === "1" || v === "true" || v === "on";
-});
-
-/** Fake today (debug) */
-const fakeToday = ref<string | null>(null);
-const effectiveTodayISO = computed(() => fakeToday.value ?? props.todayISO);
-
-/** helpers */
-function pad(n: number) { return String(n).padStart(2, "0"); }
-
-function addDaysISO(iso: string, n: number) {
-  const d = new Date(`${iso}T00:00:00`);
-  d.setDate(d.getDate() + n);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
-function diffDaysISO(aISO: string, bISO: string) {
-  const a = new Date(`${aISO}T00:00:00`).getTime();
-  const b = new Date(`${bISO}T00:00:00`).getTime();
-  return Math.round((a - b) / (1000 * 60 * 60 * 24));
-}
-
-function maxISO(list: string[]) {
-  return list.length ? [...list].sort().pop()! : null;
-}
-
-function computeLongestRun(days: string[]) {
-  if (!days.length) return 0;
-  const sorted = [...new Set(days)].sort(); // YYYY-MM-DD sorts ok
-  let best = 1;
-  let cur = 1;
-  for (let i = 1; i < sorted.length; i++) {
-    const prev = sorted[i - 1];
-    const now = sorted[i];
-    const gap = diffDaysISO(now, prev);
-    if (gap === 1) cur++;
-    else cur = 1;
-    if (cur > best) best = cur;
   }
-  return best;
+})
+
+const route = useRoute()
+
+/* =========================
+   Debug enablement
+========================= */
+const debugUnlocked = ref(false)
+async function loadDebugGate() {
+  debugUnlocked.value = await isDebugUnlocked()
 }
 
-function shiftFakeDay(delta: number) {
-  const base = fakeToday.value ?? props.todayISO;
-  fakeToday.value = addDaysISO(base, delta);
+const isDebug = computed(() => {
+  const v = String(route.query.debug ?? "")
+  const byQuery = v === "1" || v === "true" || v === "on"
+  return byQuery || debugUnlocked.value
+})
+
+/* =========================
+   Fake today (debug)
+========================= */
+const fakeToday = ref<string | null>(null)
+
+function deviceTodayISO() {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${y}-${m}-${day}`
 }
 
-function resetFakeToday() { fakeToday.value = null; }
+const effectiveTodayISO = computed(() => {
+  const candidate = fakeToday.value ?? props.todayISO
+  return isValidISODate(candidate) ? candidate : deviceTodayISO()
+})
+function pad(n: number) {
+  return String(n).padStart(2, "0")
+}
+function addDaysISO(iso: string, n: number) {
+  const d = new Date(`${iso}T00:00:00`)
+  d.setDate(d.getDate() + n)
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+function diffDaysISO(aISO: string, bISO: string) {
+  const a = new Date(`${aISO}T00:00:00`).getTime()
+  const b = new Date(`${bISO}T00:00:00`).getTime()
+  return Math.round((a - b) / (1000 * 60 * 60 * 24))
+}
+function maxISO(list: string[]) {
+  return list.length ? [...list].sort().pop()! : null
+}
+function isValidISODate(iso: any): iso is string {
+  return typeof iso === "string" && /^\d{4}-\d{2}-\d{2}$/.test(iso)
+}
 
-/** Milestones */
-const MILESTONES = [7, 14, 21, 28, 90, 180, 365];
+async function loadFakeToday() {
+  const v = await Preferences.get({ key: PREF_FAKE_TODAY })
+  fakeToday.value = v.value || null
+}
+async function setFakeToday(iso: string) {
+  fakeToday.value = iso
+  await Preferences.set({ key: PREF_FAKE_TODAY, value: iso })
+}
+async function resetFakeToday() {
+  fakeToday.value = null
+  await Preferences.remove({ key: PREF_FAKE_TODAY })
+}
+async function shiftFakeDay(delta: number) {
+  const base = isValidISODate(fakeToday.value) ? fakeToday.value! : effectiveTodayISO.value
+  await setFakeToday(addDaysISO(base, delta))
+}
+
+/* =========================
+   Milestones / meta
+========================= */
+const MILESTONES = [7, 14, 21, 28, 90, 180, 365]
 function nearestMilestoneBelow(n: number) {
-  const eligible = MILESTONES.filter(m => m <= n);
-  return eligible.length ? eligible[eligible.length - 1] : 0;
-}
-
-/** state */
-const readDays = ref<string[]>([]);
-const readToday = computed(() => readDays.value.includes(effectiveTodayISO.value));
-
-const baseStreak = ref(0);
-const displayedStreak = ref(0);
-const rewards = ref(computeRewards(0));
-
-const recentDays = computed(() => [...readDays.value].sort().reverse().slice(0, 14));
-function formatDay(iso: string) {
-  const d = new Date(`${iso}T00:00:00`);
-  if (!isArabic.value) return `${d.getMonth() + 1}/${d.getDate()}`;
-  return `${d.getDate()}/${d.getMonth() + 1}`;
+  const eligible = MILESTONES.filter((m) => m <= n)
+  return eligible.length ? eligible[eligible.length - 1] : 0
 }
 
 type LocalMeta = StreakMeta & {
-  bankMilestone?: number;
-  softResetBase?: number;
-  softResetState?: "armed" | "running";
-  softResetUntilISO?: string;
-  softResetStartISO?: string; // ✅ NEW
-};
+  bankMilestone?: number
+  softResetBase?: number
+  softResetState?: "armed" | "running"
+  softResetUntilISO?: string
+  softResetStartISO?: string
+}
 
-const meta = ref<LocalMeta>({});
+const meta = ref<LocalMeta>({})
 
 async function persistMeta() {
-  await setStreakMeta(meta.value);
+  await setStreakMeta(meta.value)
+}
+
+/* =========================
+   Core state
+========================= */
+const readDays = ref<string[]>([])
+const readToday = computed(() => readDays.value.includes(effectiveTodayISO.value))
+
+const baseStreak = ref(0)
+const displayedStreak = ref(0)
+const rewards = ref(computeRewards(0))
+
+/* Reminders */
+const missWarnEnabled = ref(false)
+const dailyEnabled = ref(false)
+const reminderHour = ref(9)
+const reminderMinute = ref(0)
+
+/* Animations */
+const justToggled = ref(false)
+const weekPop = ref(false)
+const rewardsPop = ref(false)
+
+function pulseFlag(flag: { value: boolean }, ms = 420) {
+  flag.value = true
+  window.setTimeout(() => (flag.value = false), ms)
+}
+
+/* =========================
+   Seed (debug)
+========================= */
+const seedN = ref<string>("")
+async function seedStreakExact() {
+  const n = Math.max(0, Math.floor(Number(seedN.value || 0)))
+  await seedStreak(n)
+}
+
+/* =========================
+   Helpers
+========================= */
+function clampDaysToToday(days: string[], todayISO: string) {
+  return days.filter((d) => d <= todayISO)
+}
+
+function computeLongestRun(days: string[]) {
+  if (!days.length) return 0
+  const sorted = [...new Set(days)].sort()
+  let best = 1
+  let cur = 1
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = sorted[i - 1]
+    const now = sorted[i]
+    const gap = diffDaysISO(now, prev)
+    if (gap === 1) cur++
+    else cur = 1
+    if (cur > best) best = cur
+  }
+  return best
+}
+
+/**
+ * ✅ Run with ONE grace miss TOTAL (not infinite alternating misses)
+ * - Allows at most 1 unmarked day in the whole run
+ * - Second unmarked day ends the run
+ */
+function computeRunWithOneGrace(days: string[], endISO: string, minISO?: string) {
+  const set = new Set(days)
+  let cur = endISO
+  let count = 0
+  let missesTotal = 0
+
+  while (true) {
+    if (minISO && cur < minISO) break
+
+    if (set.has(cur)) {
+      count++
+    } else {
+      missesTotal++
+      if (missesTotal >= 2) break
+    }
+
+    cur = addDaysISO(cur, -1)
+  }
+
+  return count
 }
 
 const softResetActive = computed(() => {
-  const base = meta.value.softResetBase ?? 0;
-  const state = meta.value.softResetState;
-  if (!base || !state) return false;
+  const base = meta.value.softResetBase ?? 0
+  const state = meta.value.softResetState
+  if (!base || !state) return false
 
   if (state === "armed") {
-    const until = meta.value.softResetUntilISO;
-    if (!until) return false;
-    return diffDaysISO(until, effectiveTodayISO.value) >= 0;
+    const until = meta.value.softResetUntilISO
+    if (!until) return false
+    return diffDaysISO(until, effectiveTodayISO.value) >= 0
   }
-  return true;
-});
+  return true
+})
 
-/** Animations */
-const justToggled = ref(false);
-const weekPop = ref(false);
-const rewardsPop = ref(false);
+/* =========================
+   Reminders UI + actions
+========================= */
+async function loadReminderUi() {
+  missWarnEnabled.value = await isMissedDayWarningEnabled()
 
-function pulseFlag(flag: { value: boolean }, ms = 420) {
-  flag.value = true;
-  window.setTimeout(() => (flag.value = false), ms);
+  dailyEnabled.value = await isDailyReminderEnabled()
+  const prefs = await getDailyReminderPrefsPublic()
+  if (prefs) {
+    reminderHour.value = prefs.hour
+    reminderMinute.value = prefs.minute
+  }
 }
 
-/** recompute */
-function recompute() {
+async function onMissWarnToggle(ev: any) {
+  const el = ev?.target as any; // HTMLIonToggleElement (web component)
+  const next = !!ev?.detail?.checked;
 
-  const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value);
+  // Optimistic UI
+  missWarnEnabled.value = next;
 
-const s = computeStreak(safeDays, effectiveTodayISO.value);
-baseStreak.value = s.streak;
+  if (next) {
+    const granted = await requestReminderPermission();
+    if (!granted) {
+      // Revert if denied
+      missWarnEnabled.value = false;
+      await setMissedDayWarningEnabled(false);
 
-  const longest = computeLongestRun(safeDays);
-    const earnedFromHistory = nearestMilestoneBelow(longest);
-
-  const bank = meta.value.bankMilestone ?? 0;
-  if (earnedFromHistory > bank) {
-    meta.value.bankMilestone = earnedFromHistory;
-    persistMeta(); // non-blocking save
-  }
-
-  // clear armed if expired and still 0
-  if (meta.value.softResetState === "armed") {
-    const until = meta.value.softResetUntilISO;
-    const expired = !until || diffDaysISO(until, effectiveTodayISO.value) < 0;
-    if (expired && baseStreak.value === 0) {
-      delete meta.value.softResetBase;
-      delete meta.value.softResetState;
-      delete meta.value.softResetUntilISO;
-      setStreakMeta(meta.value);
+      // 🔒 force the actual toggle UI to match
+      if (el) el.checked = false;
+      return;
     }
   }
 
-  // clear running if collapsed
-  if (meta.value.softResetState === "running" && baseStreak.value === 0) {
-    delete meta.value.softResetBase;
-    delete meta.value.softResetState;
-    delete meta.value.softResetUntilISO;
-    setStreakMeta(meta.value);
+  await setMissedDayWarningEnabled(missWarnEnabled.value);
+
+  // ✅ force sync (fix "chip stuck" + toggle out-of-sync)
+  if (el) el.checked = missWarnEnabled.value;
+
+  // (optional) if enabling and already in gap=2, fire warning immediately
+  if (missWarnEnabled.value) {
+    const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value);
+    const lastMarked = maxISO(safeDays);
+    if (lastMarked) {
+      const gapDays = diffDaysISO(effectiveTodayISO.value, lastMarked);
+      if (gapDays === 2) {
+        await maybeSendMissedOneDayWarning(effectiveTodayISO.value, props.lang);
+      }
+    }
+  }
+}
+
+async function enableDailyFromHere() {
+  const ok = await scheduleDailyReminder(
+    reminderHour.value,
+    reminderMinute.value,
+    props.lang,
+    true // userInitiated
+  )
+  dailyEnabled.value = ok
+}
+
+async function disableDailyFromHere() {
+  await disableDailyReminder()
+  dailyEnabled.value = false
+}
+
+/* =========================
+   Missed-one-day warning
+========================= */
+async function maybeWarnMissedOneDay() {
+  if (!missWarnEnabled.value) return
+
+  const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value)
+  const lastMarked = maxISO(safeDays)
+  if (!lastMarked) return
+
+  const gapDays = diffDaysISO(effectiveTodayISO.value, lastMarked)
+  if (gapDays === 2) {
+    await maybeSendMissedOneDayWarning(effectiveTodayISO.value, props.lang)
+  }
+}
+
+/* =========================
+   Debug modal gate (PIN)
+========================= */
+const tapCount = ref(0)
+let tapTimer: number | null = null
+const showPinModal = ref(false)
+const pin = ref("")
+const pinError = ref("")
+
+function secretTap() {
+  tapCount.value++
+
+  if (tapTimer) window.clearTimeout(tapTimer)
+  tapTimer = window.setTimeout(() => {
+    tapCount.value = 0
+    tapTimer = null
+  }, 900)
+
+  if (tapCount.value >= 10) {
+    tapCount.value = 0
+    showPinModal.value = true
+    pin.value = ""
+    pinError.value = ""
+  }
+}
+
+async function submitPin() {
+  const ok = await unlockDebug(pin.value)
+  if (!ok) {
+    pinError.value = isArabic.value ? "كود غلط" : "Wrong PIN"
+    return
+  }
+  debugUnlocked.value = true
+  showPinModal.value = false
+}
+
+async function exitDebug() {
+  await lockDebug()
+  debugUnlocked.value = false
+  await resetFakeToday()
+}
+
+/* =========================
+   Derived UI
+========================= */
+const recentDays = computed(() => [...readDays.value].sort().reverse().slice(0, 14))
+function formatDay(iso: string) {
+  const d = new Date(`${iso}T00:00:00`)
+  if (!isArabic.value) return `${d.getMonth() + 1}/${d.getDate()}`
+  return `${d.getDate()}/${d.getMonth() + 1}`
+}
+
+const crossesShown = computed(() => {
+  const c = Number((rewards.value as any).crossesThisWeek ?? 0)
+  if (displayedStreak.value > 0 && c === 0) return 7
+  return c
+})
+
+const weeks = computed(() => Number((rewards.value as any).fullWeeks ?? 0))
+const months = computed(() => Number((rewards.value as any).fullMonths ?? 0))
+const weeksLabel = computed(() => (weeks.value >= 50 ? "50+" : String(weeks.value)))
+const monthsLabel = computed(() => (months.value >= 50 ? "50+" : String(months.value)))
+const weeksShown = computed(() => Math.min(weeks.value, 12))
+const monthsShown = computed(() => Math.min(months.value, 12))
+
+/* =========================
+   Soft reset eligibility
+========================= */
+const canSoftReset = computed(() => {
+  const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value)
+  if (!safeDays.length) return false
+  if (readToday.value) return false
+  if (softResetActive.value) return false
+
+  const lastMarked = maxISO(safeDays)
+  if (!lastMarked) return false
+
+  const gap = diffDaysISO(effectiveTodayISO.value, lastMarked)
+
+  // ✅ recover only after 2 missed days (gap >= 3)
+  if (gap < 3) return false
+
+  // ✅ streak is considered "active" if gap <= 2 (grace window)
+  // (we already required gap>=3, so fine)
+
+  const longest = computeLongestRun(safeDays)
+  const earnedFromHistory = nearestMilestoneBelow(longest)
+
+  return earnedFromHistory > 0
+})
+
+const showTodayCta = computed(() => {
+  return !canSoftReset.value || softResetActive.value
+})
+
+/* =========================
+   Recompute (single source of truth)
+========================= */
+function recompute() {
+  const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value)
+
+  // ✅ base streak only when today is marked
+  baseStreak.value = readToday.value
+    ? computeRunWithOneGrace(safeDays, effectiveTodayISO.value)
+    : 0
+
+  // ✅ preview when today not marked:
+  // - if gap=1 (new day) show yesterday's run
+  // - if gap=2 (missed yesterday) show last run and warn
+  let preview = 0
+  if (!readToday.value) {
+    const lastMarked = maxISO(safeDays)
+    if (lastMarked) {
+      const gap = diffDaysISO(effectiveTodayISO.value, lastMarked)
+      if (gap === 1 || gap === 2) {
+        preview = computeRunWithOneGrace(safeDays, lastMarked)
+      }
+    }
   }
 
-  const state = meta.value.softResetState;
-  const softBase = meta.value.softResetBase ?? 0;
-  const postReturn = (state === "running" && meta.value.softResetStartISO)
-  ? computeRunFrom(
-      safeDays,
-      effectiveTodayISO.value,
-      meta.value.softResetStartISO // ✅ لا ترجع قبل يوم الرجوع
-    )
-  : baseStreak.value;
+  // ✅ update milestone bank from HISTORY (consecutive best run)
+  const longest = computeLongestRun(safeDays)
+  const earnedFromHistory = nearestMilestoneBelow(longest)
+  const bank = meta.value.bankMilestone ?? 0
+  if (earnedFromHistory > bank) {
+    meta.value.bankMilestone = earnedFromHistory
+    persistMeta() // non-blocking
+  }
+
+  // ✅ cleanup armed if expired and still no streak
+  if (meta.value.softResetState === "armed") {
+    const until = meta.value.softResetUntilISO
+    const expired = !until || diffDaysISO(until, effectiveTodayISO.value) < 0
+    if (expired && baseStreak.value === 0 && preview === 0) {
+      delete meta.value.softResetBase
+      delete meta.value.softResetState
+      delete meta.value.softResetUntilISO
+      delete meta.value.softResetStartISO
+      setStreakMeta(meta.value)
+    }
+  }
+
+  // ✅ cleanup running ONLY if missed 2 full days after comeback started (gap >= 3)
+  if (meta.value.softResetState === "running" && meta.value.softResetStartISO) {
+    const startISO = meta.value.softResetStartISO
+    const runDays = safeDays.filter((d) => d >= startISO)
+    const lastRunMarked = maxISO(runDays)
+
+    if (!lastRunMarked) {
+      delete meta.value.softResetBase
+      delete meta.value.softResetState
+      delete meta.value.softResetUntilISO
+      delete meta.value.softResetStartISO
+      setStreakMeta(meta.value)
+    } else {
+      const gap = diffDaysISO(effectiveTodayISO.value, lastRunMarked)
+      if (gap >= 3) {
+        delete meta.value.softResetBase
+        delete meta.value.softResetState
+        delete meta.value.softResetUntilISO
+        delete meta.value.softResetStartISO
+        setStreakMeta(meta.value)
+      }
+    }
+  }
+
+  // ✅ displayed streak logic
+  const state = meta.value.softResetState
+  const softBase = meta.value.softResetBase ?? 0
+
   if (state === "armed") {
-  const until = meta.value.softResetUntilISO;
-  const ok = !!until && diffDaysISO(until, effectiveTodayISO.value) >= 0;
-  displayedStreak.value = (ok && baseStreak.value === 0) ? softBase : baseStreak.value;
-} else if (state === "running") {
-  displayedStreak.value = postReturn > 0 ? (softBase + postReturn) : 0;
-} else {
-  displayedStreak.value = baseStreak.value;
-}
-  rewards.value = computeRewards(displayedStreak.value);
+    const until = meta.value.softResetUntilISO
+    const ok = !!until && diffDaysISO(until, effectiveTodayISO.value) >= 0
+    displayedStreak.value =
+      ok && baseStreak.value === 0 && preview === 0 ? softBase : baseStreak.value || preview
+
+  } else if (state === "running") {
+    const startISO = meta.value.softResetStartISO
+    if (!startISO) {
+      displayedStreak.value = 0
+    } else {
+      const runDays = safeDays.filter((d) => d >= startISO)
+      const lastRunMarked = maxISO(runDays)
+
+      // if today marked => compute till today
+      // if today not marked but gap=1/2 => compute till lastRunMarked
+      let endISO: string | null = null
+      if (readToday.value) endISO = effectiveTodayISO.value
+      else endISO = lastRunMarked
+
+      const runCount = endISO ? computeRunWithOneGrace(runDays, endISO, startISO) : 0
+
+      // If today isn't marked but lastRunMarked exists and gap is 1 or 2, keep showing it (preview behavior)
+      let runPreview = 0
+      if (!readToday.value && lastRunMarked) {
+        const gap = diffDaysISO(effectiveTodayISO.value, lastRunMarked)
+        if (gap === 1 || gap === 2) {
+          runPreview = computeRunWithOneGrace(runDays, lastRunMarked, startISO)
+        }
+      }
+
+      const finalRun = readToday.value ? runCount : runPreview
+      displayedStreak.value = finalRun > 0 ? softBase + finalRun : 0
+    }
+
+  } else {
+    displayedStreak.value = baseStreak.value > 0 ? baseStreak.value : preview
+  }
+
+  rewards.value = computeRewards(displayedStreak.value)
 }
 
-/** hero message bilingual */
+/* =========================
+   Hero message bilingual
+========================= */
 const spiritualMessage = computed(() => {
   if (!isArabic.value) {
     if (displayedStreak.value === 0 && !canSoftReset.value) {
-      return { title: "✨ Start today", text: "Every new day is a step forward." };
+      return { title: "✨ Start today", text: "Every new day is a step forward." }
     }
     if (displayedStreak.value === 0 && canSoftReset.value) {
-      return { title: "✨ Don't give up", text: "Coming back matters more than falling." };
+      return { title: "✨ Don't give up", text: "Coming back matters more than falling." }
     }
-    if ((meta.value.softResetBase ?? 0) > 0 && baseStreak.value === 0) {
-      return { title: "🕯️ Coming back matters", text: "What you built isn't lost… keep going." };
+    if ((meta.value.softResetBase ?? 0) > 0 && displayedStreak.value === (meta.value.softResetBase ?? 0)) {
+      return { title: "🕯️ Coming back matters", text: "What you built isn't lost… keep going." }
     }
     if ((meta.value.softResetBase ?? 0) > 0 && baseStreak.value === 1) {
-      return { title: "🌿 God welcomes your return", text: "Not the start—it's the staying." };
+      return { title: "🌿 God welcomes your return", text: "Not the start—it's the staying." }
     }
-    return { title: "Reading Streak", text: "Keep going—one step with God each day." };
+    return { title: "Reading Streak", text: "Keep going—one step with God each day." }
   }
 
   if (displayedStreak.value === 0 && !canSoftReset.value) {
-    return { title: "✨ ابدأ النهارده", text: "كل يوم جديد هو خطوة لقدام." };
+    return { title: "✨ ابدأ النهارده", text: "كل يوم جديد هو خطوة لقدام." }
   }
   if (displayedStreak.value === 0 && canSoftReset.value) {
-    return { title: "✨ لا تيأس", text: "رجوعك اهم من سقوتك" };
+    return { title: "✨ لا تيأس", text: "رجوعك اهم من سقوتك" }
   }
-  if ((meta.value.softResetBase ?? 0) > 0 && baseStreak.value === 0) {
-    return { title: "🕯️رجوعك النهاردة اهم خطوة", text: "اللي بنيته ما ضاعش… كمّل وربنا هيساعدك." };
+  if ((meta.value.softResetBase ?? 0) > 0 && displayedStreak.value === (meta.value.softResetBase ?? 0)) {
+    return { title: "🕯️رجوعك النهاردة اهم خطوة", text: "اللي بنيته ما ضاعش… كمّل وربنا هيساعدك." }
   }
   if ((meta.value.softResetBase ?? 0) > 0 && baseStreak.value === 1) {
-    return { title: "🌿 ربنا قبل رجوعك", text: "مش مهم البداية… المهم الاستمرار." };
+    return { title: "🌿 ربنا قبل رجوعك", text: "مش مهم البداية… المهم الاستمرار." }
   }
-  return { title: "سلسلة القراءة", text: "استمر كل يوم خطوة جديدة مع ربنا" };
-});
+  return { title: "سلسلة القراءة", text: "استمر كل يوم خطوة جديدة مع ربنا" }
+})
 
-/** UI derived */
-const crossesShown = computed(() => {
-  const c = Number((rewards.value as any).crossesThisWeek ?? 0);
-  if (displayedStreak.value > 0 && c === 0) return 7;
-  return c;
-});
-const weeks = computed(() => Number((rewards.value as any).fullWeeks ?? 0));
-const months = computed(() => Number((rewards.value as any).fullMonths ?? 0));
-const weeksLabel = computed(() => (weeks.value >= 50 ? "50+" : String(weeks.value)));
-const monthsLabel = computed(() => (months.value >= 50 ? "50+" : String(months.value)));
-const weeksShown = computed(() => Math.min(weeks.value, 12));
-const monthsShown = computed(() => Math.min(months.value, 12));
-
-/**
- * ✅ FINAL / GUARANTEED:
- * Recover depends on HISTORY (readDays) directly.
- */
-const canSoftReset = computed(() => {
-  const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value);
-if (!safeDays.length) return false;
-  if (readToday.value) return false;
-  if (!readDays.value.length) return false;
-  if (softResetActive.value) return false;
-
-  const lastMarked = maxISO(safeDays);
-
-  if (!lastMarked) return false;
-
-  const missed = diffDaysISO(effectiveTodayISO.value, lastMarked) > 0;
-  if (!missed) return false;
-
-  const longest = computeLongestRun(safeDays);
-    const earnedFromHistory = nearestMilestoneBelow(longest);
-
-  return earnedFromHistory > 0;
-});
-
-// ✅ If recover is offered, hide "mark today" until recover is pressed
-const showTodayCta = computed(() => {
-  return !canSoftReset.value || softResetActive.value;
-});
-
+/* =========================
+   Actions
+========================= */
 async function softResetToPrevMilestone() {
-  const longest = computeLongestRun(readDays.value);
-  const bank = nearestMilestoneBelow(longest);
-  if (bank <= 0) return;
+  const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value)
 
-  meta.value.softResetBase = bank;
-  meta.value.softResetState = "armed";
-  meta.value.softResetUntilISO = addDaysISO(effectiveTodayISO.value, 1);
+  const bankFromMeta = meta.value.bankMilestone ?? 0
+  const longest = computeLongestRun(safeDays)
+  const bankFromHistory = nearestMilestoneBelow(longest)
 
-  await persistMeta();
-  recompute();
-  pulseFlag(rewardsPop, 520);
-  pulseFlag(weekPop, 520);
+  const bank = Math.max(bankFromMeta, bankFromHistory)
+  if (bank <= 0) return
+
+  meta.value.softResetBase = bank
+  meta.value.softResetState = "armed"
+  meta.value.softResetUntilISO = addDaysISO(effectiveTodayISO.value, 1)
+
+  await persistMeta()
+  recompute()
+  pulseFlag(rewardsPop, 520)
+  pulseFlag(weekPop, 520)
 }
+async function autoEnableMissWarnIfAllowed() {
+  if (!isNative.value) return
 
-/** load */
-async function load() {
-  const rawDays = await getReadDays();
-  const m = (await getStreakMeta()) || {};
-
-  const today = effectiveTodayISO.value; // respects fakeToday in debug
-
-  // 1) remove duplicates + future days
-  const safeDays = [...new Set(rawDays)]
-    .filter(d => d <= today)
-    .sort();
-
-  // 2) persist cleaned days (only if changed)
-  const changed =
-    safeDays.length !== rawDays.length ||
-    safeDays.some((d, i) => d !== rawDays[i]); // raw might not be sorted; ok, still catches some cases
-
-  if (changed) {
-    await clearReadDays();
-    for (const d of safeDays) {
-      await addReadDay(d);
-    }
+  const granted = await hasReminderPermission()
+  if (!granted) {
+    // لو مفيش إذن عام للتنبيهات، ما نفعلش الميزة
+    missWarnEnabled.value = false
+    await setMissedDayWarningEnabled(false)
+    return
   }
 
-  // 3) cleanup invalid soft reset states (no softResetStartISO in your current code)
-  if (m.softResetState === "armed") {
-    const until = m.softResetUntilISO;
-    const expired = !until || diffDaysISO(until, today) < 0;
-    if (expired) {
-      delete m.softResetBase;
-      delete m.softResetState;
-      delete m.softResetUntilISO;
-      await setStreakMeta(m);
-    }
-  }
-
-  // (optional) if running but no base -> reset
-  if (
-  m.softResetState === "running" &&
-  (typeof m.softResetBase !== "number" || m.softResetBase <= 0)
-) {    delete m.softResetBase;
-    delete m.softResetState;
-    delete m.softResetUntilISO;
-    await setStreakMeta(m);
-  }
-
-  readDays.value = safeDays;
-  meta.value = m;
-  recompute();
+  // لو الإذن موجود، فعّلي الميزة تلقائيًا
+  missWarnEnabled.value = true
+  await setMissedDayWarningEnabled(true)
 }
-
 async function toggleReadToday() {
-  const beforeWeeks = weeks.value;
-  const beforeMonths = months.value;
-  const beforeCrosses = crossesShown.value;
+  const beforeWeeks = weeks.value
+  const beforeMonths = months.value
+  const beforeCrosses = crossesShown.value
 
   if (readToday.value) {
-    readDays.value = await removeReadDay(effectiveTodayISO.value);
+    readDays.value = await removeReadDay(effectiveTodayISO.value)
   } else {
-    readDays.value = await addReadDay(effectiveTodayISO.value);
+    readDays.value = await addReadDay(effectiveTodayISO.value)
   }
 
-  recompute();
-  pulseFlag(justToggled);
+  recompute()
+  pulseFlag(justToggled)
 
-  if (crossesShown.value !== beforeCrosses) pulseFlag(weekPop);
-  if (weeks.value > beforeWeeks || months.value > beforeMonths) pulseFlag(rewardsPop, 520);
+  if (crossesShown.value !== beforeCrosses) pulseFlag(weekPop)
+  if (weeks.value > beforeWeeks || months.value > beforeMonths) pulseFlag(rewardsPop, 520)
 
-  if (meta.value.softResetState === "armed" && (meta.value.softResetBase ?? 0) > 0 && baseStreak.value > 0) {
-  meta.value.softResetState = "running";
-  meta.value.softResetStartISO = effectiveTodayISO.value; // ✅ NEW
-  delete meta.value.softResetUntilISO;
-  await persistMeta();
-  recompute();
+  // ✅ If armed and user marked a day => start running from today
+  if (meta.value.softResetState === "armed" && (meta.value.softResetBase ?? 0) > 0) {
+    if (readDays.value.includes(effectiveTodayISO.value)) {
+      meta.value.softResetState = "running"
+      meta.value.softResetStartISO = effectiveTodayISO.value
+      delete meta.value.softResetUntilISO
+      await persistMeta()
+      recompute()
+    }
+  }
 }
-}
 
-/** debug seed */
+/* =========================
+   Debug seed / reset
+========================= */
 async function seedStreak(n: number) {
-  await clearReadDays();
+  await clearReadDays()
   for (let i = 0; i < n; i++) {
-    await addReadDay(addDaysISO(effectiveTodayISO.value, -i));
+    await addReadDay(addDaysISO(effectiveTodayISO.value, -i))
   }
-  meta.value = {};
-  await persistMeta();
-  readDays.value = await getReadDays();
-  recompute();
-  pulseFlag(rewardsPop, 520);
-  pulseFlag(weekPop, 520);
+  meta.value = {}
+  await persistMeta()
+  readDays.value = await getReadDays()
+  recompute()
+  pulseFlag(rewardsPop, 520)
+  pulseFlag(weekPop, 520)
 }
 
 async function resetAll() {
-  readDays.value = await clearReadDays();
-  meta.value = {};
-  await persistMeta();
-  recompute();
-}
-function toSet(list: string[]) {
-  return new Set(list);
+  readDays.value = await clearReadDays()
+  meta.value = {}
+  await persistMeta()
+  recompute()
 }
 
-function clampDaysToToday(days: string[], todayISO: string) {
-  // ✅ تجاهل الأيام المستقبلية (device clock / sync)
-  return days.filter(d => d <= todayISO);
-}
+/* =========================
+   Load (SAFE + backup + never wipe)
+========================= */
+async function load() {
+  const rawDays = await getReadDays()
+  const m = ((await getStreakMeta()) || {}) as LocalMeta
 
-function computeRunFrom(days: string[], endISO: string, minISO?: string) {
-  const set = toSet(days);
-  let curISO = endISO;
-  let count = 0;
+  const today = effectiveTodayISO.value
 
-  while (true) {
-    if (minISO && curISO < minISO) break;
-    if (!set.has(curISO)) break;
-    count++;
-    curISO = addDaysISO(curISO, -1);
+  // ✅ SAFETY: invalid today => do NOT mutate storage
+  if (!isValidISODate(today)) {
+    readDays.value = rawDays
+    meta.value = m
+    recompute()
+    return
   }
-  return count;
+
+  // normalize raw: dedupe + sort
+  const rawNormalized = [...new Set(rawDays)].sort()
+
+  // safe days: remove future
+  const safeDays = rawNormalized.filter((d) => d <= today)
+
+  // decide if storage needs cleanup
+  const changed =
+    safeDays.length !== rawNormalized.length ||
+    safeDays.some((d, i) => d !== rawNormalized[i])
+
+  // ✅ extra safety: never wipe non-empty to empty
+  const wouldWipe = rawDays.length > 0 && safeDays.length === 0
+
+  if (changed && !wouldWipe) {
+    // backup BEFORE destructive clear
+    await Preferences.set({ key: BACKUP_KEY, value: JSON.stringify(rawDays) })
+
+    await clearReadDays()
+    for (const d of safeDays) await addReadDay(d)
+  }
+
+  // cleanup meta: armed expired
+  if (m.softResetState === "armed") {
+    const until = m.softResetUntilISO
+    const expired = !until || diffDaysISO(until, today) < 0
+    if (expired) {
+      delete m.softResetBase
+      delete m.softResetState
+      delete m.softResetUntilISO
+      delete m.softResetStartISO
+      await setStreakMeta(m)
+    }
+  }
+
+  // cleanup meta: running but invalid base
+  if (m.softResetState === "running" && (typeof m.softResetBase !== "number" || m.softResetBase <= 0)) {
+    delete m.softResetBase
+    delete m.softResetState
+    delete m.softResetUntilISO
+    delete m.softResetStartISO
+    await setStreakMeta(m)
+  }
+
+  readDays.value = safeDays
+  meta.value = m
+  recompute()
+
+  // missed-one-day warning (gap=2)
+  const lastMarked = maxISO(safeDays)
+  if (lastMarked) {
+    const gapDays = diffDaysISO(effectiveTodayISO.value, lastMarked)
+    if (gapDays === 2) {
+      await maybeSendMissedOneDayWarning(effectiveTodayISO.value, props.lang)
+    }
+  }
 }
-onMounted(load);
-watch(() => props.todayISO, load);
-watch(effectiveTodayISO, recompute);
+
+/* =========================
+   Mount + watchers
+========================= */
+onMounted(async () => {
+  await loadFakeToday()
+  await load()
+  await loadReminderUi()
+  await autoEnableMissWarnIfAllowed()
+  await loadDebugGate()
+})
+
+watch(() => props.todayISO, load)
+
+watch(effectiveTodayISO, async () => {
+  recompute()
+  await maybeWarnMissedOneDay()
+})
 </script>
 
 <style scoped>
@@ -1281,4 +1665,134 @@ watch(effectiveTodayISO, recompute);
   @media (max-width: 420px){
     .srMilestones{ grid-template-columns: 1fr; }
   }
+  /* =========================
+   REMINDERS (nice + clear)
+========================= */
+
+.srRemRow{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.srRemTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.srRemText{
+  flex:1;
+  min-width:0;
+}
+
+.srRemTitle{
+  font-weight:1000;
+  font-size:14px;
+  color:var(--sr-text);
+  line-height:1.25;
+}
+
+.srRemSub{
+  margin-top:4px;
+  font-weight:900;
+  font-size:12px;
+  color:var(--sr-muted);
+  line-height:1.5;
+}
+
+.srRemRight{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:0 0 auto;
+}
+
+.srRemChip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:26px;
+  padding:0 10px;
+  border-radius:999px;
+  font-weight:1000;
+  font-size:12px;
+  border:1px solid var(--sr-soft-border);
+  background: rgba(255,255,255,0.78);
+  color: var(--sr-muted);
+}
+
+.srRemChip.on{
+  background: var(--sr-accent-soft);
+  border-color: var(--sr-accent-border);
+  color: var(--sr-text);
+  box-shadow: 0 10px 18px rgba(40,214,204,0.12);
+}
+
+/* Toggle colors (works well in light + dark) */
+.srRemToggle{
+  --track-background: rgba(0,0,0,0.12);
+  --track-background-checked: rgba(40,214,204,0.30);
+  --handle-background: rgba(255,255,255,0.95);
+  --handle-background-checked: rgba(255,255,255,0.95);
+  transform: scale(0.95);
+}
+
+/* CTA block */
+.srRemCta{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  align-items:stretch; /* ✅ button not far-end */
+}
+
+.srRemBtnPrimary{
+  --background: linear-gradient(135deg, rgba(40,214,204,0.95), rgba(32,178,170,0.85));
+  --color:#061018;
+  border:1px solid rgba(40,214,204,0.45);
+  border-radius:14px;
+  font-weight:1000;
+}
+
+.srRemBtnOutline{
+  border-radius:14px;
+  font-weight:1000;
+}
+
+.srRemMiniHint{
+  font-weight:900;
+  font-size:12px;
+  color: var(--sr-muted);
+  text-align: start;
+}
+
+/* Mobile: stack right side nicely */
+@media (max-width: 420px){
+  .srRemTop{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .srRemRight{
+    justify-content:flex-end;
+  }
+}
+.srSeedInput{
+  width: 120px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid var(--sr-soft-border);
+  background: rgba(255,255,255,0.78);
+  padding: 0 10px;
+  font-weight: 1000;
+  color: var(--sr-text);
+  outline: none;
+}
+
+:global(body.dark) .srSeedInput,
+:global(html.dark) .srSeedInput,
+:global(.dark) .srSeedInput{
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.10);
+}
 </style>
