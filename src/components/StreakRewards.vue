@@ -1795,4 +1795,7 @@ watch(effectiveTodayISO, async () => {
   background: rgba(255,255,255,0.05);
   border-color: rgba(255,255,255,0.10);
 }
+.capture.home.mk-capturing .mkNoCapture{
+  display: none !important;
+}
 </style>
