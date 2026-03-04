@@ -499,6 +499,7 @@
           <div class="space"></div>
 
           <StreakRewards
+           data-html2canvas-ignore="true"
             class="mkNoCapture"
             v-if="!isLoading && !noData && isTodaySelected"
             :todayISO="todayISO()"
