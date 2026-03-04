@@ -1012,7 +1012,42 @@ function setSectionEl(kind: ShareKind, el: Element | ComponentPublicInstance | n
 }
 
 const isWeb = computed(() => !Capacitor.isNativePlatform())
+function forceHideNoCapture(root?: HTMLElement | null) {
+  const scope: ParentNode = root || document;
 
+  const els = Array.from(scope.querySelectorAll<HTMLElement>(".mkNoCapture"));
+
+  // احفظ الستايل القديم
+  const prev = new Map<HTMLElement, string | null>();
+
+  for (const el of els) {
+    prev.set(el, el.getAttribute("style"));
+    el.style.setProperty("display", "none", "important");
+  }
+
+  // مهم: كمان اخفي أي streaks بالاسم لو حصل إن الكلاس مش راكب على root
+  // (اختياري بس مفيد)
+  const streaks = Array.from(document.querySelectorAll<HTMLElement>(".srCard, .srWrap, .srCardWrap"));
+  for (const el of streaks) {
+    if (!prev.has(el)) {
+      prev.set(el, el.getAttribute("style"));
+      el.style.setProperty("display", "none", "important");
+    }
+  }
+
+  return () => {
+    for (const [el, old] of prev.entries()) {
+      if (old === null) el.removeAttribute("style");
+      else el.setAttribute("style", old);
+    }
+  };
+}
+
+function raf2() {
+  return new Promise<void>(resolve =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+  );
+}
 async function shareAsImageWeb() {
   if (noData.value || isLoading.value) return
 
@@ -1030,7 +1065,8 @@ async function shareAsImageWeb() {
 
   const prevWrapTransform = wrap.style.transform
   wrap.style.transform = 'none'
-
+  const restore = forceHideNoCapture(wrap)
+  await raf2()
   try {
     await (document as any).fonts?.ready
 
@@ -1059,6 +1095,7 @@ async function shareAsImageWeb() {
     a.remove()
     URL.revokeObjectURL(url)
   } finally {
+    restore()
     wrap.style.transform = prevWrapTransform || ''
     isCapturing.value = false
   }
@@ -1072,7 +1109,8 @@ async function shareSectionImage(kind: ShareKind) {
     if (!el) return
     isCapturing.value = true
     await new Promise(requestAnimationFrame)
-
+    const restore = forceHideNoCapture(el)
+    await raf2()
     try {
       await (document as any).fonts?.ready
       const canvas = await html2canvas(el, {
@@ -1095,6 +1133,7 @@ async function shareSectionImage(kind: ShareKind) {
       a.remove()
       URL.revokeObjectURL(url)
     } finally {
+      restore()
       isCapturing.value = false
     }
     return
