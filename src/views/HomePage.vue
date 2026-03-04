@@ -2424,6 +2424,7 @@ onMounted(async () => {
   color: #1a1400;
 }
 .langBtn{
+  display:none;
   position: absolute;
   top: -4px;
   right: 0;
