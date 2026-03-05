@@ -1063,9 +1063,9 @@ async function load() {
     await setStreakMeta(m)
   }
 
-  readDays.value = safeDays
-  meta.value = m
-  recompute()
+  readDays.value = wouldWipe ? rawNormalized : safeDays
+meta.value = m
+recompute()
 
   // missed-one-day warning (gap=2)
   const lastMarked = maxISO(safeDays)
