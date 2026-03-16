@@ -47,7 +47,23 @@
       <!-- Reminders -->
 
     </header>
+    <div v-if="profile && !profile.giftClaimed" class="srGift">
+  <button class="srGiftBtn" @click="claimStarterGift">
 
+    <span v-if="profile.userType === 'old'">
+      🎁 {{ isArabic
+        ? "هدية للمستخدمين القدامى – احصل على 28 يوم"
+        : "Gift for existing users – Claim 28 days" }}
+    </span>
+
+    <span v-else>
+      🎁 {{ isArabic
+        ? "هدية البداية – احصل على 7 أيام"
+        : "Starter Gift – Claim 7 days" }}
+    </span>
+
+  </button>
+</div>
     <!-- Hero -->
     <div class="srHero" :class="{ on: displayedStreak > 0 }" @click="secretTap">
       <div class="srHeroIcon">{{ displayedStreak === 0 ? "✨" : "🔥" }}</div>
@@ -276,11 +292,12 @@ import { IonButton, IonModal, IonInput } from "@ionic/vue"
 import { ref, onMounted, computed, watch } from "vue"
 import { useRoute } from "vue-router"
 import { Preferences } from "@capacitor/preferences"
+import { Capacitor } from "@capacitor/core"
 
+import { getStreakProfile, claimGift } from "@/utils/streakProfileStore"
 import { getReadDays, addReadDay, removeReadDay, clearReadDays } from "@/utils/streakStore"
 import { computeRewards } from "@/utils/streakLogic"
 import { getStreakMeta, setStreakMeta, type StreakMeta } from "@/utils/streakMetaStore"
-
 import { isDebugUnlocked, unlockDebug, lockDebug } from "@/utils/debugGate"
 import {
   scheduleDailyReminder,
@@ -293,12 +310,13 @@ import {
   setMissedDayWarningEnabled,
   maybeSendMissedOneDayWarning,
 } from "@/services/reminder"
-import { Capacitor } from "@capacitor/core"
+
 const PREF_FAKE_TODAY = "mk_fake_today"
 const BACKUP_KEY = "mk_read_days_backup_v1"
 
 const props = defineProps<{ todayISO: string; lang: "ar" | "en" }>()
 const isNative = computed(() => Capacitor.isNativePlatform())
+
 /* =========================
    Locale / direction
 ========================= */
@@ -395,9 +413,21 @@ const ui = computed(() => {
 const route = useRoute()
 
 /* =========================
+   Profile / gift
+========================= */
+type StreakProfileUi = {
+  version: number
+  userType: "new" | "old"
+  giftClaimed: boolean
+}
+
+const profile = ref<StreakProfileUi | null>(null)
+
+/* =========================
    Debug enablement
 ========================= */
 const debugUnlocked = ref(false)
+
 async function loadDebugGate() {
   debugUnlocked.value = await isDebugUnlocked()
 }
@@ -425,22 +455,27 @@ const effectiveTodayISO = computed(() => {
   const candidate = fakeToday.value ?? props.todayISO
   return isValidISODate(candidate) ? candidate : deviceTodayISO()
 })
+
 function pad(n: number) {
   return String(n).padStart(2, "0")
 }
+
 function addDaysISO(iso: string, n: number) {
   const d = new Date(`${iso}T00:00:00`)
   d.setDate(d.getDate() + n)
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
+
 function diffDaysISO(aISO: string, bISO: string) {
   const a = new Date(`${aISO}T00:00:00`).getTime()
   const b = new Date(`${bISO}T00:00:00`).getTime()
   return Math.round((a - b) / (1000 * 60 * 60 * 24))
 }
+
 function maxISO(list: string[]) {
   return list.length ? [...list].sort().pop()! : null
 }
+
 function isValidISODate(iso: any): iso is string {
   return typeof iso === "string" && /^\d{4}-\d{2}-\d{2}$/.test(iso)
 }
@@ -449,16 +484,19 @@ async function loadFakeToday() {
   const v = await Preferences.get({ key: PREF_FAKE_TODAY })
   fakeToday.value = v.value || null
 }
+
 async function setFakeToday(iso: string) {
   fakeToday.value = iso
   await Preferences.set({ key: PREF_FAKE_TODAY, value: iso })
 }
+
 async function resetFakeToday() {
   fakeToday.value = null
   await Preferences.remove({ key: PREF_FAKE_TODAY })
 }
+
 async function shiftFakeDay(delta: number) {
-  const base = isValidISODate(fakeToday.value) ? fakeToday.value! : effectiveTodayISO.value
+  const base = isValidISODate(fakeToday.value) ? fakeToday.value : effectiveTodayISO.value
   await setFakeToday(addDaysISO(base, delta))
 }
 
@@ -466,6 +504,7 @@ async function shiftFakeDay(delta: number) {
    Milestones / meta
 ========================= */
 const MILESTONES = [7, 14, 21, 28, 90, 180, 365]
+
 function nearestMilestoneBelow(n: number) {
   const eligible = MILESTONES.filter((m) => m <= n)
   return eligible.length ? eligible[eligible.length - 1] : 0
@@ -515,6 +554,7 @@ function pulseFlag(flag: { value: boolean }, ms = 420) {
    Seed (debug)
 ========================= */
 const seedN = ref<string>("")
+
 async function seedStreakExact() {
   const n = Math.max(0, Math.floor(Number(seedN.value || 0)))
   await seedStreak(n)
@@ -527,49 +567,62 @@ function clampDaysToToday(days: string[], todayISO: string) {
   return days.filter((d) => d <= todayISO)
 }
 
-function computeLongestRun(days: string[]) {
-  if (!days.length) return 0
+function getSortedUniqueDays(days: string[], minISO?: string) {
   const sorted = [...new Set(days)].sort()
-  let best = 1
-  let cur = 1
-  for (let i = 1; i < sorted.length; i++) {
-    const prev = sorted[i - 1]
-    const now = sorted[i]
-    const gap = diffDaysISO(now, prev)
-    if (gap === 1) cur++
-    else cur = 1
-    if (cur > best) best = cur
-  }
-  return best
+  return minISO ? sorted.filter((d) => d >= minISO) : sorted
 }
 
 /**
- * ✅ Run with ONE grace miss TOTAL (not infinite alternating misses)
- * - Allows at most 1 unmarked day in the whole run
- * - Second unmarked day ends the run
+ * Count MARKED days in the current run.
+ * One single skipped calendar day is allowed once (gap === 2),
+ * but the skipped day itself does NOT count.
  */
-function computeRunWithOneGrace(days: string[], endISO: string, minISO?: string) {
-  const set = new Set(days)
-  let cur = endISO
-  let count = 0
-  let missesTotal = 0
+ function computeMarkedRun(days: string[], endISO: string, minISO?: string) {
+  const sorted = getSortedUniqueDays(days, minISO)
+  if (!sorted.length) return 0
 
-  while (true) {
-    if (minISO && cur < minISO) break
+  const endIndex = sorted.lastIndexOf(endISO)
+  if (endIndex === -1) return 0
 
-    if (set.has(cur)) {
+  let count = 1
+  let current = sorted[endIndex]
+
+  for (let i = endIndex - 1; i >= 0; i--) {
+    const prev = sorted[i]
+    const gap = diffDaysISO(current, prev)
+
+    // ✅ normal consecutive day
+    if (gap === 1) {
       count++
-    } else {
-      missesTotal++
-      if (missesTotal >= 2) break
+      current = prev
+      continue
     }
 
-    cur = addDaysISO(cur, -1)
+    // ✅ one missed day is always tolerated
+    if (gap === 2) {
+      count++
+      current = prev
+      continue
+    }
+
+    // ✅ two consecutive missed days break the streak
+    break
   }
 
   return count
 }
 
+function computeLongestMarkedRun(days: string[]) {
+  const sorted = getSortedUniqueDays(days)
+  if (!sorted.length) return 0
+
+  let best = 1
+  for (const d of sorted) {
+    const run = computeMarkedRun(sorted, d)
+    if (run > best) best = run
+  }
+  return best
+}
 const softResetActive = computed(() => {
   const base = meta.value.softResetBase ?? 0
   const state = meta.value.softResetState
@@ -580,8 +633,67 @@ const softResetActive = computed(() => {
     if (!until) return false
     return diffDaysISO(until, effectiveTodayISO.value) >= 0
   }
+
   return true
 })
+
+/* =========================
+   Gift / repair
+========================= */
+async function claimStarterGift() {
+  if (!profile.value) return
+
+  profile.value = await claimGift(profile.value)
+
+  const giftMilestone = profile.value.userType === "old" ? 28 : 7
+  const currentBank = meta.value.bankMilestone ?? 0
+
+  if (giftMilestone > currentBank) {
+    meta.value.bankMilestone = giftMilestone
+  }
+
+  meta.value.softResetBase = giftMilestone
+  meta.value.softResetState = "armed"
+  meta.value.softResetUntilISO = addDaysISO(effectiveTodayISO.value, 1)
+  delete meta.value.softResetStartISO
+
+  await persistMeta()
+  recompute()
+  pulseFlag(rewardsPop, 520)
+  pulseFlag(weekPop, 520)
+}
+
+async function repairBrokenGiftState() {
+  if (!profile.value?.giftClaimed) return
+
+  const giftMilestone = profile.value.userType === "old" ? 28 : 7
+  const bank = meta.value.bankMilestone ?? 0
+
+  if (bank < giftMilestone) {
+    meta.value.bankMilestone = giftMilestone
+  }
+
+  const state = meta.value.softResetState
+  const softBase = meta.value.softResetBase ?? 0
+
+  const invalidRunning =
+    state === "running" &&
+    (!meta.value.softResetStartISO || softBase <= 0)
+
+  const invalidArmed =
+    state === "armed" &&
+    softBase <= 0
+
+  const noUsefulState = !state
+
+  if (invalidRunning || invalidArmed || noUsefulState) {
+    meta.value.softResetBase = Math.max(softBase, giftMilestone)
+    meta.value.softResetState = "armed"
+    meta.value.softResetUntilISO = addDaysISO(effectiveTodayISO.value, 1)
+    delete meta.value.softResetStartISO
+    await persistMeta()
+  }
+}
 
 /* =========================
    Reminders UI + actions
@@ -598,38 +710,32 @@ async function loadReminderUi() {
 }
 
 async function onMissWarnToggle(ev: any) {
-  const el = ev?.target as any; // HTMLIonToggleElement (web component)
-  const next = !!ev?.detail?.checked;
+  const el = ev?.target as any
+  const next = !!ev?.detail?.checked
 
-  // Optimistic UI
-  missWarnEnabled.value = next;
+  missWarnEnabled.value = next
 
   if (next) {
-    const granted = await requestReminderPermission();
+    const granted = await requestReminderPermission()
     if (!granted) {
-      // Revert if denied
-      missWarnEnabled.value = false;
-      await setMissedDayWarningEnabled(false);
-
-      // 🔒 force the actual toggle UI to match
-      if (el) el.checked = false;
-      return;
+      missWarnEnabled.value = false
+      await setMissedDayWarningEnabled(false)
+      if (el) el.checked = false
+      return
     }
   }
 
-  await setMissedDayWarningEnabled(missWarnEnabled.value);
+  await setMissedDayWarningEnabled(missWarnEnabled.value)
 
-  // ✅ force sync (fix "chip stuck" + toggle out-of-sync)
-  if (el) el.checked = missWarnEnabled.value;
+  if (el) el.checked = missWarnEnabled.value
 
-  // (optional) if enabling and already in gap=2, fire warning immediately
   if (missWarnEnabled.value) {
-    const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value);
-    const lastMarked = maxISO(safeDays);
+    const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value)
+    const lastMarked = maxISO(safeDays)
     if (lastMarked) {
-      const gapDays = diffDaysISO(effectiveTodayISO.value, lastMarked);
+      const gapDays = diffDaysISO(effectiveTodayISO.value, lastMarked)
       if (gapDays === 2) {
-        await maybeSendMissedOneDayWarning(effectiveTodayISO.value, props.lang);
+        await maybeSendMissedOneDayWarning(effectiveTodayISO.value, props.lang)
       }
     }
   }
@@ -640,7 +746,7 @@ async function enableDailyFromHere() {
     reminderHour.value,
     reminderMinute.value,
     props.lang,
-    true // userInitiated
+    true
   )
   dailyEnabled.value = ok
 }
@@ -698,6 +804,7 @@ async function submitPin() {
     pinError.value = isArabic.value ? "كود غلط" : "Wrong PIN"
     return
   }
+
   debugUnlocked.value = true
   showPinModal.value = false
 }
@@ -712,6 +819,7 @@ async function exitDebug() {
    Derived UI
 ========================= */
 const recentDays = computed(() => [...readDays.value].sort().reverse().slice(0, 14))
+
 function formatDay(iso: string) {
   const d = new Date(`${iso}T00:00:00`)
   if (!isArabic.value) return `${d.getMonth() + 1}/${d.getDate()}`
@@ -735,26 +843,27 @@ const monthsShown = computed(() => Math.min(months.value, 12))
    Soft reset eligibility
 ========================= */
 const canSoftReset = computed(() => {
-  const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value)
-  if (!safeDays.length) return false
   if (readToday.value) return false
   if (softResetActive.value) return false
 
+  const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value)
+  const bankFromMeta = meta.value.bankMilestone ?? 0
+
+  if (!safeDays.length) {
+    return bankFromMeta > 0
+  }
+
   const lastMarked = maxISO(safeDays)
-  if (!lastMarked) return false
+  if (!lastMarked) return bankFromMeta > 0
 
-  const gap = diffDaysISO(effectiveTodayISO.value, lastMarked)
+  // break only after TWO consecutive missed days
+  const gapFromToday = diffDaysISO(effectiveTodayISO.value, lastMarked)
+  if (gapFromToday < 3) return false
 
-  // ✅ recover only after 2 missed days (gap >= 3)
-  if (gap < 3) return false
+  const earnedFromHistory = nearestMilestoneBelow(computeLongestMarkedRun(safeDays))
+  const bank = Math.max(bankFromMeta, earnedFromHistory)
 
-  // ✅ streak is considered "active" if gap <= 2 (grace window)
-  // (we already required gap>=3, so fine)
-
-  const longest = computeLongestRun(safeDays)
-  const earnedFromHistory = nearestMilestoneBelow(longest)
-
-  return earnedFromHistory > 0
+  return bank > 0
 })
 
 const showTodayCta = computed(() => {
@@ -766,36 +875,32 @@ const showTodayCta = computed(() => {
 ========================= */
 function recompute() {
   const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value)
+  const lastMarked = maxISO(safeDays)
 
-  // ✅ base streak only when today is marked
+  // today marked => run ends at today
   baseStreak.value = readToday.value
-    ? computeRunWithOneGrace(safeDays, effectiveTodayISO.value)
+    ? computeMarkedRun(safeDays, effectiveTodayISO.value)
     : 0
 
-  // ✅ preview when today not marked:
-  // - if gap=1 (new day) show yesterday's run
-  // - if gap=2 (missed yesterday) show last run and warn
+  // today not marked => still alive for one missed day
   let preview = 0
-  if (!readToday.value) {
-    const lastMarked = maxISO(safeDays)
-    if (lastMarked) {
-      const gap = diffDaysISO(effectiveTodayISO.value, lastMarked)
-      if (gap === 1 || gap === 2) {
-        preview = computeRunWithOneGrace(safeDays, lastMarked)
-      }
+  if (!readToday.value && lastMarked) {
+    const gapFromToday = diffDaysISO(effectiveTodayISO.value, lastMarked)
+    if (gapFromToday === 1 || gapFromToday === 2) {
+      preview = computeMarkedRun(safeDays, lastMarked)
     }
   }
 
-  // ✅ update milestone bank from HISTORY (consecutive best run)
-  const longest = computeLongestRun(safeDays)
-  const earnedFromHistory = nearestMilestoneBelow(longest)
+  // update milestone bank from the best grace-aware marked run
+  const longestMarkedRun = computeLongestMarkedRun(safeDays)
+  const earnedFromHistory = nearestMilestoneBelow(longestMarkedRun)
   const bank = meta.value.bankMilestone ?? 0
   if (earnedFromHistory > bank) {
     meta.value.bankMilestone = earnedFromHistory
-    persistMeta() // non-blocking
+    persistMeta()
   }
 
-  // ✅ cleanup armed if expired and still no streak
+  // cleanup armed if expired and nothing active
   if (meta.value.softResetState === "armed") {
     const until = meta.value.softResetUntilISO
     const expired = !until || diffDaysISO(until, effectiveTodayISO.value) < 0
@@ -808,21 +913,22 @@ function recompute() {
     }
   }
 
-  // ✅ cleanup running ONLY if missed 2 full days after comeback started (gap >= 3)
+  // cleanup / repair running
   if (meta.value.softResetState === "running" && meta.value.softResetStartISO) {
     const startISO = meta.value.softResetStartISO
     const runDays = safeDays.filter((d) => d >= startISO)
     const lastRunMarked = maxISO(runDays)
 
     if (!lastRunMarked) {
-      delete meta.value.softResetBase
-      delete meta.value.softResetState
-      delete meta.value.softResetUntilISO
+      meta.value.softResetState = "armed"
+      meta.value.softResetUntilISO = addDaysISO(effectiveTodayISO.value, 1)
       delete meta.value.softResetStartISO
       setStreakMeta(meta.value)
     } else {
-      const gap = diffDaysISO(effectiveTodayISO.value, lastRunMarked)
-      if (gap >= 3) {
+      const gapFromToday = diffDaysISO(effectiveTodayISO.value, lastRunMarked)
+
+      // break only after TWO consecutive missed days
+      if (gapFromToday >= 3 && !readToday.value) {
         delete meta.value.softResetBase
         delete meta.value.softResetState
         delete meta.value.softResetUntilISO
@@ -832,47 +938,49 @@ function recompute() {
     }
   }
 
-  // ✅ displayed streak logic
   const state = meta.value.softResetState
   const softBase = meta.value.softResetBase ?? 0
 
   if (state === "armed") {
     const until = meta.value.softResetUntilISO
     const ok = !!until && diffDaysISO(until, effectiveTodayISO.value) >= 0
-    displayedStreak.value =
-      ok && baseStreak.value === 0 && preview === 0 ? softBase : baseStreak.value || preview
+
+    if (ok) {
+      const current = readToday.value ? baseStreak.value : preview
+      displayedStreak.value = Math.max(softBase, current)
+    } else {
+      displayedStreak.value = readToday.value ? baseStreak.value : preview
+    }
 
   } else if (state === "running") {
     const startISO = meta.value.softResetStartISO
+
     if (!startISO) {
-      displayedStreak.value = 0
+      displayedStreak.value = softBase
     } else {
       const runDays = safeDays.filter((d) => d >= startISO)
       const lastRunMarked = maxISO(runDays)
 
-      // if today marked => compute till today
-      // if today not marked but gap=1/2 => compute till lastRunMarked
-      let endISO: string | null = null
-      if (readToday.value) endISO = effectiveTodayISO.value
-      else endISO = lastRunMarked
+      if (!lastRunMarked) {
+        displayedStreak.value = softBase
+      } else {
+        let finalRun = 0
 
-      const runCount = endISO ? computeRunWithOneGrace(runDays, endISO, startISO) : 0
-
-      // If today isn't marked but lastRunMarked exists and gap is 1 or 2, keep showing it (preview behavior)
-      let runPreview = 0
-      if (!readToday.value && lastRunMarked) {
-        const gap = diffDaysISO(effectiveTodayISO.value, lastRunMarked)
-        if (gap === 1 || gap === 2) {
-          runPreview = computeRunWithOneGrace(runDays, lastRunMarked, startISO)
+        if (readToday.value) {
+          finalRun = computeMarkedRun(runDays, effectiveTodayISO.value, startISO)
+        } else {
+          const gapFromToday = diffDaysISO(effectiveTodayISO.value, lastRunMarked)
+          if (gapFromToday === 1 || gapFromToday === 2) {
+            finalRun = computeMarkedRun(runDays, lastRunMarked, startISO)
+          }
         }
-      }
 
-      const finalRun = readToday.value ? runCount : runPreview
-      displayedStreak.value = finalRun > 0 ? softBase + finalRun : 0
+        displayedStreak.value = finalRun > 0 ? softBase + finalRun : softBase
+      }
     }
 
   } else {
-    displayedStreak.value = baseStreak.value > 0 ? baseStreak.value : preview
+    displayedStreak.value = readToday.value ? baseStreak.value : preview
   }
 
   rewards.value = computeRewards(displayedStreak.value)
@@ -920,62 +1028,74 @@ async function softResetToPrevMilestone() {
   const safeDays = clampDaysToToday(readDays.value, effectiveTodayISO.value)
 
   const bankFromMeta = meta.value.bankMilestone ?? 0
-  const longest = computeLongestRun(safeDays)
-  const bankFromHistory = nearestMilestoneBelow(longest)
-
+  const bankFromHistory = nearestMilestoneBelow(computeLongestMarkedRun(safeDays))
   const bank = Math.max(bankFromMeta, bankFromHistory)
+
   if (bank <= 0) return
 
   meta.value.softResetBase = bank
   meta.value.softResetState = "armed"
   meta.value.softResetUntilISO = addDaysISO(effectiveTodayISO.value, 1)
+  delete meta.value.softResetStartISO
 
   await persistMeta()
   recompute()
   pulseFlag(rewardsPop, 520)
   pulseFlag(weekPop, 520)
 }
+
 async function autoEnableMissWarnIfAllowed() {
   if (!isNative.value) return
 
   const granted = await hasReminderPermission()
   if (!granted) {
-    // لو مفيش إذن عام للتنبيهات، ما نفعلش الميزة
     missWarnEnabled.value = false
     await setMissedDayWarningEnabled(false)
     return
   }
 
-  // لو الإذن موجود، فعّلي الميزة تلقائيًا
   missWarnEnabled.value = true
   await setMissedDayWarningEnabled(true)
 }
+
 async function toggleReadToday() {
   const beforeWeeks = weeks.value
   const beforeMonths = months.value
   const beforeCrosses = crossesShown.value
 
-  if (readToday.value) {
+  const wasReadToday = readToday.value
+  const softBase = meta.value.softResetBase ?? 0
+
+  if (wasReadToday) {
     readDays.value = await removeReadDay(effectiveTodayISO.value)
+
+    if (
+      meta.value.softResetState === "running" &&
+      meta.value.softResetStartISO === effectiveTodayISO.value &&
+      softBase > 0
+    ) {
+      meta.value.softResetState = "armed"
+      meta.value.softResetUntilISO = addDaysISO(effectiveTodayISO.value, 1)
+      delete meta.value.softResetStartISO
+      await persistMeta()
+    }
   } else {
     readDays.value = await addReadDay(effectiveTodayISO.value)
+
+    if (meta.value.softResetState === "armed" && softBase > 0) {
+      meta.value.softResetState = "running"
+      meta.value.softResetStartISO = effectiveTodayISO.value
+      delete meta.value.softResetUntilISO
+      await persistMeta()
+    }
   }
 
   recompute()
   pulseFlag(justToggled)
 
   if (crossesShown.value !== beforeCrosses) pulseFlag(weekPop)
-  if (weeks.value > beforeWeeks || months.value > beforeMonths) pulseFlag(rewardsPop, 520)
-
-  // ✅ If armed and user marked a day => start running from today
-  if (meta.value.softResetState === "armed" && (meta.value.softResetBase ?? 0) > 0) {
-    if (readDays.value.includes(effectiveTodayISO.value)) {
-      meta.value.softResetState = "running"
-      meta.value.softResetStartISO = effectiveTodayISO.value
-      delete meta.value.softResetUntilISO
-      await persistMeta()
-      recompute()
-    }
+  if (weeks.value > beforeWeeks || months.value > beforeMonths) {
+    pulseFlag(rewardsPop, 520)
   }
 }
 
@@ -987,6 +1107,7 @@ async function seedStreak(n: number) {
   for (let i = 0; i < n; i++) {
     await addReadDay(addDaysISO(effectiveTodayISO.value, -i))
   }
+
   meta.value = {}
   await persistMeta()
   readDays.value = await getReadDays()
@@ -1003,45 +1124,36 @@ async function resetAll() {
 }
 
 /* =========================
-   Load (SAFE + backup + never wipe)
+   Load
 ========================= */
 async function load() {
   const rawDays = await getReadDays()
   const m = ((await getStreakMeta()) || {}) as LocalMeta
-
   const today = effectiveTodayISO.value
 
-  // ✅ SAFETY: invalid today => do NOT mutate storage
   if (!isValidISODate(today)) {
     readDays.value = rawDays
     meta.value = m
+    await repairBrokenGiftState()
     recompute()
     return
   }
 
-  // normalize raw: dedupe + sort
   const rawNormalized = [...new Set(rawDays)].sort()
-
-  // safe days: remove future
   const safeDays = rawNormalized.filter((d) => d <= today)
 
-  // decide if storage needs cleanup
   const changed =
     safeDays.length !== rawNormalized.length ||
     safeDays.some((d, i) => d !== rawNormalized[i])
 
-  // ✅ extra safety: never wipe non-empty to empty
   const wouldWipe = rawDays.length > 0 && safeDays.length === 0
 
   if (changed && !wouldWipe) {
-    // backup BEFORE destructive clear
     await Preferences.set({ key: BACKUP_KEY, value: JSON.stringify(rawDays) })
-
     await clearReadDays()
     for (const d of safeDays) await addReadDay(d)
   }
 
-  // cleanup meta: armed expired
   if (m.softResetState === "armed") {
     const until = m.softResetUntilISO
     const expired = !until || diffDaysISO(until, today) < 0
@@ -1054,7 +1166,6 @@ async function load() {
     }
   }
 
-  // cleanup meta: running but invalid base
   if (m.softResetState === "running" && (typeof m.softResetBase !== "number" || m.softResetBase <= 0)) {
     delete m.softResetBase
     delete m.softResetState
@@ -1064,10 +1175,11 @@ async function load() {
   }
 
   readDays.value = wouldWipe ? rawNormalized : safeDays
-meta.value = m
-recompute()
+  meta.value = m
 
-  // missed-one-day warning (gap=2)
+  await repairBrokenGiftState()
+  recompute()
+
   const lastMarked = maxISO(safeDays)
   if (lastMarked) {
     const gapDays = diffDaysISO(effectiveTodayISO.value, lastMarked)
@@ -1082,6 +1194,7 @@ recompute()
 ========================= */
 onMounted(async () => {
   await loadFakeToday()
+  profile.value = await getStreakProfile()
   await load()
   await loadReminderUi()
   await autoEnableMissWarnIfAllowed()
@@ -1094,8 +1207,11 @@ watch(effectiveTodayISO, async () => {
   recompute()
   await maybeWarnMissedOneDay()
 })
-</script>
 
+watch(profile, () => {
+  recompute()
+}, { deep: true })
+</script>
 <style scoped>
   /* =====================================================
      THEME TOKENS (Light as default)  ✅ KEEP LIGHT SAME
@@ -1268,7 +1384,21 @@ watch(effectiveTodayISO, async () => {
   .srHeroMain{ font-weight: 1000; font-size: 16px; color: var(--sr-text); }
   .srHeroNum{ font-size: 20px; }
   .srHeroSub{ margin-top:2px; font-weight: 900; font-size: 13px; color: var(--sr-muted); }
+  .srGift{
+  margin-bottom:12px;
+  display:flex;
+  justify-content:center;
+}
 
+.srGiftBtn{
+  border-radius:14px;
+  padding:10px 16px;
+  font-weight:900;
+  border:1px solid rgba(255,200,120,.5);
+  background:linear-gradient(135deg,#ffd88a,#ffb95a);
+  box-shadow:0 8px 18px rgba(255,180,90,.2);
+  cursor:pointer;
+}
   /* =====================================================
      SECTIONS HEADER
   ===================================================== */
