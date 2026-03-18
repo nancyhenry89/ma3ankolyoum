@@ -1391,13 +1391,14 @@ watch(profile, () => {
 }
 
 .srGiftBtn{
-  border-radius:14px;
-  padding:10px 16px;
-  font-weight:900;
-  border:1px solid rgba(255,200,120,.5);
-  background:linear-gradient(135deg,#ffd88a,#ffb95a);
-  box-shadow:0 8px 18px rgba(255,180,90,.2);
-  cursor:pointer;
+  border-radius: 14px;
+    padding: 10px 16px;
+    font-weight: 900;
+    border: 1px solid rgb(180 180 180 / 51%);
+    background: linear-gradient(267deg, #4fc1bb, #ff6a24);
+    box-shadow: 0 8px 18px rgba(255, 180, 90, .2);
+    cursor: pointer;
+    color: #ffffff;
 }
   /* =====================================================
      SECTIONS HEADER
