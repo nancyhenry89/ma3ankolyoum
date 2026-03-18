@@ -348,7 +348,7 @@
             <div class="skeleton-line"></div>
             <div class="skeleton-line short"></div>
           </div>
-
+          <DailyPrayerCTA />
           <!-- =========================
                TRAINING
           ========================== -->
@@ -737,7 +737,7 @@ import {
 } from '@ionic/vue'
 import HomePopup from "@/components/HomePopup.vue"
 import OccasionsSection from "@/components/OccasionsSection.vue"
-
+import DailyPrayerCTA from "@/components/DailyPrayerCTA.vue"
 import { onMounted, onBeforeUnmount, ref, computed, watch } from 'vue'
 import { onIonViewDidEnter, onIonViewWillLeave } from '@ionic/vue'
 import { useRouter, useRoute } from 'vue-router'

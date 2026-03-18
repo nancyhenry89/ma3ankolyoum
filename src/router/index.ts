@@ -2,7 +2,7 @@
 import { createRouter, createWebHashHistory } from '@ionic/vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import TabsLayout from '@/layouts/TabsLayout.vue'
-
+import DailyPrayerPage from "@/views/DailyPrayerPage.vue"
 const routes: Array<RouteRecordRaw> = [
   // ===== Root =====
   { path: '/', redirect: '/tabs/home' },
@@ -58,6 +58,11 @@ const routes: Array<RouteRecordRaw> = [
 
   // ===== Fallback =====
   { path: '/:pathMatch(.*)*', redirect: '/tabs/home' },
+  {
+    path: "/daily-prayer",
+    name: "daily-prayer",
+    component: DailyPrayerPage,
+  }
 ]
 
 const router = createRouter({
