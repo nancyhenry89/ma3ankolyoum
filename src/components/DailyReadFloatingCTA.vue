@@ -145,7 +145,7 @@
                 type="button"
                 @click="monthsOpen = true"
               >
-                <div class="drfRewardIcon">✝️</div>
+                <div class="drfRewardIcon">✠</div>
                 <div class="drfRewardMeta">
                   <div class="drfRewardCount">{{ crossesCount }}</div>
                   <div class="drfRewardLabel">{{ t.crosses }}</div>
@@ -188,7 +188,7 @@
               :key="item.key"
               class="drfMonthRow"
             >
-              <span class="drfMonthIcon">✝️</span>
+              <span class="drfMonthIcon">✠</span>
               <span class="drfMonthText">{{ item.label }}</span>
             </div>
           </div>
@@ -257,7 +257,7 @@
       stayingConsistent: 'بتقرأ بشكل مستمر 👏',
       readInRow: 'قرأت {n} أيام ورا بعض',
       totalReadText: 'قرأت {n} يوم',
-      rewardsHint: '⭐ نجمة لكل 7 أيام متتالية، و ✝️ لكل شهر كامل بعد انتهائه.',
+      rewardsHint: '⭐ نجمة لكل 7 أيام متتالية، و ✠ لكل شهر كامل بعد انتهائه.',
       notStartedYet: 'لسه ما بدأتش القراءة'
     },
     en: {
@@ -287,7 +287,7 @@
       stayingConsistent: 'You’re staying consistent 👏',
       readInRow: 'You read {n} days in a row',
       totalReadText: 'You’ve read for {n} days',
-      rewardsHint: '⭐ One star for every 7 consecutive days, and ✝️ one cross for each full month after it ends.',
+      rewardsHint: '⭐ One star for every 7 consecutive days, and ✠ one cross for each full month after it ends.',
       notStartedYet: 'You have not started yet'
     }
   } as const
