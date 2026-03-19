@@ -497,7 +497,7 @@
           />
 
           <div class="space"></div>
-
+  <!--
           <StreakRewards
            data-html2canvas-ignore="true"
             class="mkNoCapture"
@@ -505,7 +505,7 @@
             :todayISO="todayISO()"
             :lang="lang"
           />
-
+ -->
           <!-- Stores badges (Web only) - single instance -->
           <div class="storesSoon mkNoCapture" v-if="isWeb && !isLoading && !noData">
             <div class="storesTitle">{{ ui.comingSoon }}</div>
@@ -661,7 +661,6 @@
             </ion-buttons>
           </ion-toolbar>
         </ion-header>
-
         <ion-content class="ion-padding">
           <!-- Arabic -->
           <section v-if="isArabic" class="about-app" dir="rtl" lang="ar">
@@ -715,11 +714,19 @@
 
       <HomePopup :enabled="isArabic" />
     </ion-content>
+    <DailyReadFloatingCTA
+  :locale="lang === 'en' ? 'en' : 'ar'"
+  bottom="96px"
+  side="16px"
+  :zIndex="99999"
+  class="mkNoCapture"
+/>
   </ion-page>
 </template>
 
 
 <script setup lang="ts">
+import DailyReadFloatingCTA from '@/components/DailyReadFloatingCTA.vue'
 import {
   IonContent,
   IonPage,
