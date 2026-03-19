@@ -822,7 +822,7 @@
   }
   
   .drfCount {
-    font-size: 31px;
+    font-size: 33px;
     font-weight: 900;
     line-height: 1;
     color: #0f1b2f;
@@ -830,6 +830,7 @@
   }
   
   .drfCountLabel {
+    display:none;
     font-size: 11px;
     line-height: 1;
     color: rgba(15, 27, 47, 0.58);
@@ -838,8 +839,8 @@
   }
   
   .drfText {
-    margin-top: 8px;
-    font-size: 13px;
+    margin-top: 3px;
+    font-size: 19px;
     line-height: 1.28;
     font-weight: 800;
     color: #0f1b2f;
@@ -1444,8 +1445,8 @@
   ========================= */
   @media (max-width: 420px) {
     .drfFab {
-      width: 140px;
-      height: 140px;
+      width: 110px;
+      height: 110px;
     }
   
     .drfInner {
@@ -1457,7 +1458,7 @@
     }
   
     .drfText {
-      font-size: 12px;
+      font-size: 13px;
       max-width: 82px;
     }
   

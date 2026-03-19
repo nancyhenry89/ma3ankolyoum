@@ -348,7 +348,7 @@
             <div class="skeleton-line"></div>
             <div class="skeleton-line short"></div>
           </div>
-          <DailyPrayerCTA />
+          <DailyPrayerCTA v-if="lang === 'ar'" />
           <!-- =========================
                TRAINING
           ========================== -->
