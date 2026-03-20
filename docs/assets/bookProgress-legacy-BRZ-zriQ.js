@@ -1,0 +1,1 @@
+System.register([],function(t,e){"use strict";return{execute:function(){t({l:function(t){try{const r=localStorage.getItem(e(t));return r?JSON.parse(r):null}catch{return null}},s:function(t){try{localStorage.setItem(e(t.bookId),JSON.stringify(t))}catch{}}});const e=t=>`book_progress:${t}`}}});

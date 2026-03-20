@@ -60,7 +60,8 @@
             class="verseBlock"
             :class="{
     flashVerse: flashVerse === v.n,
-    hasVideo: verseHasVideo(v.n)
+    hasVideo: verseHasVideo(v.n),
+    isBookmarked: isVerseBookmarked(v.n)
   }"
             :id="`v-${v.n}`"
           >
@@ -1186,7 +1187,15 @@ onMounted(async () => {
   border: 1px solid var(--mk-border);
   background: rgb(31 182 170 / 92%);
 }
-
+.verseBlock.isBookmarked .verseRow {
+  border-radius: 16px;
+  background:
+    radial-gradient(700px 220px at 15% 0%, rgba(31, 182, 170, 0.14), transparent 60%),
+    rgba(31, 182, 170, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(31, 182, 170, 0.18) inset,
+    0 10px 22px rgba(31, 182, 170, 0.08);
+}
 /* Top CTA */
 .topCtaBtn {
   width: 100%;
