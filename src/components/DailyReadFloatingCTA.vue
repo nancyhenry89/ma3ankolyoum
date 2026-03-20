@@ -1,15 +1,22 @@
 <template>
     <div
       class="drfWrap"
-      :class="[dirClass, { open: sheetOpen, done: readToday, reward: rewardPulse }]"
-      :style="wrapStyle"
+      :class="[dirClass, { open: sheetOpen, done: readToday, reward: rewardPulse, dragging: dragState.dragging }]"      :style="wrapStyle"
     >
-      <button
-        class="drfFab"
-        type="button"
-        :aria-label="readToday ? t.doneToday : ctaText"
-        @click="onFabClick"
-      >
+    <button
+  ref="fabRef"
+  class="drfFab"
+  type="button"
+  :aria-label="readToday ? t.doneToday : ctaText"
+  @click="onFabClick"
+  @pointerdown="onPointerDown"
+  @pointermove="onPointerMove"
+  @pointerup="onPointerUp"
+  @touchstart.passive="onTouchStart"
+  @touchmove.prevent="onTouchMove"
+  @touchend="onTouchEnd"
+  @mousedown="onMouseDown"
+>
         <div class="drfGlow" />
   
         <svg
@@ -145,7 +152,7 @@
                 type="button"
                 @click="monthsOpen = true"
               >
-                <div class="drfRewardIcon">✠</div>
+                <div class="drfRewardIcon">🕊</div>
                 <div class="drfRewardMeta">
                   <div class="drfRewardCount">{{ crossesCount }}</div>
                   <div class="drfRewardLabel">{{ t.crosses }}</div>
@@ -188,7 +195,7 @@
               :key="item.key"
               class="drfMonthRow"
             >
-              <span class="drfMonthIcon">✠</span>
+              <span class="drfMonthIcon">🕊</span>
               <span class="drfMonthText">{{ item.label }}</span>
             </div>
           </div>
@@ -202,33 +209,190 @@
   </template>
   
   <script setup lang="ts">
-  import { computed, onMounted, ref, watch } from 'vue'
+  import { computed, onMounted,onBeforeUnmount, ref, watch } from 'vue'
   import { Preferences } from '@capacitor/preferences'
-  
   type Locale = 'ar' | 'en'
   type SegKind = 'read' | 'unread-past' | 'today-unread' | 'future'
   
   const props = withDefaults(
-    defineProps<{
-      locale?: Locale
-      storageKey?: string
-      bottom?: string
-      side?: string
-      zIndex?: number
-    }>(),
-    {
-      locale: 'ar',
-      storageKey: 'mk_daily_read_fab_v1',
-      bottom: '96px',
-      side: '16px',
-      zIndex: 99999
-    }
-  )
+  defineProps<{
+    locale?: Locale
+    storageKey?: string
+    bottom?: string
+    side?: string
+    zIndex?: number
+    dragKey?: string
+    draggable?: boolean
+  }>(),
+  {
+    locale: 'ar',
+    storageKey: 'mk_daily_read_fab_v1',
+    bottom: '96px',
+    side: '16px',
+    zIndex: 99999,
+    dragKey: 'mk_daily_read_fab_pos_v1',
+    draggable: true
+  }
+)
   
   const locale = computed<Locale>(() => (props.locale === 'en' ? 'en' : 'ar'))
   const dir = computed(() => (locale.value === 'ar' ? 'rtl' : 'ltr'))
   const dirClass = computed(() => (dir.value === 'rtl' ? 'rtl' : 'ltr'))
-  
+  const fabRef = ref<HTMLElement | null>(null)
+
+const dragState = ref({
+  dragging: false,
+  moved: false,
+  startX: 0,
+  startY: 0,
+  startLeft: 0,
+  startTop: 0
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('mousemove', onMouseMove)
+  window.removeEventListener('mouseup', onMouseUp)
+})
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max)
+}
+
+function getFabSize() {
+  const el = fabRef.value
+  if (!el) return { width: 152, height: 152 }
+  const rect = el.getBoundingClientRect()
+  return { width: rect.width || 152, height: rect.height || 152 }
+}
+
+async function saveFabPosition() {
+  if (!fabPos.value) return
+  await Preferences.set({
+    key: props.dragKey,
+    value: JSON.stringify(fabPos.value)
+  })
+}
+
+async function loadFabPosition() {
+  const { value } = await Preferences.get({ key: props.dragKey })
+  if (!value) return
+
+  try {
+    const parsed = JSON.parse(value)
+    if (
+      parsed &&
+      typeof parsed.left === 'number' &&
+      typeof parsed.top === 'number'
+    ) {
+      fabPos.value = parsed
+    }
+  } catch {
+    // ignore bad saved position
+  }
+}
+
+function ensureDefaultFabPosition() {
+  if (fabPos.value) return
+
+  const { width, height } = getFabSize()
+  const side = parseInt(String(props.side).replace('px', ''), 10) || 16
+  const bottom = parseInt(String(props.bottom).replace('px', ''), 10) || 96
+
+  const left =
+    dir.value === 'rtl'
+      ? side
+      : window.innerWidth - width - side
+
+  const top = window.innerHeight - height - bottom
+
+  fabPos.value = {
+    left: clamp(left, 8, window.innerWidth - width - 8),
+    top: clamp(top, 8, window.innerHeight - height - 8)
+  }
+}
+
+function startDrag(clientX: number, clientY: number) {
+  if (!props.draggable) return
+
+  ensureDefaultFabPosition()
+
+  const current = fabPos.value
+  if (!current) return
+
+  dragState.value.dragging = true
+  dragState.value.moved = false
+  dragState.value.startX = clientX
+  dragState.value.startY = clientY
+  dragState.value.startLeft = current.left
+  dragState.value.startTop = current.top
+}
+
+function moveDrag(clientX: number, clientY: number) {
+  if (!dragState.value.dragging) return
+
+  const dx = clientX - dragState.value.startX
+  const dy = clientY - dragState.value.startY
+
+  if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+    dragState.value.moved = true
+  }
+
+  const { width, height } = getFabSize()
+
+  fabPos.value = {
+    left: clamp(dragState.value.startLeft + dx, 8, window.innerWidth - width - 8),
+    top: clamp(dragState.value.startTop + dy, 8, window.innerHeight - height - 8)
+  }
+}
+
+async function endDrag() {
+  if (!dragState.value.dragging) return
+  dragState.value.dragging = false
+  await saveFabPosition()
+}
+
+function onPointerDown(e: PointerEvent) {
+  if (!props.draggable) return
+  ;(e.currentTarget as HTMLElement)?.setPointerCapture?.(e.pointerId)
+  startDrag(e.clientX, e.clientY)
+}
+
+function onPointerMove(e: PointerEvent) {
+  moveDrag(e.clientX, e.clientY)
+}
+
+async function onPointerUp(e: PointerEvent) {
+  ;(e.currentTarget as HTMLElement)?.releasePointerCapture?.(e.pointerId)
+  await endDrag()
+}
+
+function onTouchStart(e: TouchEvent) {
+  if (!props.draggable) return
+  const t = e.touches[0]
+  if (!t) return
+  startDrag(t.clientX, t.clientY)
+}
+
+function onTouchMove(e: TouchEvent) {
+  const t = e.touches[0]
+  if (!t) return
+  moveDrag(t.clientX, t.clientY)
+}
+
+async function onTouchEnd() {
+  await endDrag()
+}
+
+function onMouseDown(e: MouseEvent) {
+  if (!props.draggable) return
+  startDrag(e.clientX, e.clientY)
+}
+
+function onMouseMove(e: MouseEvent) {
+  moveDrag(e.clientX, e.clientY)
+}
+
+async function onMouseUp() {
+  await endDrag()
+}
   const tMap = {
     ar: {
       readTodayQ: 'قرأت النهاردة؟',
@@ -257,7 +421,7 @@
       stayingConsistent: 'بتقرأ بشكل مستمر 👏',
       readInRow: 'قرأت {n} أيام ورا بعض',
       totalReadText: 'قرأت {n} يوم',
-      rewardsHint: '⭐ نجمة لكل 7 أيام متتالية، و ✠ لكل شهر كامل بعد انتهائه.',
+      rewardsHint: '⭐ نجمة لكل 7 أيام متتالية، و 🕊 لكل شهر كامل بعد انتهائه.',
       notStartedYet: 'لسه ما بدأتش القراءة'
     },
     en: {
@@ -287,21 +451,31 @@
       stayingConsistent: 'You’re staying consistent 👏',
       readInRow: 'You read {n} days in a row',
       totalReadText: 'You’ve read for {n} days',
-      rewardsHint: '⭐ One star for every 7 consecutive days, and ✠ one cross for each full month after it ends.',
+      rewardsHint: '⭐ One star for every 7 consecutive days, and 🕊 one cross for each full month after it ends.',
       notStartedYet: 'You have not started yet'
     }
   } as const
   
   const t = computed(() => tMap[locale.value])
   
-  const wrapStyle = computed(() => {
-    const sideProp = dir.value === 'rtl' ? 'left' : 'right'
+  const fabPos = ref<{ left: number; top: number } | null>(null)
+
+const wrapStyle = computed(() => {
+  if (fabPos.value) {
     return {
-      bottom: props.bottom,
-      zIndex: String(props.zIndex),
-      [sideProp]: props.side
+      left: `${fabPos.value.left}px`,
+      top: `${fabPos.value.top}px`,
+      zIndex: String(props.zIndex)
     }
-  })
+  }
+
+  const sideProp = dir.value === 'rtl' ? 'left' : 'right'
+  return {
+    bottom: props.bottom,
+    zIndex: String(props.zIndex),
+    [sideProp]: props.side
+  }
+})
   
   const readDays = ref<string[]>([])
   const sheetOpen = ref(false)
@@ -544,20 +718,25 @@
   }
   
   async function onFabClick() {
-    const beforeStars = starsCount.value
-    const beforeCrosses = crossesCount.value
-  
-    const wasAdded = await markTodayAsRead()
-  
-    if (wasAdded) {
-      const gainedStar = starsCount.value > beforeStars
-      const gainedCross = crossesCount.value > beforeCrosses
-      triggerReward(gainedStar || gainedCross)
-      void tryHaptics()
-    }
-  
-    sheetOpen.value = true
+  if (dragState.value.moved) {
+    dragState.value.moved = false
+    return
   }
+
+  const beforeStars = starsCount.value
+  const beforeCrosses = crossesCount.value
+
+  const wasAdded = await markTodayAsRead()
+
+  if (wasAdded) {
+    const gainedStar = starsCount.value > beforeStars
+    const gainedCross = crossesCount.value > beforeCrosses
+    triggerReward(gainedStar || gainedCross)
+    void tryHaptics()
+  }
+
+  sheetOpen.value = true
+}
   
   function closeAll() {
     monthsOpen.value = false
@@ -684,9 +863,16 @@
   })
   
   onMounted(async () => {
-    await loadReadDays()
-    console.log('mk_daily_read_fab_v1', readDays.value)
+  await loadReadDays()
+  await loadFabPosition()
+
+  requestAnimationFrame(() => {
+    ensureDefaultFabPosition()
   })
+
+  window.addEventListener('mousemove', onMouseMove)
+  window.addEventListener('mouseup', onMouseUp)
+})
   </script>
   
   <style scoped>
@@ -755,9 +941,10 @@
       radial-gradient(circle at 50% 30%, rgba(40,214,204,0.12), rgba(40,214,204,0.03) 56%, transparent 76%),
       radial-gradient(circle at 50% 120%, rgba(255,209,102,0.18), transparent 38%),
       rgba(255,255,255,0.88);
-    padding: 10px 14px;
+    padding: 9px 9px;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
     transition: background 0.25s ease;
+    justify-content: center;
   }
   
   .drfRingSvg {
@@ -825,7 +1012,7 @@
     font-size: 33px;
     font-weight: 900;
     line-height: 1;
-    color: #0f1b2f;
+    color: #26d6cc;
     margin-top: 4px;
   }
   
@@ -1132,6 +1319,10 @@
     font-size: 12px;
     line-height: 1.45;
     color: rgba(15, 27, 47, 0.72);
+    background: #ffffff;
+    padding: 10px;
+    border-radius: 9px;
+    font-weight: bold;
   }
   
   /* =========================
@@ -1439,16 +1630,30 @@
     background: rgba(255,255,255,0.05);
     color: rgba(245,247,251,0.76);
   }
-  
+  [lang="en"] .drfText {
+    font-size: 15px;
+    font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+}
+.drfFab {
+  touch-action: none;
+  cursor: grab;
+}
+
+.drfWrap.dragging .drfFab,
+.drfFab:active {
+  cursor: grabbing;
+}
   /* =========================
      Mobile
   ========================= */
   @media (max-width: 420px) {
     .drfFab {
-      width: 110px;
-      height: 110px;
+      width: 130px;
+      height: 130px;
     }
-  
+    [lang="en"] .drfText {
+    font-size: 15px;
+}
     .drfInner {
       inset: 16px;
     }
