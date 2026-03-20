@@ -24,6 +24,15 @@ export type PrayerRow = {
   is_active: boolean
 }
 
+export type PrayerDayData = {
+  weekdayKey: WeekdayKey
+  weekdayAr: string
+  ctaTitle: string
+  pageTitle: string
+  sections: PrayerRow[]
+  defaultOpenIndex: number
+}
+
 const AR_DAY_MAP: Record<WeekdayKey, string> = {
   sunday: "الأحد",
   monday: "الاثنين",
@@ -43,6 +52,11 @@ const JS_DAY_TO_KEY: WeekdayKey[] = [
   "friday",
   "saturday",
 ]
+
+const CSV_CACHE_KEY = "mk_daily_prayer_rows_v1"
+const CSV_CACHE_TIME_KEY = "mk_daily_prayer_rows_v1_time"
+const DAY_CACHE_PREFIX = "mk_daily_prayer_day_v1_"
+const CSV_CACHE_TTL_MS = 1000 * 60 * 60 * 12 // 12 hours
 
 function norm(v: any) {
   return String(v ?? "").trim()
@@ -79,6 +93,16 @@ export function getTodayWeekdayKey(date = new Date()): WeekdayKey {
   return JS_DAY_TO_KEY[date.getDay()]
 }
 
+export function getWeekdayKeyFromISO(dateISO?: string): WeekdayKey {
+  if (!dateISO) return getTodayWeekdayKey()
+
+  const safe = String(dateISO).substring(0, 10)
+  const d = new Date(`${safe}T12:00:00`)
+
+  if (Number.isNaN(d.getTime())) return getTodayWeekdayKey()
+  return getTodayWeekdayKey(d)
+}
+
 export function getArabicWeekdayName(key: WeekdayKey): string {
   return AR_DAY_MAP[key]
 }
@@ -91,7 +115,112 @@ export function getDefaultPageTitle(key: WeekdayKey) {
   return `صلاة يوم ${getArabicWeekdayName(key)}`
 }
 
-export async function fetchDailyPrayerRows(): Promise<PrayerRow[]> {
+function getDayCacheKey(weekdayKey: WeekdayKey) {
+  return `${DAY_CACHE_PREFIX}${weekdayKey}`
+}
+
+function readCsvCache(): PrayerRow[] | null {
+  try {
+    const raw = localStorage.getItem(CSV_CACHE_KEY)
+    const rawTime = localStorage.getItem(CSV_CACHE_TIME_KEY)
+
+    if (!raw || !rawTime) return null
+
+    const savedAt = Number(rawTime)
+    if (!Number.isFinite(savedAt)) return null
+
+    const expired = Date.now() - savedAt > CSV_CACHE_TTL_MS
+    if (expired) return null
+
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return null
+
+    return parsed as PrayerRow[]
+  } catch {
+    return null
+  }
+}
+
+function writeCsvCache(rows: PrayerRow[]) {
+  try {
+    localStorage.setItem(CSV_CACHE_KEY, JSON.stringify(rows))
+    localStorage.setItem(CSV_CACHE_TIME_KEY, String(Date.now()))
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function readDayCache(weekdayKey: WeekdayKey): PrayerDayData | null {
+  try {
+    const raw = localStorage.getItem(getDayCacheKey(weekdayKey))
+    if (!raw) return null
+
+    const parsed = JSON.parse(raw)
+    return {
+      weekdayKey: normalizeWeekdayKey(parsed?.weekdayKey) || weekdayKey,
+      weekdayAr: norm(parsed?.weekdayAr) || getArabicWeekdayName(weekdayKey),
+      ctaTitle: norm(parsed?.ctaTitle) || getDefaultCtaTitle(weekdayKey),
+      pageTitle: norm(parsed?.pageTitle) || getDefaultPageTitle(weekdayKey),
+      sections: Array.isArray(parsed?.sections) ? parsed.sections : [],
+      defaultOpenIndex: Number.isFinite(parsed?.defaultOpenIndex)
+        ? parsed.defaultOpenIndex
+        : -1,
+    }
+  } catch {
+    return null
+  }
+}
+
+function writeDayCache(weekdayKey: WeekdayKey, data: PrayerDayData) {
+  try {
+    localStorage.setItem(getDayCacheKey(weekdayKey), JSON.stringify(data))
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function clearDailyPrayerCache() {
+  try {
+    localStorage.removeItem(CSV_CACHE_KEY)
+    localStorage.removeItem(CSV_CACHE_TIME_KEY)
+
+    for (const key of JS_DAY_TO_KEY) {
+      localStorage.removeItem(getDayCacheKey(key))
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function buildPrayerDayData(allRows: PrayerRow[], weekdayKey: WeekdayKey): PrayerDayData {
+  const dayRows = allRows
+    .filter((r) => r.weekday_key === weekdayKey && r.is_active)
+    .sort((a, b) => a.section_order - b.section_order)
+
+  const weekdayAr = getArabicWeekdayName(weekdayKey)
+
+  const ctaTitle = dayRows[0]?.cta_title || `صلاة يوم ${weekdayAr}`
+  const pageTitle = dayRows[0]?.page_title || `صلاة يوم ${weekdayAr}`
+
+  let defaultOpenIndex = dayRows.findIndex((r) => r.is_default_open)
+  if (defaultOpenIndex < 0) defaultOpenIndex = dayRows.length ? 0 : -1
+
+  return {
+    weekdayKey,
+    weekdayAr,
+    ctaTitle,
+    pageTitle,
+    sections: dayRows,
+    defaultOpenIndex,
+  }
+}
+
+export async function fetchDailyPrayerRows(forceRefresh = false): Promise<PrayerRow[]> {
+  if (!forceRefresh) {
+    const cached = readCsvCache()
+    if (cached) return cached
+  }
+
   const res = await fetch(DAILY_PRAYER_CSV_URL, { cache: "no-store" })
   if (!res.ok) throw new Error("Failed to fetch daily prayer CSV")
 
@@ -133,30 +262,24 @@ export async function fetchDailyPrayerRows(): Promise<PrayerRow[]> {
     })
   }
 
+  writeCsvCache(rows)
+
   return rows
 }
 
-export async function fetchPrayerForWeekday(weekdayKey: WeekdayKey) {
-  const allRows = await fetchDailyPrayerRows()
-
-  const dayRows = allRows
-    .filter((r) => r.weekday_key === weekdayKey && r.is_active)
-    .sort((a, b) => a.section_order - b.section_order)
-
-  const weekdayAr = getArabicWeekdayName(weekdayKey)
-
-  const ctaTitle = dayRows[0]?.cta_title || `صلاة يوم ${weekdayAr}`
-  const pageTitle = dayRows[0]?.page_title || `صلاة يوم ${weekdayAr}`
-
-  let defaultOpenIndex = dayRows.findIndex((r) => r.is_default_open)
-  if (defaultOpenIndex < 0) defaultOpenIndex = dayRows.length ? 0 : -1
-
-  return {
-    weekdayKey,
-    weekdayAr,
-    ctaTitle,
-    pageTitle,
-    sections: dayRows,
-    defaultOpenIndex,
+export async function fetchPrayerForWeekday(
+  weekdayKey: WeekdayKey,
+  forceRefresh = false
+): Promise<PrayerDayData> {
+  if (!forceRefresh) {
+    const cached = readDayCache(weekdayKey)
+    if (cached) return cached
   }
+
+  const allRows = await fetchDailyPrayerRows(forceRefresh)
+  const result = buildPrayerDayData(allRows, weekdayKey)
+
+  writeDayCache(weekdayKey, result)
+
+  return result
 }

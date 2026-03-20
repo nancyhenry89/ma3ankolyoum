@@ -1,1 +1,0 @@
-const t=o=>"book_progress:".concat(o);function e(o){try{const r=localStorage.getItem(t(o));return r?JSON.parse(r):null}catch(r){return null}}function s(o){try{localStorage.setItem(t(o.bookId),JSON.stringify(o))}catch(r){}}export{e as l,s};

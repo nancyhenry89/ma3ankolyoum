@@ -348,8 +348,11 @@
             <div class="skeleton-line"></div>
             <div class="skeleton-line short"></div>
           </div>
-          <DailyPrayerCTA v-if="lang === 'ar'" />
-          <!-- =========================
+          <DailyPrayerCTA
+  v-if="lang === 'ar'"
+  :key="selectedDateISO"
+  :date-iso="selectedDateISO"
+/>          <!-- =========================
                TRAINING
           ========================== -->
           <div
@@ -1365,6 +1368,8 @@ const isTodaySelected = computed(() => {
 
 function onDateChange(ev: any) {
   const iso = String(ev.detail.value || '').substring(0, 10)
+  console.log("HOME picked date:", iso)
+
   if (!iso) return
   if (!allowFuture.value && iso > todayISOComputed.value) return
 
