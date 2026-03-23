@@ -3148,7 +3148,9 @@ onMounted(async () => {
   font-style: italic;
   color: #1ea19a;
 }
-
+:deep(.md .mkSpecial.dash){
+    color: #ff8636;
+}
 /* ++ */
 :deep(.md .mkSpecial.plus)::before{
   content: "+ ";
