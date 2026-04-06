@@ -1,8 +1,17 @@
 [
   {
     "id": "victory_over_weakness",
-    "title": "كتاب الأبوة",
+    "title": "الأبوة",
+    "subtitle": "لكل اب ولكل ام - لكل خادم ولكل خادمة",
     "coverUrl": "https://books.ma3ankolyoum.org/obowa.png",
+    "chaptersCount": 12,
     "updatedAt": "2026-02-11"
+  },
+  {
+    "id": "mahma_hasal_hakoum",
+    "title": "مهما حصل هقوم",
+    "coverUrl": "https://books.ma3ankolyoum.org/hakoum.png",
+    "chaptersCount": 6,
+    "updatedAt": "2026-04-06"
   }
 ]

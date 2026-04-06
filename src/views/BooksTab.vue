@@ -2,15 +2,16 @@
 <template>
     <ion-page :dir="isArabic ? 'rtl' : 'ltr'">
       <ion-header :translucent="true">
-        <ion-toolbar>
-          <!-- ✅ Back button (with default) -->
-          <ion-buttons slot="start">
-            <ion-back-button :default-href="defaultBackHref" />
-          </ion-buttons>
-  
-          <ion-title>{{ isArabic ? "الكتب" : "Books" }}</ion-title>
-        </ion-toolbar>
-      </ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <button class="booksBackBtn" @click="goHome">
+        →
+      </button>
+    </ion-buttons>
+
+    <ion-title>{{ isArabic ? "الكتب" : "Books" }}</ion-title>
+  </ion-toolbar>
+</ion-header>
   
       <ion-content :fullscreen="true">
         <div v-if="loading" class="pad">جاري التحميل…</div>
@@ -39,9 +40,7 @@
                     <span v-if="b.chaptersCount" class="pill">
                       {{ isArabic ? "الفصول" : "Chapters" }}: {{ b.chaptersCount }}
                     </span>
-                    <span v-if="b.updatedAt" class="pill soft">
-                      {{ isArabic ? "آخر تحديث" : "Updated" }}: {{ b.updatedAt }}
-                    </span>
+
                   </div>
                 </div>
               </div>
@@ -62,7 +61,7 @@
     IonTitle,
     IonContent,
     IonButtons,
-    IonBackButton,
+
   } from "@ionic/vue"
   import { getBooksIndex, type BookIndexItem } from "@/services/booksContent"
   
@@ -74,7 +73,9 @@
     const v = (localStorage.getItem("mk_lang") as Lang) || "ar"
     lang.value = v === "en" ? "en" : "ar"
   }
-  
+  function goHome() {
+  router.push("/tabs/home")
+}
   const defaultBackHref = "/tabs/home"
   
   const router = useRouter()
@@ -190,10 +191,11 @@
   
   .bkTitle {
     font-weight: 900;
-    font-size: 18px;
+    font-size: 25px;
     line-height: 1.2;
     color: #fff;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    font-family: "Scheherazade New", serif !important;
   }
   
   .bkSub {
@@ -242,5 +244,22 @@
   .bkCard:hover .bkCover {
     border-color: rgba(255, 255, 255, 0.22);
   }
+  .booksBackBtn{
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  font-weight: 900;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: var(--ion-text-color, #0b1f33);
+}
+
+.booksBackBtn:active{
+  transform: scale(0.96);
+}
+
+:global(html[data-mk-theme="dark"]) .booksBackBtn{
+  color: #f5f7fa;
+}
   </style>
   
