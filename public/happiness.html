@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>فرحان بنسبة كام في المية؟</title>
+
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --txt:#0f172a;
+      --muted:#51607a;
+      --border: rgba(15, 23, 42, .10);
+      --shadow: 0 18px 55px rgba(16,24,40,.12);
+
+      --accent:#19b7ae;
+      --accent2:#3b82f6;
+
+      --gold1:#ffe7a3;
+      --gold2:#e2b34a;
+      --gold3:#b8860b;
+
+      --radius:22px;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color:var(--txt);
+      background:
+        radial-gradient(1100px 700px at 15% -10%, rgba(59,130,246,.18), transparent 55%),
+        radial-gradient(900px 650px at 90% 0%, rgba(25,183,174,.18), transparent 55%),
+        radial-gradient(700px 500px at 55% 110%, rgba(226,179,74,.14), transparent 60%),
+        var(--bg);
+    }
+
+    .wrap{
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 22px 16px 54px;
+    }
+
+    .header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 14px;
+    }
+
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      font-weight:900;
+      letter-spacing:.2px;
+      line-height:1.2;
+      font-size: 20px;
+    }
+
+    .brand .subtitle{
+      font-weight:700;
+      color:var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+      max-width: 52ch;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.65);
+      box-shadow: 0 10px 28px rgba(16,24,40,.08);
+      font-size: 12px;
+      color: rgba(15,23,42,.75);
+      backdrop-filter: blur(8px);
+      white-space: nowrap;
+    }
+
+    .badge i{
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      display:inline-block;
+    }
+
+    .card{
+      position: relative;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.86));
+      border: 1px solid rgba(15,23,42,.10);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card:before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        radial-gradient(700px 240px at 20% 0%, rgba(59,130,246,.20), transparent 60%),
+        radial-gradient(700px 240px at 80% 0%, rgba(25,183,174,.20), transparent 60%),
+        radial-gradient(800px 300px at 50% 115%, rgba(226,179,74,.12), transparent 60%);
+      opacity:.55;
+      pointer-events:none;
+    }
+
+    .cardInner{
+      position: relative;
+      z-index: 1;
+    }
+
+    .progressWrap{
+      display:grid;
+      gap:10px;
+      margin-bottom: 14px;
+      padding: 12px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.72);
+      backdrop-filter: blur(10px);
+    }
+
+    .progressTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .progressTop b{ color: var(--txt); }
+
+    .bar{
+      height: 11px;
+      border-radius: 999px;
+      background: rgba(15,23,42,.08);
+      overflow: hidden;
+      border: 1px solid rgba(15,23,42,.08);
+    }
+
+    .bar > i{
+      display:block;
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 999px;
+      transition: width .42s cubic-bezier(.2,.9,.2,1);
+    }
+
+    .q{
+      margin-top: 2px;
+      font-size: 21px;
+      font-weight: 900;
+      color: var(--txt);
+      letter-spacing: .1px;
+      line-height: 1.6;
+    }
+
+    .hint{
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .opts{
+      display:grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button.opt{
+      all: unset;
+      cursor:pointer;
+      border-radius: 16px;
+      padding: 13px 13px;
+      border: 1px solid rgba(15,23,42,.12);
+      background: rgba(255,255,255,.88);
+      box-shadow: 0 10px 26px rgba(16,24,40,.08);
+      transition: transform .08s ease, box-shadow .22s ease, border-color .22s ease;
+      position: relative;
+      overflow:hidden;
+    }
+
+    button.opt:before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: radial-gradient(520px 120px at 25% 0%, rgba(25,183,174,.22), transparent 65%);
+      opacity: .55;
+      pointer-events:none;
+    }
+
+    button.opt:hover{
+      border-color: rgba(25,183,174,.45);
+      box-shadow: 0 16px 34px rgba(16,24,40,.12);
+      transform: translateY(-1px);
+    }
+
+    button.opt:active{
+      transform: translateY(0px) scale(.992);
+      box-shadow: 0 10px 24px rgba(16,24,40,.10);
+    }
+
+    .optLine{
+      position: relative;
+      z-index: 1;
+      line-height: 1.7;
+      font-weight: 800;
+      font-size: 15px;
+      color: rgba(15,23,42,.92);
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 16px;
+      align-items:center;
+    }
+
+    .btn{
+      all: unset;
+      cursor:pointer;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(15,23,42,.14);
+      background: rgba(255,255,255,.75);
+      color: var(--txt);
+      transition: transform .08s ease, border-color .2s ease, box-shadow .2s ease;
+      box-shadow: 0 10px 22px rgba(16,24,40,.08);
+      font-weight: 750;
+      font-size: 13px;
+    }
+
+    .btn:hover{
+      border-color: rgba(25,183,174,.35);
+      box-shadow: 0 14px 28px rgba(16,24,40,.10);
+      transform: translateY(-1px);
+    }
+
+    .btn:active{ transform: translateY(0) scale(.99); }
+
+    .btn.primary{
+      border-color: rgba(25,183,174,.45);
+      background: linear-gradient(90deg, rgba(25,183,174,.18), rgba(59,130,246,.14));
+    }
+
+    .fine{
+      font-size: 12px;
+      opacity: .92;
+      margin-top: 10px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .result{
+      margin-top: 16px;
+      border-top: 1px dashed rgba(15,23,42,.18);
+      padding-top: 14px;
+    }
+
+    .resultHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .big{
+      font-size: 22px;
+      margin: 0;
+      font-weight: 950;
+      letter-spacing: .1px;
+      line-height: 1.6;
+    }
+
+    .scorePill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size: 14px;
+      color: rgba(15,23,42,.85);
+      border: 1px solid rgba(15,23,42,.12);
+      background: rgba(255,255,255,.85);
+      padding: 9px 12px;
+      border-radius: 999px;
+      box-shadow: 0 10px 22px rgba(16,24,40,.06);
+      white-space: nowrap;
+      font-weight: 800;
+    }
+
+    .scorePill .dot{
+      width:9px;
+      height:9px;
+      border-radius:999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      display:inline-block;
+    }
+
+    .adviceBox{
+      margin-top: 10px;
+      border-radius: 18px;
+      border: 1px solid rgba(226,179,74,.55);
+      background:
+        radial-gradient(900px 320px at 15% 0%, rgba(255,231,163,.85), transparent 62%),
+        radial-gradient(900px 320px at 85% 10%, rgba(226,179,74,.28), transparent 60%),
+        linear-gradient(180deg, rgba(255,252,244,.95), rgba(255,255,255,.96));
+      box-shadow: 0 18px 46px rgba(226,179,74,.20);
+      padding: 14px 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .adviceTitle{
+      position: relative;
+      z-index: 1;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+
+    .goldIcon{
+      width: 30px;
+      height: 30px;
+      border-radius: 12px;
+      display:grid;
+      place-items:center;
+      background: linear-gradient(180deg, var(--gold1), var(--gold2));
+      box-shadow: 0 14px 26px rgba(226,179,74,.22);
+      border: 1px solid rgba(226,179,74,.58);
+      font-size: 16px;
+    }
+
+    .adviceTitle b{
+      font-size: 16px;
+      color: #3a2a12;
+      letter-spacing: .1px;
+      font-weight: 950;
+    }
+
+    .adviceText{
+      position: relative;
+      z-index: 1;
+      color: #2b2110;
+      white-space: pre-line;
+      line-height: 1.95;
+      font-size: 15.6px;
+      font-weight: 750;
+    }
+
+    .fadeIn{
+      animation: fade .22s ease both;
+    }
+
+    @keyframes fade{
+      from{ opacity:0; transform: translateY(4px); }
+      to{ opacity:1; transform: translateY(0); }
+    }
+
+    @media (max-width: 520px){
+      .wrap{ padding: 18px 12px 40px; }
+      .brand{ font-size: 18px; }
+      .brand .subtitle{ max-width: 38ch; }
+      .q{ font-size: 19px; }
+      .btn{ width: 100%; text-align:center; }
+      .scorePill{ width: 100%; justify-content:center; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="brand">
+        فرحان بنسبة كام في المية؟
+        <div class="subtitle">
+          أجب عن الأسئلة التالية، وفي النهاية ستعرف نسبة الفرح لديك. لا توجد نقاط ظاهرة أثناء الاختبار، فقط النتيجة النهائية.
+        </div>
+      </div>
+
+      <div class="badge" id="stepPill"><i></i> ٦ أسئلة</div>
+    </div>
+
+    <div class="card">
+      <div class="cardInner">
+
+        <div class="progressWrap">
+          <div class="progressTop">
+            <span>أنت في <b id="progressLabel">سؤال 1 من 6</b></span>
+            <span>المتبقي: <b id="remainingLabel">5</b></span>
+          </div>
+          <div class="bar"><i id="progressBar"></i></div>
+        </div>
+
+        <div id="app"></div>
+        <div class="fine">
+          إذا كانت نسبة فرحك قليلة، فانتبه معنا لتجد حلولًا تفيدك في هذا اليوم. وإن كانت نسبة فرحك كبيرة، فحاول أن تلتقط وسائل تزيد فرحك وسعادتك.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "عندما تبدأ يومك، فيمَ تفكر؟",
+    options: [
+      { label: "تمنيات وأهداف تريد تحقيقها", score: 20 },
+      { label: "لا أفكر", score: 10 },
+      { label: "المشاكل التي أقابلها", score: 0 }
+    ]
+  },
+  {
+    q: "إذا قابلت مشكلة، ماذا تفعل؟",
+    options: [
+      { label: "أبحث عن حل لها", score: 20 },
+      { label: "أبحث عن مرشد", score: 10 },
+      { label: "أهرب من التفكير فيها بالأكل أو النوم", score: 0 }
+    ]
+  },
+  {
+    q: "كيف تنظر إلى حياتك؟",
+    options: [
+      { label: "أشكر الله عليها", score: 20 },
+      { label: "أنا راضٍ، ولكن أتمنى أمورًا أفضل", score: 10 },
+      { label: "أنضايق من مشاكلي", score: 0 }
+    ]
+  },
+  {
+    q: "إذا اتهمك شخص بخطأ فيك، ماذا تفعل؟",
+    options: [
+      { label: "تسمعه باهتمام وتحاول إصلاح الخطأ", score: 20 },
+      { label: "تتضايق في داخلك، ولكن تسمعه حتى لا تحرجه", score: 10 },
+      { label: "تتضايق وتبرر نفسك وتهاجم من اتهمك", score: 0 }
+    ]
+  },
+  {
+    q: "إذا اكتشفت في تعاملاتك شخصًا أنانيًا، ماذا تفعل؟",
+    options: [
+      { label: "تحتمله وتلتمس له العذر", score: 20 },
+      { label: "تبتعد عنه", score: 10 },
+      { label: "توبخه على أنانيته", score: 0 }
+    ]
+  },
+  {
+    q: "إذا سقطت في خطية، ماذا تشعر؟",
+    options: [
+      { label: "تتوب عنها وتبدأ من جديد", score: 20 },
+      { label: "تتضايق، ولكن تحاول مواصلة حياتك", score: 10 },
+      { label: "تشك في نفسك وتيأس", score: 0 }
+    ]
+  }
+];
+
+const appEl = document.getElementById("app");
+const progressLabel = document.getElementById("progressLabel");
+const remainingLabel = document.getElementById("remainingLabel");
+const progressBar = document.getElementById("progressBar");
+const stepPill = document.getElementById("stepPill");
+
+const state = {
+  currentIndex: 0,
+  answers: new Array(QUESTIONS.length).fill(null)
+};
+
+function updateProgress(isResult = false) {
+  if (isResult) {
+    progressLabel.textContent = "اكتملت النتيجة";
+    remainingLabel.textContent = "0";
+    progressBar.style.width = "100%";
+    stepPill.innerHTML = "<i></i> النتيجة";
+    return;
+  }
+
+  const step = state.currentIndex + 1;
+  const remaining = QUESTIONS.length - step;
+  const percent = Math.round((state.currentIndex / QUESTIONS.length) * 100);
+
+  progressLabel.textContent = `سؤال ${step} من ${QUESTIONS.length}`;
+  remainingLabel.textContent = String(remaining);
+  progressBar.style.width = percent + "%";
+  stepPill.innerHTML = `<i></i> ${QUESTIONS.length} أسئلة`;
+}
+
+function renderQuestion() {
+  updateProgress(false);
+
+  const question = QUESTIONS[state.currentIndex];
+
+  appEl.innerHTML = `
+    <div class="fadeIn">
+      <div class="q">${escapeHtml(question.q)}</div>
+      <div class="hint">اختر الإجابة الأقرب لك.</div>
+
+      <div class="opts">
+        ${question.options.map((opt, idx) => `
+          <button class="opt" data-idx="${idx}">
+            <div class="optLine">${escapeHtml(opt.label)}</div>
+          </button>
+        `).join("")}
+      </div>
+
+      <div class="row">
+        ${state.currentIndex > 0 ? `<button class="btn" id="backBtn">رجوع</button>` : ``}
+        <button class="btn" id="restartBtn">إعادة الاختبار</button>
+      </div>
+    </div>
+  `;
+
+  appEl.querySelectorAll(".opt").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.getAttribute("data-idx"));
+      state.answers[state.currentIndex] = question.options[idx].score;
+
+      if (state.currentIndex < QUESTIONS.length - 1) {
+        state.currentIndex++;
+        renderQuestion();
+      } else {
+        renderResult();
+      }
+    });
+  });
+
+  const backBtn = document.getElementById("backBtn");
+  if (backBtn) {
+    backBtn.addEventListener("click", () => {
+      if (state.currentIndex > 0) {
+        state.currentIndex--;
+        renderQuestion();
+      }
+    });
+  }
+
+  document.getElementById("restartBtn").addEventListener("click", resetQuiz);
+}
+
+function renderResult() {
+  updateProgress(true);
+
+  const total = state.answers.reduce((sum, val) => sum + (val || 0), 0);
+  const max = QUESTIONS.length * 20;
+  const percentage = Math.round((total / max) * 100);
+
+  let message = "";
+  if (percentage >= 80) {
+    message = "نسبة فرحك جميلة جدًا. حافظ عليها، والتقط دائمًا وسائل تزيد فرحك وسعادتك في الله.";
+  } else if (percentage >= 50) {
+    message = "لديك قدر جيد من الفرح، لكنه يحتاج إلى تغذية واهتمام أكثر حتى يزداد ويثبت.";
+  } else {
+    message = "نسبة فرحك قليلة نسبيًا. انتبه إلى ما يسرق سلامك، وحاول أن تبدأ بخطوات صغيرة تعيد إليك الفرح.";
+  }
+
+  appEl.innerHTML = `
+    <div class="fadeIn result">
+      <div class="resultHead">
+        <div>
+          <div class="big">فرحان بنسبة ${percentage}%</div>
+        </div>
+        <div class="scorePill">
+          <span class="dot"></span>
+          <span>النتيجة النهائية</span>
+        </div>
+      </div>
+
+      <div class="adviceBox">
+        <div class="adviceTitle">
+          <div class="goldIcon">✨</div>
+          <b>تأمل قصير</b>
+        </div>
+        <div class="adviceText">${escapeHtml(message)}
+
+إذا كانت نسبة فرحك قليلة، فانتبه معنا لتجد حلولًا تفيدك في هذا اليوم.
+وإن كانت نسبة فرحك كبيرة، فحاول أن تلتقط وسائل تزيد فرحك وسعادتك.</div>
+      </div>
+
+      <div class="row">
+        <button class="btn primary" id="restartBtn">إعادة الاختبار</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("restartBtn").addEventListener("click", resetQuiz);
+}
+
+function resetQuiz() {
+  state.currentIndex = 0;
+  state.answers = new Array(QUESTIONS.length).fill(null);
+  renderQuestion();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[c]));
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
