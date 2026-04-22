@@ -389,7 +389,7 @@
       <div class="brand">
         فرحان بنسبة كام في المية؟
         <div class="subtitle">
-          أجب عن الأسئلة التالية، وفي النهاية ستعرف نسبة الفرح لديك. لا توجد نقاط ظاهرة أثناء الاختبار، فقط النتيجة النهائية.
+          أجب عن الأسئلة التالية، وفي النهاية ستعرف نسبة الفرح لديك. ، فقط النتيجة النهائية.
         </div>
       </div>
 
@@ -481,7 +481,7 @@ const state = {
 
 function updateProgress(isResult = false) {
   if (isResult) {
-    progressLabel.textContent = "اكتملت النتيجة";
+    progressLabel.textContent ="النهاية";
     remainingLabel.textContent = "0";
     progressBar.style.width = "100%";
     stepPill.innerHTML = "<i></i> النتيجة";
@@ -556,7 +556,8 @@ function renderResult() {
   const total = state.answers.reduce((sum, val) => sum + (val || 0), 0);
   const max = QUESTIONS.length * 20;
   const percentage = Math.round((total / max) * 100);
-
+  const resultType = percentage > 50 ? "above_50" : "below_or_equal_50";
+  submitResult(resultType);
   let message = "";
   if (percentage >= 80) {
     message = "نسبة فرحك جميلة جدًا. حافظ عليها، والتقط دائمًا وسائل تزيد فرحك وسعادتك في الله.";
@@ -579,11 +580,7 @@ function renderResult() {
       </div>
 
       <div class="adviceBox">
-        <div class="adviceTitle">
-          <div class="goldIcon">✨</div>
-          <b>تأمل قصير</b>
-        </div>
-        <div class="adviceText">${escapeHtml(message)}
+
 
 إذا كانت نسبة فرحك قليلة، فانتبه معنا لتجد حلولًا تفيدك في هذا اليوم.
 وإن كانت نسبة فرحك كبيرة، فحاول أن تلتقط وسائل تزيد فرحك وسعادتك.</div>
@@ -615,6 +612,27 @@ function escapeHtml(s) {
 }
 
 renderQuestion();
+const COLLECT_ENDPOINT = "https://script.google.com/macros/s/AKfycbwEb6z3jQH_arFuSwSQ-WoDMsptc4R0MPhKHspkynYN48Ms2I3tRprrYoYq_e7gFCBB/exec";
+
+async function submitResult(resultType) {
+  if (!COLLECT_ENDPOINT) return;
+
+  try {
+    await fetch(COLLECT_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        result: resultType,
+        ts: new Date().toISOString()
+      }),
+      mode: "cors"
+    });
+  } catch (e) {
+    console.log("Submit failed", e);
+  }
+}
 </script>
 </body>
 </html>
