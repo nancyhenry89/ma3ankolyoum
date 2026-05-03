@@ -2,25 +2,25 @@
   "bookKey": "1john",
   "bookName":"رسالة يوحنا الآولي",
   "bookNameEn": "1 John",
-  "chapter": 3,
+  "chapter": 4,
   "intro": {
     "title": "مقدمه رسالة رسالة يوحنا الآولي",
     "youtubeId": "FkTzhWkN8F8"
   },
-  "chapterTitle":"صفـات أولاد الله",
+  "chapterTitle":"التمييز ومحبة الآخرين",
   "sections": [
     {
-      "title": " الطهـارة (ع 1-9)",
+      "title": "ضد المسيح (ع1-6)",
       "fromVerse": 1,
-      "toVerse": 9
+      "toVerse": 6
     }, {
-      "title": "المحبة (ع 10-17)",
-      "fromVerse": 10,
-      "toVerse": 17
+      "title": "محبة الآخرين (ع7-11)",
+      "fromVerse": 7,
+      "toVerse": 11
     }, {
-      "title": "تنفيذ الوصية (ع 18-24)",
-      "fromVerse": 18,
-      "toVerse": 24
+      "title": " الثبات فى محبة الله وبركاتها (ع12-21)",
+      "fromVerse": 12,
+      "toVerse": 21
     }
   ],
   "verses": [
@@ -121,5 +121,6 @@
       "t": "وَمَنْ يَحْفَظْ وَصَايَاهُ يَثْبُتْ فِيهِ وَهُوَ فِيهِ. وَبِهَذَا نَعْرِفُ أَنَّهُ يَثْبُتُ فِينَا: مِنَ الرُّوحِ الَّذِي أَعْطَانَا."
     }
   ]
+  
   
 }
