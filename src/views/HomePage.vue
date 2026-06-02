@@ -109,9 +109,34 @@
             </div>
 
             <!-- Dates -->
-            <div class="dates" @click="showDatePicker = true">
-              {{ gregorianDate }} – {{ copticDate }}
-            </div>
+            <div class="dateNav mkNoCapture">
+              <button class="dateArrow" type="button" @click.stop="goPrevDay" aria-label="Previous day">
+  <span>‹</span>
+</button>
+
+  <div class="dates" @click="showDatePicker = true">
+    {{ gregorianDate }} – {{ copticDate }}
+  </div>
+
+  <button
+  class="dateArrow"
+  type="button"
+  @click.stop="goNextDay"
+  :disabled="isTodaySelected"
+  aria-label="Next day"
+>
+  <span>›</span>
+</button>
+
+  <button
+    v-if="!isTodaySelected"
+    class="todayBtn"
+    type="button"
+    @click.stop="goToday"
+  >
+    {{ isArabic ? 'اليوم' : 'Today' }}
+  </button>
+</div>
 
             <!-- Occasions -->
             <OccasionsSection
@@ -2054,7 +2079,38 @@ oc_sub_title: oc_sub_title.value,
     sleep: pick(normalizeKeys(found), 'sleep') || '',
   })
 }
+function addDaysISO(iso: string, days: number) {
+  const [y, m, d] = iso.substring(0, 10).split('-').map(Number)
+  const date = new Date(y, m - 1, d)
+  date.setDate(date.getDate() + days)
 
+  const yy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+
+  return `${yy}-${mm}-${dd}`
+}
+
+function selectDate(iso: string) {
+  if (!allowFuture.value && iso > todayISOComputed.value) return
+
+  selectedDateISO.value = iso
+  loadByDate(iso).catch(console.error)
+}
+
+function goPrevDay() {
+  selectDate(addDaysISO(selectedDateISO.value, -1))
+}
+
+function goNextDay() {
+  const next = addDaysISO(selectedDateISO.value, 1)
+  if (next > todayISOComputed.value) return
+  selectDate(next)
+}
+
+function goToday() {
+  selectDate(todayISOComputed.value)
+}
 async function loadByDate(dateISO: string) {
   const targetISO = String(dateISO).trim().substring(0, 10)
 
@@ -2390,6 +2446,123 @@ onMounted(async () => {
     color:#fff;
     opacity: 0.95;
   }
+  .dateNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.todayBtn {
+  position: relative;
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+
+  height: 36px;
+  padding: 0 14px 0 28px;
+
+  border: 1px solid rgba(230, 76, 76, 0.28);
+  border-radius: 999px;
+
+  background:
+    radial-gradient(circle at 25% 20%, rgba(255,255,255,0.18), transparent 40%),
+    linear-gradient(135deg, rgba(255, 120, 120, 0.22), rgba(230, 76, 76, 0.12)),
+    rgba(255,255,255,0.9);
+
+  color: #b42318;
+  font-weight: 900;
+
+  box-shadow:
+    0 8px 20px rgba(230, 76, 76, 0.12),
+    inset 0 1px 0 rgba(255,255,255,0.72);
+
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* live dot */
+.todayBtn::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+  background: #e5484d;
+
+  transform: translateY(-50%);
+  animation: todayPulse 1.8s infinite;
+}
+
+@keyframes todayPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(229,72,77,0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(229,72,77,0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(229,72,77,0);
+  }
+}
+.dateArrow {
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+
+  border: 1px solid rgba(40, 214, 204, 0.22);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 25% 20%, rgba(255, 209, 102, 0.18), transparent 36%),
+    linear-gradient(135deg, rgba(40, 214, 204, 0.16), rgba(124, 219, 255, 0.13)),
+    rgba(255, 255, 255, 0.82);
+  color: #0f1b2f;
+  font-weight: 900;
+  box-shadow:
+    0 8px 20px rgba(15, 27, 47, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.72);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dateArrow {
+  width: 36px;
+  height: 36px;
+  font-size: 23px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  padding-bottom: 3px;
+}
+
+
+
+.dateArrow:active,
+.todayBtn:active {
+  transform: scale(0.96);
+}
+
+.dateArrow:disabled {
+  opacity: 0.32;
+  filter: grayscale(0.7);
+  cursor: not-allowed;
+}
+
+.theme-dark .dateArrow,
+.theme-dark .todayBtn {
+  border-color: rgba(40, 214, 204, 0.18);
+  background:
+    radial-gradient(circle at 25% 20%, rgba(255, 209, 102, 0.14), transparent 36%),
+    linear-gradient(135deg, rgba(40, 214, 204, 0.13), rgba(124, 219, 255, 0.08)),
+    rgba(12, 18, 28, 0.82);
+  color: #f5f7fb;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
   .audioBtn[disabled]{ opacity:0.35; }
   .mini-head .audioBtn,
   .mini-head ion-icon { color:#fff !important; }
