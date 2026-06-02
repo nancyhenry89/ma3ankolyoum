@@ -12,10 +12,7 @@
   @pointerdown="onPointerDown"
   @pointermove="onPointerMove"
   @pointerup="onPointerUp"
-  @touchstart.passive="onTouchStart"
-  @touchmove.prevent="onTouchMove"
-  @touchend="onTouchEnd"
-  @mousedown="onMouseDown"
+
 >
         <div class="drfGlow" />
   
@@ -251,6 +248,8 @@ const dragState = ref({
 onBeforeUnmount(() => {
   window.removeEventListener('mousemove', onMouseMove)
   window.removeEventListener('mouseup', onMouseUp)
+  window.removeEventListener('resize', normalizeFabPosition)
+  window.removeEventListener('orientationchange', normalizeFabPosition)
 })
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
@@ -288,7 +287,34 @@ async function loadFabPosition() {
     // ignore bad saved position
   }
 }
+function normalizeFabPosition() {
+  const { width, height } = getFabSize()
 
+  if (!fabPos.value) {
+    ensureDefaultFabPosition()
+    return
+  }
+
+  const maxLeft = window.innerWidth - width - 8
+  const maxTop = window.innerHeight - height - 8
+
+  const isInvalid =
+    !Number.isFinite(fabPos.value.left) ||
+    !Number.isFinite(fabPos.value.top) ||
+    maxLeft < 8 ||
+    maxTop < 8
+
+  if (isInvalid) {
+    fabPos.value = null
+    ensureDefaultFabPosition()
+    return
+  }
+
+  fabPos.value = {
+    left: clamp(fabPos.value.left, 8, maxLeft),
+    top: clamp(fabPos.value.top, 8, maxTop)
+  }
+}
 function ensureDefaultFabPosition() {
   if (fabPos.value) return
 
@@ -866,9 +892,13 @@ const wrapStyle = computed(() => {
   await loadReadDays()
   await loadFabPosition()
 
-  requestAnimationFrame(() => {
-    ensureDefaultFabPosition()
+  requestAnimationFrame(async () => {
+    normalizeFabPosition()
+    await saveFabPosition()
   })
+
+  window.addEventListener('resize', normalizeFabPosition)
+  window.addEventListener('orientationchange', normalizeFabPosition)
 
   window.addEventListener('mousemove', onMouseMove)
   window.addEventListener('mouseup', onMouseUp)
