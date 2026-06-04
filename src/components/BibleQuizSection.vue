@@ -541,10 +541,8 @@ async function loadFromSheet() {
   })
   .sort((a, b) => numify(a.question_number) - numify(b.question_number))
 
-      console.log("[Quiz] props", { book: props.book, chapter: props.chapter, bookKey: bookKey.value, chapterNum: chapterNum.value })
 
     rows.value = cleaned
-    console.log("[Quiz] cleaned rows", cleaned.length, cleaned.slice(0, 3))
 
     const mcqRows = cleaned.filter((r) => normalizeType(r.quetion_type) === "mcq")
     const ta2 = cleaned.find((r) => normalizeType(r.quetion_type) === "ta2amol")
