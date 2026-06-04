@@ -54,7 +54,7 @@ async function load() {
 
 function goToPrayer() {
   router.push({
-    path: "/daily-prayer",
+    name: "DailyPrayerNew",
     query: props.dateIso ? { date: props.dateIso } : undefined,
   })
 }

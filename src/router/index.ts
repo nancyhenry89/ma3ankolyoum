@@ -57,7 +57,7 @@ const routes: Array<RouteRecordRaw> = [
 { path: '/book/:bookId/:chapterId/:sectionId', component: () => import('@/views/BookReaderPage.vue') },
 {
   path: "/daily-prayer-new",
-  name: "daily-prayer",
+  name: "DailyPrayerNew",
   component: DailyPrayerPage,
 },
   // ===== Fallback =====
