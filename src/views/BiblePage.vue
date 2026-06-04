@@ -70,7 +70,10 @@
   import { Capacitor } from '@capacitor/core'
   import { computed, onMounted, ref } from 'vue'
   import { useRouter } from 'vue-router'
-  
+  import {
+  syncBibleOffline,
+  isChapterAvailableOfflineAware
+} from '@/services/bibleOffline'
   type Lang = 'ar' | 'en'
   type Testament = 'ot' | 'nt'
   
@@ -344,7 +347,8 @@ function chapterDisabled(b: BookDef, ch: number) {
       if (st.checked[ch] === false && !canRecheckFalse) continue
 
       // ✅ لو null/undefined -> check عادي
-      const ok = await checkChapterExists(chapterUrl(b, ch))
+      
+      const ok = await isChapterAvailableOfflineAware(b.slug, ch)
       st.checked[ch] = ok
 
       // تحديث UI أسرع (مش كل 8)
@@ -385,6 +389,7 @@ function onGroupChange(ev: any) {
   }
   
   onMounted(() => {
+    syncBibleOffline().catch(console.error)
     syncLang()
     window.addEventListener('mk:lang-changed', syncLang)
   

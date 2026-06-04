@@ -337,7 +337,7 @@ import { chevronForwardOutline, bookmarkOutline, bookmark } from "ionicons/icons
 import { Capacitor } from "@capacitor/core"
 import { Browser } from "@capacitor/browser"
 import { onIonViewWillLeave, onIonViewDidEnter } from "@ionic/vue"
-
+import { getBibleChapter } from '@/services/bibleOffline'
 import { loadRefsIndex, getRefsFor, type RefLink } from "@/services/verseRefs"
 import { readChapterCache, writeChapterCache, readTafsirCache, writeTafsirCache } from "@/utils/chapterCache"
 import { listSavedVerses, toggleVerseSaved, type SavedVerse, upsertVerseNote } from "@/services/verseSaves"
@@ -859,13 +859,7 @@ async function loadChapter() {
   const b = bookKey.value
   const ch = chapterNum.value
 
-  const cached = readChapterCache(b, ch)
-  if (cached) {
-    data.value = cached
-    refreshChapterFromNetwork(b, ch).catch(console.error)
-    return
-  }
-  await refreshChapterFromNetwork(b, ch)
+  data.value = await getBibleChapter(b, ch)
 }
 
 /* =========================
