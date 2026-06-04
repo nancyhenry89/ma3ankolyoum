@@ -70,16 +70,20 @@
 </div>
         <!-- ✅ AUDIO (keep) -->
         <ChapterAudioCta :book-slug="bookSlug" :chapter="chapterNum" :book-label="data?.bookName || bookKey" />
-        <div class="chapterNav chapterNavTop">
+        <div class="chapterNavSticky">
   <button
     class="chapterNavBtn prev"
     type="button"
     :disabled="!prevChapter"
     @click="goToChapter(prevChapter)"
   >
-  <IonIcon :icon="arrowForwardOutline" />
-    <span>الأصحاح السابق</span>
+    <IonIcon :icon="arrowForwardOutline" />
+
   </button>
+
+  <div class="chapterPageTitle">
+    {{ headerTitle }}
+  </div>
 
   <button
     class="chapterNavBtn next"
@@ -87,13 +91,11 @@
     :disabled="!nextChapter"
     @click="goToChapter(nextChapter)"
   >
-    <span>الأصحاح التالي</span>
     <IonIcon :icon="arrowBackOutline" />
+
   </button>
 </div>
-<div ref="chapterTitleRef" class="chapterPageTitle">
-  {{ headerTitle }}
-</div>
+
         <div id="versesAnchor" class="verses">
           <div
             v-for="v in verses"
@@ -2114,5 +2116,87 @@ onMounted(async () => {
   box-shadow:
     0 10px 24px rgba(15, 27, 47, 0.08),
     inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.chapterNavSticky {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+
+  display: grid;
+  grid-template-columns: 56px 1fr 56px;
+  align-items: center;
+  gap: 10px;
+
+  margin-bottom: 12px;
+  padding: 8px;
+
+  border-radius: 18px;
+
+  backdrop-filter: blur(12px);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.92),
+      rgba(255,255,255,.84)
+    );
+
+  border: 1px solid rgba(31,182,170,.16);
+
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.08);
+}
+:global(html[data-mk-theme="dark"]) .chapterNavSticky {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(15,27,47,.92),
+      rgba(15,27,47,.84)
+    );
+
+  border-color: rgba(255,255,255,.08);
+}
+.chapterPageTitle {
+  text-align: center;
+
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  font-size: calc(18px * var(--mk-font-scale));
+  font-weight: 1000;
+
+  color: var(--mk-text);
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.chapterNavSticky .chapterNavBtn {
+  width: 48px;
+  height: 48px;
+
+  border-radius: 14px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(31,182,170,.18),
+      rgba(31,182,170,.08)
+    );
+
+  border: 1px solid rgba(31,182,170,.22);
+
+  color: var(--mk-accent);
+
+  box-shadow:
+    0 6px 16px rgba(31,182,170,.12);
+}
+
+.chapterNavSticky .chapterNavBtn ion-icon {
+  font-size: 22px;
 }
 </style>
