@@ -373,11 +373,7 @@
             <div class="skeleton-line"></div>
             <div class="skeleton-line short"></div>
           </div>
-          <DailyPrayerCTA
-  v-if="lang === 'ar'"
-  :key="selectedDateISO"
-  :date-iso="selectedDateISO"
-/>          <!-- =========================
+        <!-- =========================
                TRAINING
           ========================== -->
           <div
@@ -419,7 +415,11 @@
             <div class="skeleton-line"></div>
             <div class="skeleton-line short"></div>
           </div>
-
+          <DailyPrayerCTANew
+  v-if="lang === 'ar'"
+  :key="selectedDateISO"
+  :date-iso="selectedDateISO"
+/>  
           <!-- =========================
                BIBLE + AGPEYA
           ========================== -->
@@ -772,7 +772,7 @@ import {
 } from '@ionic/vue'
 import HomePopup from "@/components/HomePopup.vue"
 import OccasionsSection from "@/components/OccasionsSection.vue"
-import DailyPrayerCTA from "@/components/DailyPrayerCTA.vue"
+import DailyPrayerCTANew from "@/components/DailyPrayerCTANew.vue"
 import { onMounted, onBeforeUnmount, ref, computed, watch } from 'vue'
 import { onIonViewDidEnter, onIonViewWillLeave } from '@ionic/vue'
 import { useRouter, useRoute } from 'vue-router'
