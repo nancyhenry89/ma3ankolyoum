@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "deploy-pages": "npm run build && rm -rf docs && cp -R dist docs && git add .",
     "prebuild": "rm -rf public/content && mkdir -p public/content && cp -R src/content/* public/content/",
     "preview": "vite preview",
     "test:e2e": "cypress run",

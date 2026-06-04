@@ -17,11 +17,11 @@
 import { computed, ref, watch } from "vue"
 import { useRouter } from "vue-router"
 import {
-  fetchPrayerForWeekday,
+  fetchPrayerForWeekdayNew,
   getDefaultCtaTitle,
   getWeekdayKeyFromISO,
   type WeekdayKey,
-} from "@/utils/dailyPrayer"
+} from "@/utils/dailyPrayerNew"
 
 const router = useRouter()
 
@@ -42,7 +42,7 @@ async function load() {
   console.log("CTA →", props.dateIso, weekdayKey.value)
 
   try {
-    const data = await fetchPrayerForWeekday(weekdayKey.value)
+    const data = await fetchPrayerForWeekdayNew(weekdayKey.value)
     ctaTitle.value = data.ctaTitle || fallbackTitle.value
     visible.value = Array.isArray(data.sections) && data.sections.length > 0
   } catch (e) {

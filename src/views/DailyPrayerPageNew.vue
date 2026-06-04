@@ -97,12 +97,12 @@ import {
   IonRange,
 } from "@ionic/vue"
 import {
-  fetchPrayerForWeekday,
+  fetchPrayerForWeekdayNew,
   getDefaultPageTitle,
   getWeekdayKeyFromISO,
   type PrayerRow,
   type WeekdayKey,
-} from "@/utils/dailyPrayer"
+} from "@/utils/dailyPrayerNew"
 
 type PrayerSettings = {
   fontScale: number
@@ -188,8 +188,8 @@ async function load() {
 
   console.log("PRAYER PAGE →", selectedDateIso.value, weekdayKey.value)
 
-  try {
-    const data = await fetchPrayerForWeekday(weekdayKey.value)
+  try { 
+    const data = await fetchPrayerForWeekdayNew(weekdayKey.value)    
     pageTitle.value = data.pageTitle || getDefaultPageTitle(weekdayKey.value)
     sections.value = data.sections || []
     openIndex.value = data.defaultOpenIndex >= 0 ? data.defaultOpenIndex : 0
@@ -223,7 +223,7 @@ watch(
 .dpWrap{
   padding: 14px 14px 24px;
 }
-
+ 
 .dpHero{
   padding: 18px 16px;
   border-radius: 24px;
