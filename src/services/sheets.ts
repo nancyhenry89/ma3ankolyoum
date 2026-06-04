@@ -169,6 +169,7 @@ export type BibleVideoRow = {
   type: BibleVideoType
   youtubeId: string
   order: number
+  testement?: string
 }
 
 export const BIBLE_VIDEOS_CSV =
@@ -201,8 +202,17 @@ export async function fetchBibleVideos(force = false, csvUrl: string = BIBLE_VID
 
       const name = pick(r, 'name', 'title')
       const order = toInt(pick(r, 'order'), 0)
-
-      return { name, type, youtubeId, order }
+      const testement = String(
+        pick(r, 'testement', 'testament')
+      ).trim().toLowerCase()
+      
+      return {
+        name,
+        type,
+        youtubeId,
+        order,
+        testement
+      }
     })
     .filter((r) => r.name && r.youtubeId)
 

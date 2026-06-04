@@ -73,7 +73,7 @@
     IonCard,
     IonCardContent
   } from '@ionic/vue'
-  import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
   import { refreshOutline } from 'ionicons/icons'
   import { Capacitor } from '@capacitor/core'
   import { Browser } from '@capacitor/browser'
@@ -124,6 +124,7 @@
   onMounted(() => {
     load(false).catch(console.error)
   })
+  
   </script>
   
   <style scoped>
