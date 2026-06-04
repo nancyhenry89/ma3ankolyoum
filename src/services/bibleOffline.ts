@@ -6,10 +6,12 @@ import {
   writeChapterHash
 } from '@/utils/chapterCache'
 
-const CONTENT_BASE = Capacitor.isNativePlatform()
-  ? 'https://nancyhenry89.github.io/ma3ankolyoum/content'
-  : `${import.meta.env.BASE_URL}content`.replace(/\/$/, '')
-
+const CONTENT_BASE =
+  import.meta.env.DEV
+    ? `${import.meta.env.BASE_URL}content`.replace(/\/$/, '')
+    : 'https://nancyhenry89.github.io/ma3ankolyoum/content'
+    console.log('CONTENT_BASE:', CONTENT_BASE)
+    console.log('MANIFEST:', `${CONTENT_BASE}/bible/manifest.json`)
 type BibleManifestItem = {
   key: string
   bookSlug: string
