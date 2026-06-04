@@ -2,7 +2,6 @@
 <template>
     <div class="mkSettingsBox" dir="rtl" lang="ar">
       <div class="mkSettingsHead">
-        <div class="mkSettingsTitle">⚙️ إعدادات الصفحة</div>
         <button class="mkSettingsReset" type="button" @click="resetAll">إعادة ضبط</button>
       </div>
   

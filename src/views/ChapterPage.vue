@@ -4,7 +4,9 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-back-button default-href="/" />
+          <ion-button fill="clear" @click="goHome">
+            <IonIcon class="toolbarHomeIcon" :icon="homeOutline" />
+</ion-button>
         </ion-buttons>
         <ion-title>{{ headerTitle }}</ion-title>
       </ion-toolbar>
@@ -48,12 +50,51 @@
         </button>
 
         <!-- ✅ SETTINGS (keep) -->
-        <ChapterSettingsBox v-model="chapterSettings" :fonts="verseFonts" />
+<!-- ✅ SETTINGS ACCORDION -->
+<div class="chapterSettingsAcc">
+  <button
+    class="chapterSettingsHead"
+    type="button"
+    @click="settingsOpen = !settingsOpen"
+  >
+    <span>⚙️ إعدادات الصفحة</span>
+    <IonIcon
+  class="settingsChevron"
+  :class="{ open: settingsOpen }"
+  :icon="chevronDownOutline"
+/>  </button>
 
+  <div v-if="settingsOpen" class="chapterSettingsBody">
+    <ChapterSettingsBox v-model="chapterSettings" :fonts="verseFonts" />
+  </div>
+</div>
         <!-- ✅ AUDIO (keep) -->
         <ChapterAudioCta :book-slug="bookSlug" :chapter="chapterNum" :book-label="data?.bookName || bookKey" />
+        <div class="chapterNav chapterNavTop">
+  <button
+    class="chapterNavBtn prev"
+    type="button"
+    :disabled="!prevChapter"
+    @click="goToChapter(prevChapter)"
+  >
+  <IonIcon :icon="arrowForwardOutline" />
+    <span>الأصحاح السابق</span>
+  </button>
 
-        <div class="verses">
+  <button
+    class="chapterNavBtn next"
+    type="button"
+    :disabled="!nextChapter"
+    @click="goToChapter(nextChapter)"
+  >
+    <span>الأصحاح التالي</span>
+    <IonIcon :icon="arrowBackOutline" />
+  </button>
+</div>
+<div ref="chapterTitleRef" class="chapterPageTitle">
+  {{ headerTitle }}
+</div>
+        <div id="versesAnchor" class="verses">
           <div
             v-for="v in verses"
             :key="v.n"
@@ -147,7 +188,27 @@
             </div>
           </div>
         </div>
+        <div class="chapterNav chapterNavBottom">
+  <button
+    class="chapterNavBtn prev"
+    type="button"
+    :disabled="!prevChapter"
+    @click="goToChapter(prevChapter)"
+  >
+  <IonIcon :icon="arrowForwardOutline" />
+    <span>الأصحاح السابق</span>
+  </button>
 
+  <button
+    class="chapterNavBtn next"
+    type="button"
+    :disabled="!nextChapter"
+    @click="goToChapter(nextChapter)"
+  >
+    <span>الأصحاح التالي</span>
+    <IonIcon :icon="arrowBackOutline" />
+  </button>
+</div>
         <div class="space"></div>
 
         <BibleQuizSection :book="bookKey" :chapter="chapterNum" :mcq-count="2" :seconds="90" />
@@ -330,10 +391,13 @@ import {
   IonPopover,
   IonToast
 } from "@ionic/vue"
+import { BOOKS } from '@/data/bibleBooks'
 import { computed, onMounted, ref, nextTick, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import Papa from "papaparse"
-import { chevronForwardOutline, bookmarkOutline, bookmark } from "ionicons/icons"
+import {   arrowForwardOutline,
+  arrowBackOutline,
+  homeOutline,chevronForwardOutline, chevronDownOutline, bookmarkOutline, bookmark } from "ionicons/icons"
 import { Capacitor } from "@capacitor/core"
 import { Browser } from "@capacitor/browser"
 import { onIonViewWillLeave, onIonViewDidEnter } from "@ionic/vue"
@@ -381,7 +445,9 @@ const chapterNum = computed(() => Number(route.params.chapter || 1))
 
 // ✅ Audio slug must follow URL (mark/11 => mark/11.mp3)
 const bookSlug = computed(() => String(bookKey.value || "").toLowerCase())
-
+async function goHome() {
+  await router.replace('/tabs/home')
+}
 type ChapterJSON = {
   bookKey: string
   bookName: string
@@ -440,11 +506,63 @@ async function fetchChapterJson(routeBookKey: string, ch: number) {
   if (!res.ok) throw new Error("Chapter not found")
   return await res.json()
 }
+async function scrollToChapterTitle() {
+  await nextTick()
+  await new Promise(resolve => setTimeout(resolve, 350))
 
+  const ion = contentRef.value
+  const titleEl = chapterTitleRef.value
+
+  if (!ion || !titleEl) return
+
+  const y = titleEl.offsetTop - 12
+
+  if (ion.scrollToPoint) {
+    await ion.scrollToPoint(0, Math.max(0, y), 350)
+    return
+  }
+
+  const ionEl = ion.$el ?? ion
+  if (ionEl?.scrollToPoint) {
+    await ionEl.scrollToPoint(0, Math.max(0, y), 350)
+  }
+}
+async function goToChapter(ch: number | null) {
+  if (!ch) return
+
+  shouldScrollToChapterTitle.value = true
+
+  openVerse.value = null
+  bmPopoverOpen.value = false
+  showRefsModal.value = false
+
+  await router.push({
+    path: `/tabs/chapter/${currentBookDef.value?.slug || bookSlug.value}/${ch}`,
+    query: { d: String(route.query.d || '') || undefined }
+  })
+}
+const currentBookDef = computed(() => {
+  const key = String(bookKey.value).toLowerCase()
+  return BOOKS.find(
+    b =>
+      b.key.toLowerCase() === key ||
+      b.slug.toLowerCase() === key
+  ) || null
+})
+
+const prevChapter = computed(() => {
+  return chapterNum.value > 1 ? chapterNum.value - 1 : null
+})
+
+const nextChapter = computed(() => {
+  const max = currentBookDef.value?.maxChapters || 1
+  return chapterNum.value < max ? chapterNum.value + 1 : null
+})
 /* =========================
    SCROLL SAVE/RESTORE (kept)
 ========================= */
 const contentRef = ref<any>(null)
+  const chapterTitleRef = ref<HTMLElement | null>(null)
 let restoreScroll = false
 let lastScrollTop = 0
 
@@ -491,10 +609,10 @@ async function scrollToVerse(verseNum: number) {
   }
 }
 
-onIonViewDidEnter(async () => {
-  await nextTick()
-  await restoreScrollPos()
-})
+//onIonViewDidEnter(async () => {
+  //await nextTick()
+ // await restoreScrollPos()
+//})
 
 onIonViewWillLeave(() => {
   openVerse.value = null
@@ -515,7 +633,7 @@ const showRefsModal = ref(false)
 const refsModalLoading = ref(false)
 const refsModalItems = ref<RefPreviewItem[]>([])
 const refsModalVerse = ref<number | null>(null)
-
+  const settingsOpen = ref(false)
 function getRefs(n: number): RefLink[] {
   return getRefsFor(bookKey.value, chapterNum.value, n)
 }
@@ -885,7 +1003,7 @@ async function jumpToVerseFromQuery() {
   await scrollToVerse(qv)
   flashVerseOnce(qv)
 }
-
+const shouldScrollToChapterTitle = ref(false)
 watch(
   () => [route.query.v, verses.value.length],
   async () => {
@@ -894,7 +1012,32 @@ watch(
   },
   { immediate: true }
 )
+watch(
+  () => [route.params.bookKey, route.params.chapter],
+  async () => {
+    const shouldScroll = shouldScrollToChapterTitle.value
+    try {
+      data.value = null
+      tafsirRows.value = []
+      openVerse.value = null
+      bmCounts.value = {}
+      bmMe.value = {}
 
+      await loadChapter()
+      await loadTafsirOnce()
+      attachBmListeners()
+
+      await nextTick()
+
+      if (shouldScroll) {
+        shouldScrollToChapterTitle.value = false
+        await scrollToChapterTitle()
+}
+    } catch (e) {
+      console.error(e)
+    }
+  }
+)
 /* =========================
    SECTIONS (kept)
 ========================= */
@@ -1794,5 +1937,182 @@ onMounted(async () => {
 }
 :global(html[data-mk-theme="dark"]) .tafsirImage {
   border-color: rgba(255,255,255,0.12);
+}
+.chapterSettingsAcc {
+  margin: 10px 0 12px;
+  border: 1px solid var(--mk-border);
+  border-radius: 18px;
+  background: var(--mk-card);
+  box-shadow: var(--mk-shadow);
+  overflow: hidden;
+}
+
+.chapterSettingsHead {
+  width: 100%;
+  border: 0;
+  padding: 13px 14px;
+  background:
+    radial-gradient(600px 200px at 20% 0%, rgba(31, 182, 170, 0.18), transparent 60%),
+    var(--mk-card);
+  color: var(--mk-text);
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  font-size: calc(14px * var(--mk-font-scale));
+  font-weight: 1000;
+}
+
+.settingsChevron {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(31, 182, 170, 0.12);
+  border: 1px solid rgba(31, 182, 170, 0.20);
+  transition: transform 0.2s ease;
+}
+
+.settingsChevron.open {
+  transform: rotate(180deg);
+}
+
+.chapterSettingsBody {
+  padding: 10px;
+  border-top: 1px solid var(--mk-border);
+}
+.settingsChevron {
+  width: 24px;
+  height: 24px;
+  padding: 7px;
+  border-radius: 50%;
+  background: rgba(31,182,170,.12);
+  border: 1px solid rgba(31,182,170,.18);
+  transition: transform .25s ease;
+}
+.chapterNav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.chapterNavTop {
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.chapterNavBottom {
+  margin-top: 18px;
+  margin-bottom: 8px;
+}
+
+.chapterNavBtn {
+  min-height: 50px;
+  border: 1px solid rgba(31, 182, 170, 0.28);
+  border-radius: 18px;
+  padding: 10px 12px;
+
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 209, 102, 0.16), transparent 34%),
+    linear-gradient(135deg, rgba(31, 182, 170, 0.20), rgba(124, 219, 255, 0.12)),
+    rgba(255, 255, 255, 0.94);
+
+  color: #0b2b40;
+  box-shadow:
+    0 10px 24px rgba(15, 27, 47, 0.10),
+    inset 0 1px 0 rgba(255,255,255,0.75);
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  font-size: calc(13px * var(--mk-font-scale));
+  font-weight: 1000;
+}
+
+.navIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+
+  background: rgba(31, 182, 170, 0.18);
+  border: 1px solid rgba(31, 182, 170, 0.28);
+  color: #1fb6aa;
+
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 1000;
+  padding-bottom: 3px;
+}
+
+.chapterNavBtn.next {
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 209, 102, 0.20), transparent 34%),
+    linear-gradient(135deg, rgba(255, 209, 102, 0.18), rgba(31, 182, 170, 0.16)),
+    rgba(255, 255, 255, 0.96);
+}
+
+.chapterNavBtn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  filter: grayscale(0.45);
+}
+
+.chapterNavBtn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+:global(html[data-mk-theme="dark"]) .chapterNavBtn {
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 209, 102, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(31, 182, 170, 0.16), rgba(124, 219, 255, 0.08)),
+    rgba(255,255,255,0.07);
+  color: #fff;
+}
+
+:global(html[data-mk-theme="dark"]) .navIcon {
+  background: rgba(40, 214, 204, 0.14);
+  border-color: rgba(40, 214, 204, 0.22);
+  color: #28d6cc;
+}
+
+
+.chapterPageTitle {
+  text-align: center;
+
+  margin: 10px 0 14px;
+  padding: 12px 16px;
+
+  font-family: "Noto Kufi Arabic", system-ui, sans-serif;
+  font-size: calc(22px * var(--mk-font-scale));
+  font-weight: 1000;
+  line-height: 1.4;
+
+  color: var(--mk-text);
+
+  border-radius: 18px;
+
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 209, 102, 0.16), transparent 35%),
+    linear-gradient(135deg, rgba(31, 182, 170, 0.14), rgba(124, 219, 255, 0.08)),
+    var(--mk-card);
+
+  border: 1px solid rgba(31, 182, 170, 0.18);
+
+  box-shadow:
+    0 10px 24px rgba(15, 27, 47, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.7);
 }
 </style>
