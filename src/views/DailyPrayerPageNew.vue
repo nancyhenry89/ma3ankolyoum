@@ -189,7 +189,7 @@ async function load() {
   console.log("PRAYER PAGE →", selectedDateIso.value, weekdayKey.value)
 
   try { 
-    const data = await fetchPrayerForWeekdayNew(weekdayKey.value)    
+    const data = await fetchPrayerForWeekdayNew(weekdayKey.value, true) 
     pageTitle.value = data.pageTitle || getDefaultPageTitle(weekdayKey.value)
     sections.value = data.sections || []
     openIndex.value = data.defaultOpenIndex >= 0 ? data.defaultOpenIndex : 0

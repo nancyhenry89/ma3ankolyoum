@@ -55,14 +55,14 @@ const routes: Array<RouteRecordRaw> = [
   { path: '/books', redirect: '/tabs/books' },
 { path: '/book/:bookId', component: () => import('@/views/BookTocPage.vue') },
 { path: '/book/:bookId/:chapterId/:sectionId', component: () => import('@/views/BookReaderPage.vue') },
-
+{
+  path: "/daily-prayer-new",
+  name: "daily-prayer",
+  component: DailyPrayerPage,
+},
   // ===== Fallback =====
-  { path: '/:pathMatch(.*)*', redirect: '/tabs/home' },
-  {
-    path: "/daily-prayer",
-    name: "daily-prayer",
-    component: DailyPrayerPage,
-  }
+  { path: '/:pathMatch(.*)*', redirect: '/tabs/home' }
+
 ]
 
 const router = createRouter({

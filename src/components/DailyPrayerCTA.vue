@@ -42,7 +42,7 @@ async function load() {
   console.log("CTA →", props.dateIso, weekdayKey.value)
 
   try {
-    const data = await fetchPrayerForWeekdayNew(weekdayKey.value)
+    const data = await fetchPrayerForWeekdayNew(weekdayKey.value, true)
     ctaTitle.value = data.ctaTitle || fallbackTitle.value
     visible.value = Array.isArray(data.sections) && data.sections.length > 0
   } catch (e) {
