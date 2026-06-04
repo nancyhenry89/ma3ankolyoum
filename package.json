@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "deploy": "npm run build && gh-pages -d dist",
     "generate:bible-manifest": "node scripts/generateBibleManifest.cjs",
-    "build": "vue-tsc && vite build && npm run generate:bible-manifest"
+"build": "npm run generate:bible-manifest && vue-tsc && vite build"
 
   },
   "dependencies": {
