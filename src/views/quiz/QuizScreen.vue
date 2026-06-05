@@ -130,8 +130,8 @@
   const timer = ref(0);
   
   const letters = ["A", "B", "C", "D"];
-  const joinUrl = `${window.location.origin}/quiz`;
-  
+  const joinUrl =
+  `${window.location.origin}${window.location.pathname}#/quiz`;
   let unsubQuiz: null | (() => void) = null;
   let unsubPlayers: null | (() => void) = null;
   let unsubAnswers: null | (() => void) = null;
