@@ -60,6 +60,18 @@ const routes: Array<RouteRecordRaw> = [
   name: "DailyPrayerNew",
   component: DailyPrayerPage,
 },
+{
+  path: "/quiz",
+  component: () => import("@/views/quiz/QuizJoin.vue"),
+},
+{
+  path: "/quiz/screen",
+  component: () => import("@/views/quiz/QuizScreen.vue"),
+},
+{
+  path: "/quiz/admin",
+  component: () => import("@/views/quiz/QuizAdmin.vue"),
+},
   // ===== Fallback =====
   { path: '/:pathMatch(.*)*', redirect: '/tabs/home' }
 
