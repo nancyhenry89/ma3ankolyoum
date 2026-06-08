@@ -47,10 +47,14 @@
   .quiz-subtitle {
     margin-bottom: 24px;
     text-align: center;
-    color: #685879;
-    font-size: 17px;
+    color: #3cb3bb;
+    font-size: 33px;
+    font-weight: bold;
   }
-  
+  h1 + p.quiz-subtitle {
+    font-size: 17px;
+    color:#000
+}
   .quiz-input,
   .quiz-textarea,
   .quiz-select {
@@ -144,9 +148,7 @@
   }
   
   .quiz-option:hover {
-    transform: translateY(-2px);
-    border-color: #ff4d6d;
-    box-shadow: 0 16px 30px rgba(255, 77, 109, 0.15);
+
   }
   
   .quiz-option.selected {
