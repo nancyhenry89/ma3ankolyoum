@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-09T10:59:55.559Z",
+  "generatedAt": "2026-06-10T07:20:44.921Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -293,28 +293,28 @@
       "bookSlug": "acts",
       "chapter": 17,
       "path": "bible/acts/17.json",
-      "hash": "1d9339fe5306b696e702e8aa5c1e22fe6f5052e4"
+      "hash": "1c6e32dd24deb3d38a3629dc915c61841d6e8c5c"
     },
     {
       "key": "acts/18",
       "bookSlug": "acts",
       "chapter": 18,
       "path": "bible/acts/18.json",
-      "hash": "0704fab8d47303921c72d0ac496f26dbf3b56039"
+      "hash": "d3262ab1d6757d90d4494c31f9969ae4b2a63a84"
     },
     {
       "key": "acts/19",
       "bookSlug": "acts",
       "chapter": 19,
       "path": "bible/acts/19.json",
-      "hash": "ce2b4101bfb76a4822006efd94493f1c88df0d9f"
+      "hash": "9bcaf14d31d2ff488b828326bd82af14bfa02015"
     },
     {
       "key": "acts/20",
       "bookSlug": "acts",
       "chapter": 20,
       "path": "bible/acts/20.json",
-      "hash": "a1a77156a18c2bbf6e87bd3d10fe1d9bbc52a81f"
+      "hash": "d6d099540e783868bbe5afa19fe53bf5e2693969"
     },
     {
       "key": "acts/21",
