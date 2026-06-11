@@ -1,0 +1,1 @@
+const n="mk_joined_conferences";function t(){return JSON.parse(localStorage.getItem(n)||"[]")}function c(o){const e=new Set(t());e.add(o),localStorage.setItem(n,JSON.stringify([...e]))}export{t as g,c as s};

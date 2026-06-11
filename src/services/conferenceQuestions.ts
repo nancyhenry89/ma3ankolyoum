@@ -14,7 +14,9 @@ import {
   
   export async function submitQuestion(conferenceId: string, text: string) {
     const user = await ensureAnonymousUser();
-  
+    if (!user) {
+        throw new Error("Could not sign in anonymously");
+      }
     await addDoc(collection(db, "conferences", conferenceId, "questions"), {
       text,
       authorId: user.uid,
@@ -74,7 +76,9 @@ import {
     text: string
   ) {
     const user = await ensureAnonymousUser();
-  
+    if (!user) {
+        throw new Error("Could not sign in anonymously");
+      }
     await addDoc(
       collection(
         db,

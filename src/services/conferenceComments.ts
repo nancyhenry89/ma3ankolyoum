@@ -19,7 +19,10 @@ import {
     text: string;
   }) {
     const user = await ensureAnonymousUser();
-  
+    if (!user) {
+        throw new Error("Could not sign in anonymously");
+      }
+      
     await addDoc(collection(db, "conferences", params.conferenceId, "comments"), {
       targetType: params.targetType,
       targetId: params.targetId,

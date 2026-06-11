@@ -1,0 +1,1 @@
+System.register([],function(e,t){"use strict";return{execute:function(){e({g:n,s:function(e){const c=new Set(n());c.add(e),localStorage.setItem(t,JSON.stringify([...c]))}});const t="mk_joined_conferences";function n(){return JSON.parse(localStorage.getItem(t)||"[]")}}}});
