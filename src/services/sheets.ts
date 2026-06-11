@@ -301,3 +301,278 @@ export async function fetchNourAlAlam(force = false): Promise<NourEpisodeRow[]> 
 
   return rows
 }
+
+
+
+
+/* =========================
+   4) Conferences sheets
+========================= */
+
+export type ConferenceRow = {
+  conference_id: string
+  title: string
+  subtitle: string
+  logo_url: string
+  code: string
+  password: string
+  status: 'upcoming' | 'live' | 'ended' | 'archived' | string
+  start_date: string
+  end_date: string
+  allow_questions: boolean
+  allow_replies: boolean
+}
+
+export type ConferenceScheduleRow = {
+  conference_id: string
+  day: string
+  start_time: string
+  end_time: string
+  start_ampm: string
+  end_ampm: string
+  ampm: string
+  title: string
+  speaker: string
+  location: string
+}
+
+export type ConferenceAnnouncementRow = {
+  conference_id: string
+  id: string
+  title: string
+  body: string
+  pinned: boolean
+}
+
+export type ConferenceBibleStudyRow = {
+  conference_id: string
+  id: string
+  title: string
+  verses: string
+  rich_text: string
+}
+
+export type ConferenceQuoteRow = {
+  conference_id: string
+  id: string
+  text: string
+  author: string
+}
+
+export type ConferenceLinkRow = {
+  conference_id: string
+  title: string
+  type: string
+  url: string
+}
+
+export type ConferenceRecordingRow = {
+  conference_id: string
+  title: string
+  speaker: string
+  audio_url: string
+}
+
+function toBool(v: any): boolean {
+  const s = String(v ?? '').trim().toLowerCase()
+  return s === 'true' || s === '1' || s === 'yes' || s === 'y'
+}
+
+async function fetchCsvRows(csvUrl: string, force = false): Promise<any[]> {
+  const res = await fetch(csvUrl, {
+    cache: force ? 'no-store' : 'default'
+  })
+
+  if (!res.ok) {
+    throw new Error(`CSV fetch failed: ${res.status}`)
+  }
+
+  const csv = await res.text()
+
+  const parsed = Papa.parse<any>(csv, {
+    header: true,
+    skipEmptyLines: true,
+    transformHeader: (h) =>
+      String(h || '')
+        .replace(/\uFEFF/g, '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '_'),
+  })
+
+  return (parsed.data || []).map((raw: any) => normalizeKeys(raw))
+}
+
+/**
+ * Replace these gid numbers with your real tab gid values.
+ */
+const CONFERENCE_BASE =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_LP5XkWyOOYnRgJjVnfKCK0dG7JM3Tf2ql5IqNk9rfKeYHX-DkX43lhp8QW6_M8qOblK2LZUzPn5-/pub'
+  export const CONFERENCE_SHEETS = {
+    conferences:
+      `${CONFERENCE_BASE}?gid=0&single=true&output=csv`,
+  
+    schedule:
+      `${CONFERENCE_BASE}?gid=1569604923&single=true&output=csv`,
+  
+    announcements:
+      `${CONFERENCE_BASE}?gid=125958145&single=true&output=csv`,
+  
+    bibleStudies:
+      `${CONFERENCE_BASE}?gid=1631359971&single=true&output=csv`,
+  
+    quotes:
+      `${CONFERENCE_BASE}?gid=1185059986&single=true&output=csv`,
+  
+    links:
+      `${CONFERENCE_BASE}?gid=1422873337&single=true&output=csv`,
+  
+    recordings:
+      `${CONFERENCE_BASE}?gid=2145785457&single=true&output=csv`,
+  }
+
+let conferencesCache: ConferenceRow[] | null = null
+
+export async function fetchConferences(force = false): Promise<ConferenceRow[]> {
+  if (!force && conferencesCache) return conferencesCache
+
+  const rows = await fetchCsvRows(CONFERENCE_SHEETS.conferences, force)
+
+  const mapped: ConferenceRow[] = rows
+    .map((r: any) => ({
+      conference_id: pick(r, 'conference_id', 'id'),
+      title: pick(r, 'title'),
+      subtitle: pick(r, 'subtitle'),
+      logo_url: pick(r, 'logo_url', 'logo'),
+      code: pick(r, 'code', 'access_code'),
+      password: pick(r, 'password', 'pass'),
+      status: pick(r, 'status') || 'live',
+      start_date: toISO10(pick(r, 'start_date')),
+      end_date: toISO10(pick(r, 'end_date')),
+      allow_questions: toBool(pick(r, 'allow_questions')),
+      allow_replies: toBool(pick(r, 'allow_replies')),
+    }))
+    .filter((r) => r.conference_id && r.code && r.password)
+
+  conferencesCache = mapped
+  return mapped
+}
+
+export async function findConferenceByAccess(
+  code: string,
+  password: string
+): Promise<ConferenceRow | null> {
+  const rows = await fetchConferences(true)
+
+  return (
+    rows.find(
+      (c) =>
+        c.code.trim().toLowerCase() === code.trim().toLowerCase() &&
+        c.password.trim() === password.trim()
+    ) || null
+  )
+}
+
+export async function fetchConferenceSchedule(
+  conferenceId: string,
+  force = false
+): Promise<ConferenceScheduleRow[]> {
+  const rows = await fetchCsvRows(CONFERENCE_SHEETS.schedule, force)
+
+  return rows
+  .map((r: any) => ({
+    conference_id: pick(r, 'conference_id'),
+    day: pick(r, 'day', 'date'),
+    start_time: pick(r, 'start_time', 'start'),
+    end_time: pick(r, 'end_time', 'end'),
+    start_ampm: pick(r, 'start_ampm', 'start_period'),
+    end_ampm: pick(r, 'end_ampm', 'end_period'),
+    ampm: pick(r, 'ampm', 'ap', 'period'),
+    title: pick(r, 'title'),
+    speaker: pick(r, 'speaker'),
+    location: pick(r, 'location'),
+  }))
+    .filter((r) => r.conference_id === conferenceId)
+}
+
+export async function fetchConferenceAnnouncements(
+  conferenceId: string,
+  force = false
+): Promise<ConferenceAnnouncementRow[]> {
+  const rows = await fetchCsvRows(CONFERENCE_SHEETS.announcements, force)
+
+  return rows
+    .map((r: any) => ({
+      conference_id: pick(r, 'conference_id'),
+      id: pick(r, 'id'),
+      title: pick(r, 'title'),
+      body: pick(r, 'body', 'text'),
+      pinned: toBool(pick(r, 'pinned')),
+    }))
+    .filter((r) => r.conference_id === conferenceId)
+}
+
+export async function fetchConferenceBibleStudies(
+  conferenceId: string,
+  force = false
+): Promise<ConferenceBibleStudyRow[]> {
+  const rows = await fetchCsvRows(CONFERENCE_SHEETS.bibleStudies, force)
+
+  return rows
+    .map((r: any) => ({
+      conference_id: pick(r, 'conference_id'),
+      id: pick(r, 'id'),
+      title: pick(r, 'title'),
+      verses: pick(r, 'verses'),
+      rich_text: pick(r, 'rich_text', 'content'),
+    }))
+    .filter((r) => r.conference_id === conferenceId)
+}
+
+export async function fetchConferenceQuotes(
+  conferenceId: string,
+  force = false
+): Promise<ConferenceQuoteRow[]> {
+  const rows = await fetchCsvRows(CONFERENCE_SHEETS.quotes, force)
+
+  return rows
+    .map((r: any) => ({
+      conference_id: pick(r, 'conference_id'),
+      id: pick(r, 'id'),
+      text: pick(r, 'text', 'quote'),
+      author: pick(r, 'author'),
+    }))
+    .filter((r) => r.conference_id === conferenceId)
+}
+
+export async function fetchConferenceLinks(
+  conferenceId: string,
+  force = false
+): Promise<ConferenceLinkRow[]> {
+  const rows = await fetchCsvRows(CONFERENCE_SHEETS.links, force)
+
+  return rows
+    .map((r: any) => ({
+      conference_id: pick(r, 'conference_id'),
+      title: pick(r, 'title'),
+      type: pick(r, 'type'),
+      url: pick(r, 'url', 'link'),
+    }))
+    .filter((r) => r.conference_id === conferenceId)
+}
+
+export async function fetchConferenceRecordings(
+  conferenceId: string,
+  force = false
+): Promise<ConferenceRecordingRow[]> {
+  const rows = await fetchCsvRows(CONFERENCE_SHEETS.recordings, force)
+
+  return rows
+    .map((r: any) => ({
+      conference_id: pick(r, 'conference_id'),
+      title: pick(r, 'title'),
+      speaker: pick(r, 'speaker'),
+      audio_url: pick(r, 'audio_url', 'url'),
+    }))
+    .filter((r) => r.conference_id === conferenceId)
+}

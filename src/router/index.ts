@@ -64,6 +64,51 @@ const routes: Array<RouteRecordRaw> = [
   path: "/quiz",
   component: () => import("@/views/quiz/QuizJoin.vue"),
 },
+// router/index.ts
+{
+  path: "/conferences",
+  component: () => import("@/views/conferences/ConferencesPage.vue"),
+},
+{
+  path: "/conference/:id",
+  component: () => import("@/views/conferences/ConferenceHomePage.vue"),
+},
+{
+  path: "/conference/:id/questions",
+  component: () => import("@/views/conferences/QuestionsPage.vue"),
+},
+{
+  path: '/conference/:id/admin',
+  component: () => import('@/views/conferences/AdminConferencePage.vue'),
+},
+{
+  path: '/conference/:id/bible-studies',
+  component: () => import('@/views/conferences/BibleStudiesPage.vue'),
+},{
+  path: '/conference/:id/admin-schedule',
+  component: () => import('@/views/conferences/AdminSchedulePage.vue'),
+},
+{
+  path: '/conference/:id',
+  component: () => import('@/views/conferences/ConferenceHomePage.vue'),
+},{
+  path: '/conferences/join',
+  component: () => import('@/views/conferences/JoinConferencePage.vue'),
+},{
+  path: '/conference/:id/links',
+  component: () => import('@/views/conferences/LinksPage.vue'),
+},
+{
+  path: '/conference/:id/quotes',
+  component: () => import('@/views/conferences/QuotesPage.vue'),
+},
+{
+  path: '/conference/:id/recordings',
+  component: () => import('@/views/conferences/RecordingsPage.vue'),
+},{
+  path: '/conference/:id/schedule',
+  component: () => import('@/views/conferences/SchedulePage.vue'),
+},
 {
   path: "/quiz/screen",
   component: () => import("@/views/quiz/QuizScreen.vue"),

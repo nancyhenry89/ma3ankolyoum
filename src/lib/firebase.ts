@@ -51,3 +51,7 @@ export async function ensureAnonAuth() {
     return null;
   }
 }
+
+export async function ensureAnonymousUser() {
+  return ensureAnonAuth();
+}

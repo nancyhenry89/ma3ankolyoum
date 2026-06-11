@@ -67,7 +67,7 @@
             </ion-button>
 
             <!-- Brand -->
-            <div class="brand">
+            <div class="brand" @click="onLogoSecretTap">
               <template v-if="isArabic">
                 <div class="brand_name">معاً كل يوم</div>
                 <div class="accent">مع</div>
@@ -80,7 +80,18 @@
                 <div class="abouna">Fr. Yohanna Baky</div>
               </template>
             </div>
-
+            <div
+  v-if="hasJoinedConferenceAccess"
+  class="conferenceHomeBtnWrap mkNoCapture"
+>
+  <button
+    class="conferenceHomeBtn"
+    type="button"
+    @click="openMyConferences"
+  >
+    🎟️ {{ isArabic ? 'مؤتمراتي' : 'My Conferences' }}
+  </button>
+</div>
             <!-- Stores badges (Web only) -->
             <div class="storesSoon mkNoCapture" v-if="isWeb && !isLoading && !noData">
               <div class="storesTitle">{{ ui.comingSoon }}</div>
@@ -783,7 +794,7 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { IonMenuButton } from '@ionic/vue'
 import SpiritualNotesCard from "@/components/SpiritualNotesCard.vue";
-
+import { getLocalJoinedConferences } from '@/services/conferenceLocal'
 import { App } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
 import { useIonRouter } from '@ionic/vue'
@@ -930,7 +941,33 @@ const pageDir = computed(() => (isArabic.value ? 'rtl' : 'ltr'))
 
 const router = useRouter()
 const route = useRoute()
+const conferenceTapCount = ref(0)
+let conferenceTapTimer: any = null
 
+const hasJoinedConferenceAccess = ref(false)
+
+function refreshConferenceAccess() {
+  hasJoinedConferenceAccess.value = getLocalJoinedConferences().length > 0
+}
+
+function onLogoSecretTap() {
+  conferenceTapCount.value++
+
+  clearTimeout(conferenceTapTimer)
+
+  conferenceTapTimer = setTimeout(() => {
+    conferenceTapCount.value = 0
+  }, 1500)
+
+  if (conferenceTapCount.value >= 7) {
+    conferenceTapCount.value = 0
+    router.push('/conferences/join')
+  }
+}
+
+function openMyConferences() {
+  router.push('/conferences')
+}
 function setLang(v: Lang) {
   lang.value = v
   localStorage.setItem('mk_lang', v)
@@ -954,6 +991,7 @@ onMounted(() => {
   App.addListener('backButton', () => {
     if (!ionRouter.canGoBack()) App.exitApp()
   })
+  refreshConferenceAccess()
 })
 
 function applyLangFromQueryOnce() {
@@ -3768,6 +3806,26 @@ onMounted(async () => {
   height: 0px;
   transition: height .2s ease;
 }
+.conferenceHomeBtnWrap {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0 4px;
+}
 
+.conferenceHomeBtn {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  background: #8b2f2f;
+  color: white;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.14);
+}
+
+.conferenceHomeBtn:active {
+  transform: scale(0.97);
+}
   </style>
   
