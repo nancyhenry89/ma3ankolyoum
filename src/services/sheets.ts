@@ -481,16 +481,18 @@ export async function fetchConferenceSchedule(
 
   return rows
   .map((r: any) => ({
-    conference_id: pick(r, 'conference_id'),
-    day: pick(r, 'day', 'date'),
-    start_time: pick(r, 'start_time', 'start'),
-    end_time: pick(r, 'end_time', 'end'),
-    start_ampm: pick(r, 'start_ampm', 'start_period'),
-    end_ampm: pick(r, 'end_ampm', 'end_period'),
-    ampm: pick(r, 'ampm', 'ap', 'period'),
-    title: pick(r, 'title'),
-    speaker: pick(r, 'speaker'),
-    location: pick(r, 'location'),
+    id: pick(r, 'id'),
+    ap: pick(r, 'ap', 'ampm', 'period'),
+  conference_id: pick(r, 'conference_id'),
+  day: pick(r, 'day', 'date'),
+  start_time: pick(r, 'start_time', 'start'),
+  start_ampm: pick(r, 'start_ampm', 'start_period'),
+  end_time: pick(r, 'end_time', 'end'),
+  end_ampm: pick(r, 'end_ampm', 'end_period'),
+  ampm: pick(r, 'ampm', 'ap', 'period'),
+  title: pick(r, 'title'),
+  speaker: pick(r, 'speaker'),
+  location: pick(r, 'location'),
   }))
     .filter((r) => r.conference_id === conferenceId)
 }
