@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-13T16:20:48.934Z",
+  "generatedAt": "2026-06-14T09:36:33.405Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -335,7 +335,7 @@
       "bookSlug": "acts",
       "chapter": 23,
       "path": "bible/acts/23.json",
-      "hash": "92a9d8914246be4d8f9e5d2d819aca59c39a62b1"
+      "hash": "22710b0f3ff4af2723ba6efa1a03bc679e89126f"
     },
     {
       "key": "acts/24",
