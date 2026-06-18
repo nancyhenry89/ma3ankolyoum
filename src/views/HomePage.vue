@@ -385,6 +385,8 @@
             <div class="skeleton-line short"></div>
           </div>
 
+
+          
         <!-- =========================
                TRAINING
           ========================== -->
