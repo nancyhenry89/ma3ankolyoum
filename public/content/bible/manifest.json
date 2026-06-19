@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-15T09:07:57.847Z",
+  "generatedAt": "2026-06-19T07:23:13.488Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -356,21 +356,21 @@
       "bookSlug": "acts",
       "chapter": 26,
       "path": "bible/acts/26.json",
-      "hash": "96e2e83e879481bbb4dd4e8c3b9033f41d96475e"
+      "hash": "847d4f6eb6f9438e03835a54fbaa90485cc7fdfd"
     },
     {
       "key": "acts/27",
       "bookSlug": "acts",
       "chapter": 27,
       "path": "bible/acts/27.json",
-      "hash": "54169df4f7b37e7192e4da4812ef42dd23cc7284"
+      "hash": "66e6b8051a67fdfce9a610811e7a238aa6d58fc4"
     },
     {
       "key": "acts/28",
       "bookSlug": "acts",
       "chapter": 28,
       "path": "bible/acts/28.json",
-      "hash": "26e77b2471d681b6ebb6cc7f4afb5ca92111fb3e"
+      "hash": "0fa7ffa265c8984090346b54e674b65c5f85cb37"
     },
     {
       "key": "exodus/1",
