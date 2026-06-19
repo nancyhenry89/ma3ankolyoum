@@ -384,9 +384,11 @@
             <div class="skeleton-line"></div>
             <div class="skeleton-line short"></div>
           </div>
-
-
-          
+          <DailyPrayerCTANew
+  v-if="lang === 'ar'"
+  :key="selectedDateISO"
+  :date-iso="selectedDateISO"
+/>  
         <!-- =========================
                TRAINING
           ========================== -->
