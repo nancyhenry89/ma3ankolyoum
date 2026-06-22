@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-19T09:01:36.174Z",
+  "generatedAt": "2026-06-22T10:31:43.088Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -1204,6 +1204,34 @@
       "chapter": 1,
       "path": "bible/nehemiah/1.json",
       "hash": "19a13bc54d60ca0286cf679d7f106bf719619809"
+    },
+    {
+      "key": "nehemiah/2",
+      "bookSlug": "nehemiah",
+      "chapter": 2,
+      "path": "bible/nehemiah/2.json",
+      "hash": "1db5cc3b22a92bbc7c81d0766ee22acaabcffa35"
+    },
+    {
+      "key": "nehemiah/3",
+      "bookSlug": "nehemiah",
+      "chapter": 3,
+      "path": "bible/nehemiah/3.json",
+      "hash": "5ff82f5a0a12586ebeda2ccdff4fc65436a82336"
+    },
+    {
+      "key": "nehemiah/4",
+      "bookSlug": "nehemiah",
+      "chapter": 4,
+      "path": "bible/nehemiah/4.json",
+      "hash": "cba82f6e5ed2ec6a12435f480eae0d93196b318f"
+    },
+    {
+      "key": "nehemiah/5",
+      "bookSlug": "nehemiah",
+      "chapter": 5,
+      "path": "bible/nehemiah/5.json",
+      "hash": "459572fe97197ddea2cd6b1236d2cb83093fee53"
     },
     {
       "key": "revelation/1",
