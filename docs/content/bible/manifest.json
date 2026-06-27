@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-22T11:45:49.749Z",
+  "generatedAt": "2026-06-27T17:52:15.452Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -1239,6 +1239,13 @@
       "chapter": 1,
       "path": "bible/numbers/1.json",
       "hash": "ba36b273b7276c8d9d76a14e65183fada3b62f79"
+    },
+    {
+      "key": "numbers/5",
+      "bookSlug": "numbers",
+      "chapter": 5,
+      "path": "bible/numbers/5.json",
+      "hash": "c1c05a6203703ae5a5ac90d907e3dcd508e10b7c"
     },
     {
       "key": "revelation/1",
