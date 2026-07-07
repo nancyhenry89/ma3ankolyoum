@@ -78,7 +78,7 @@ export const BOOKS: BookDef[] = [
  { key: 'Lamentations', slug: 'lamentations', nameAr: 'مراثي إرميا', maxChapters: 5, testament: 'ot' },
  { key: 'Baruch', slug: 'baruch', nameAr: 'باروخ', maxChapters: 6, testament: 'ot' },
  { key: 'Ezekiel', slug: 'ezekiel', nameAr: 'حزقيال', maxChapters: 48, testament: 'ot' },
- { key: 'Daniel', slug: 'daniel', nameAr: 'دانيال', maxChapters: 12, testament: 'ot' },
+ { key: 'Daniel', slug: 'daniel', nameAr: 'دانيال', maxChapters: 14, testament: 'ot' },
  
  // ===== Minor Prophets =====
  { key: 'Hosea', slug: 'hosea', nameAr: 'هوشع', maxChapters: 14, testament: 'ot' },
