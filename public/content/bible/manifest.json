@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-04T16:47:44.712Z",
+  "generatedAt": "2026-07-07T05:58:49.435Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -371,6 +371,104 @@
       "chapter": 28,
       "path": "bible/acts/28.json",
       "hash": "0fa7ffa265c8984090346b54e674b65c5f85cb37"
+    },
+    {
+      "key": "daniel/1",
+      "bookSlug": "daniel",
+      "chapter": 1,
+      "path": "bible/daniel/1.json",
+      "hash": "18c7bbb30b7e8dee0597a097e3856aec02f285f7"
+    },
+    {
+      "key": "daniel/2",
+      "bookSlug": "daniel",
+      "chapter": 2,
+      "path": "bible/daniel/2.json",
+      "hash": "844d452cd815c5db8dadeab7f3ac72818355537e"
+    },
+    {
+      "key": "daniel/3",
+      "bookSlug": "daniel",
+      "chapter": 3,
+      "path": "bible/daniel/3.json",
+      "hash": "1cef3e7391ee0470481297569ae6cc3de7fd4a0c"
+    },
+    {
+      "key": "daniel/4",
+      "bookSlug": "daniel",
+      "chapter": 4,
+      "path": "bible/daniel/4.json",
+      "hash": "b1026b7242a2ede577cdb5279f98d2ec4ddf3c4b"
+    },
+    {
+      "key": "daniel/5",
+      "bookSlug": "daniel",
+      "chapter": 5,
+      "path": "bible/daniel/5.json",
+      "hash": "d81502f963932e17a6fa65dfd5d8c102aad95aab"
+    },
+    {
+      "key": "daniel/6",
+      "bookSlug": "daniel",
+      "chapter": 6,
+      "path": "bible/daniel/6.json",
+      "hash": "76d8d16b129f617b8df09e85c0ac6fde0e59235d"
+    },
+    {
+      "key": "daniel/7",
+      "bookSlug": "daniel",
+      "chapter": 7,
+      "path": "bible/daniel/7.json",
+      "hash": "d7430e23e43ddbe633254cfe365fb11b87096d05"
+    },
+    {
+      "key": "daniel/8",
+      "bookSlug": "daniel",
+      "chapter": 8,
+      "path": "bible/daniel/8.json",
+      "hash": "352a1849118ab753032a2ff9c77bccf55a8abf14"
+    },
+    {
+      "key": "daniel/9",
+      "bookSlug": "daniel",
+      "chapter": 9,
+      "path": "bible/daniel/9.json",
+      "hash": "975b7e656f125b64da48db6b4416c5ced50cc713"
+    },
+    {
+      "key": "daniel/10",
+      "bookSlug": "daniel",
+      "chapter": 10,
+      "path": "bible/daniel/10.json",
+      "hash": "cf390ba78089a5900536cc794bb69038f05aec3e"
+    },
+    {
+      "key": "daniel/11",
+      "bookSlug": "daniel",
+      "chapter": 11,
+      "path": "bible/daniel/11.json",
+      "hash": "b51ce0b2f7c0bc32e8c29fa9f77fb50bffa3e362"
+    },
+    {
+      "key": "daniel/12",
+      "bookSlug": "daniel",
+      "chapter": 12,
+      "path": "bible/daniel/12.json",
+      "hash": "620ecb92ac0ebd3c92cc39d65f40d1fa07c2b056"
+    },
+    {
+      "key": "daniel/13",
+      "bookSlug": "daniel",
+      "chapter": 13,
+      "path": "bible/daniel/13.json",
+      "hash": "4e89fe838b5080d0c4ccc5108aab1063294507cf"
+    },
+    {
+      "key": "daniel/14",
+      "bookSlug": "daniel",
+      "chapter": 14,
+      "path": "bible/daniel/14.json",
+      "hash": "aa5a886bff4af6830d805ad2c47c67ecb4a04855"
     },
     {
       "key": "exodus/1",
@@ -1323,6 +1421,13 @@
       "chapter": 15,
       "path": "bible/numbers/15.json",
       "hash": "635e697becbd7c31e2daa9d8bb8224bdf5fdb48e"
+    },
+    {
+      "key": "numbers/16",
+      "bookSlug": "numbers",
+      "chapter": 16,
+      "path": "bible/numbers/16.json",
+      "hash": "dcb512d9af8f642dcbb6a399f8c97c154aa193eb"
     },
     {
       "key": "revelation/1",
