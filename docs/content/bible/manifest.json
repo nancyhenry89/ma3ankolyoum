@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-19T09:23:43.924Z",
+  "generatedAt": "2026-07-31T04:17:15.823Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -42,6 +42,13 @@
       "chapter": 1,
       "path": "bible/1samuel/1.json",
       "hash": "acacd880081e066508d325cb2a0768ddfad9f60e"
+    },
+    {
+      "key": "1samuel/2",
+      "bookSlug": "1samuel",
+      "chapter": 2,
+      "path": "bible/1samuel/2.json",
+      "hash": "49e495aca90661af3c52d07ee04010784b3735cd"
     },
     {
       "key": "1thessalonians/1",
@@ -832,7 +839,7 @@
       "bookSlug": "luke",
       "chapter": 1,
       "path": "bible/luke/1.json",
-      "hash": "23c2476e6f291295c8d5dc87f98e0a0c23245171"
+      "hash": "74e8d6a6c8b855469854649d4a333255e80c43c1"
     },
     {
       "key": "luke/2",
