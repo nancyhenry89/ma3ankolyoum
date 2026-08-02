@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-01T04:48:50.240Z",
+  "generatedAt": "2026-08-02T16:16:47.033Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -1792,6 +1792,13 @@
       "chapter": 44,
       "path": "bible/sirach/44.json",
       "hash": "08ca427d7f600f04a6d4ebdecb7d4cd9ce16da85"
+    },
+    {
+      "key": "sirach/45",
+      "bookSlug": "sirach",
+      "chapter": 45,
+      "path": "bible/sirach/45.json",
+      "hash": "cfdc3ae3011318a9ba7356ad9db4c6626eb19241"
     }
   ]
 }
