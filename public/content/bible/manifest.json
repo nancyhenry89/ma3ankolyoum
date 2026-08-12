@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-09T09:41:34.941Z",
+  "generatedAt": "2026-08-12T07:38:49.072Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -930,14 +930,14 @@
       "bookSlug": "luke",
       "chapter": 14,
       "path": "bible/luke/14.json",
-      "hash": "4a8f3880d5ec8ed691b58143847153883738f7e8"
+      "hash": "a4946fef6e7b98df250a8b52083e190d85398ca4"
     },
     {
       "key": "luke/15",
       "bookSlug": "luke",
       "chapter": 15,
       "path": "bible/luke/15.json",
-      "hash": "4dfc7c4b1c66136b299073c11ccf7db981097f6b"
+      "hash": "76e1c64b2def90cdc6bb01cb86c3902c3ff866e7"
     },
     {
       "key": "luke/16",
