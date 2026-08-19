@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-16T20:07:17.905Z",
+  "generatedAt": "2026-08-18T12:02:46.597Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -839,119 +839,119 @@
       "bookSlug": "luke",
       "chapter": 1,
       "path": "bible/luke/1.json",
-      "hash": "74e8d6a6c8b855469854649d4a333255e80c43c1"
+      "hash": "71938e06b6664bcdb12ec7f8cf6c2fe0a121a77a"
     },
     {
       "key": "luke/2",
       "bookSlug": "luke",
       "chapter": 2,
       "path": "bible/luke/2.json",
-      "hash": "a38046415d190a53411dee902c3e42894f5b77b3"
+      "hash": "6c5babcce2bbd4d4563cdfb226f1c2b00a04e86f"
     },
     {
       "key": "luke/3",
       "bookSlug": "luke",
       "chapter": 3,
       "path": "bible/luke/3.json",
-      "hash": "9de27602e8ad207b6c6f3bf863e2e3596c5f3bc0"
+      "hash": "72fee671aa84a2f601c401ce33693440aaa853e8"
     },
     {
       "key": "luke/4",
       "bookSlug": "luke",
       "chapter": 4,
       "path": "bible/luke/4.json",
-      "hash": "508f3edcdfc716218300b7ae006b4be44f54d93e"
+      "hash": "dbd2b53625f6fae293d8de164e8178a24615a018"
     },
     {
       "key": "luke/5",
       "bookSlug": "luke",
       "chapter": 5,
       "path": "bible/luke/5.json",
-      "hash": "cd70ce856b4b7c5dd49b03c155f63c9534df013b"
+      "hash": "c0f20c0ec5de77a4c42d33c4405b55276b5d5cfc"
     },
     {
       "key": "luke/6",
       "bookSlug": "luke",
       "chapter": 6,
       "path": "bible/luke/6.json",
-      "hash": "4e307d7d610d485e611db5d9f219a6d0d6f16664"
+      "hash": "1926b92777787ffd9a68641ef5d68a1ca596c014"
     },
     {
       "key": "luke/7",
       "bookSlug": "luke",
       "chapter": 7,
       "path": "bible/luke/7.json",
-      "hash": "920fc6d8e8b98b9eacc3d68586e0d772205fc1c0"
+      "hash": "a77eaabb6c3f2b62876ff1576196ef587f247e76"
     },
     {
       "key": "luke/8",
       "bookSlug": "luke",
       "chapter": 8,
       "path": "bible/luke/8.json",
-      "hash": "8dd299ac7c6ccf89c1e2e8ccfdacfa67f863d6a2"
+      "hash": "829aec7e5f03a60c2f72b0af968873281e250f4a"
     },
     {
       "key": "luke/9",
       "bookSlug": "luke",
       "chapter": 9,
       "path": "bible/luke/9.json",
-      "hash": "f9ca7b2b1d4607bc394408d9c99674ca865d2102"
+      "hash": "7d730ac68cfc119f4e181c75e22cdde350720349"
     },
     {
       "key": "luke/10",
       "bookSlug": "luke",
       "chapter": 10,
       "path": "bible/luke/10.json",
-      "hash": "cc38e8c4b79e66cd64f0660165519fc55929bd48"
+      "hash": "09e07c0c932c16009eb6b752281016278d1e72d8"
     },
     {
       "key": "luke/11",
       "bookSlug": "luke",
       "chapter": 11,
       "path": "bible/luke/11.json",
-      "hash": "10e58ccd5e0905254eb49a402cb2a196d669c8b8"
+      "hash": "9e30571a566199241c5c0ee6d5be865657247937"
     },
     {
       "key": "luke/12",
       "bookSlug": "luke",
       "chapter": 12,
       "path": "bible/luke/12.json",
-      "hash": "ee96ee78427ac9c4166665d21caa3e4ca77ba7ab"
+      "hash": "b22bae462308c30f2cb758a1e0f3689499b48715"
     },
     {
       "key": "luke/13",
       "bookSlug": "luke",
       "chapter": 13,
       "path": "bible/luke/13.json",
-      "hash": "b4c3251fba8179516736d32d8038589fa7573f5b"
+      "hash": "9f6d6761ca7f732b6a9d9c8173d158fba5dd9126"
     },
     {
       "key": "luke/14",
       "bookSlug": "luke",
       "chapter": 14,
       "path": "bible/luke/14.json",
-      "hash": "a4946fef6e7b98df250a8b52083e190d85398ca4"
+      "hash": "892f610686e41c06c1967c1202b39b5f4cb59c7b"
     },
     {
       "key": "luke/15",
       "bookSlug": "luke",
       "chapter": 15,
       "path": "bible/luke/15.json",
-      "hash": "76e1c64b2def90cdc6bb01cb86c3902c3ff866e7"
+      "hash": "1cd4357c46f3b31dd2019710ce8d3ccfe1a40046"
     },
     {
       "key": "luke/16",
       "bookSlug": "luke",
       "chapter": 16,
       "path": "bible/luke/16.json",
-      "hash": "3a9471f730bcb2ced123e30050520b33ae2ff1b1"
+      "hash": "d1b6cf97fb244a8d7d5bf8315f18ec2a1e08f3c3"
     },
     {
       "key": "luke/17",
       "bookSlug": "luke",
       "chapter": 17,
       "path": "bible/luke/17.json",
-      "hash": "ef1f342cb18e3d56bfa09438d4a2fb5bf1c92345"
+      "hash": "a6dde7f512a9bef30dbc00b88efe90b42dcb67be"
     },
     {
       "key": "luke/18",
@@ -965,42 +965,42 @@
       "bookSlug": "luke",
       "chapter": 19,
       "path": "bible/luke/19.json",
-      "hash": "d577128c81ccc5ea060e0e2d0412c575af22aba4"
+      "hash": "3e1b25fbb8c77644ef457bb17308cca69c3129c4"
     },
     {
       "key": "luke/20",
       "bookSlug": "luke",
       "chapter": 20,
       "path": "bible/luke/20.json",
-      "hash": "b6c67f1ea6f4f7ff40f692991d55473b0cc80642"
+      "hash": "99d5a2cc07abef42c194c3d632c9cd211835fcf0"
     },
     {
       "key": "luke/21",
       "bookSlug": "luke",
       "chapter": 21,
       "path": "bible/luke/21.json",
-      "hash": "f4ac56c1ffe45cc1aecaa396f74cd7918022bb35"
+      "hash": "06e0d53a2316653cf2252e3a5f007955f5fcb8f8"
     },
     {
       "key": "luke/22",
       "bookSlug": "luke",
       "chapter": 22,
       "path": "bible/luke/22.json",
-      "hash": "f9142f54b4052baf4f0666cb4ab7768fc10f10fa"
+      "hash": "4e3e3692d4e7dcf8aecfbc831a565d6e69bff050"
     },
     {
       "key": "luke/23",
       "bookSlug": "luke",
       "chapter": 23,
       "path": "bible/luke/23.json",
-      "hash": "5155ef7ca4673782c201b01c95e52cb80b59a32a"
+      "hash": "a1e960077ce10274bcac851a1ba67f2ce0051296"
     },
     {
       "key": "luke/24",
       "bookSlug": "luke",
       "chapter": 24,
       "path": "bible/luke/24.json",
-      "hash": "a001c08302f41164e3c763a6c78c29b6919110b2"
+      "hash": "94a9e12354f697e64dcbc296f99f68d9d5cbe823"
     },
     {
       "key": "mark/1",
