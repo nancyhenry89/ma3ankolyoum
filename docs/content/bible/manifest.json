@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-31T16:32:44.035Z",
+  "generatedAt": "2026-08-31T16:43:39.111Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -839,63 +839,63 @@
       "bookSlug": "joshua",
       "chapter": 1,
       "path": "bible/joshua/1.json",
-      "hash": "754911eaac15f5fc34972c96a2f5603f0c259d9d"
+      "hash": "bb0a8e9e12d7f858c4ae14f68a4e196f9a0b2ba3"
     },
     {
       "key": "joshua/2",
       "bookSlug": "joshua",
       "chapter": 2,
       "path": "bible/joshua/2.json",
-      "hash": "bc427c320e36b9345cf68e7e1c5fce2ce5b46ca0"
+      "hash": "496c15b77dbf7e9dac37f71f8391d1be55dfba0c"
     },
     {
       "key": "joshua/3",
       "bookSlug": "joshua",
       "chapter": 3,
       "path": "bible/joshua/3.json",
-      "hash": "ebd228c73bd2dff44113a57c8361e6f29e9fbc69"
+      "hash": "eba4f1a9b16587d14f17e844dbe36a9bae8a18a5"
     },
     {
       "key": "joshua/4",
       "bookSlug": "joshua",
       "chapter": 4,
       "path": "bible/joshua/4.json",
-      "hash": "cff1188aa1e3cdf584184424df98e92a2e431292"
+      "hash": "7f0bf6eb5d2a03fef575e889a5bd5ecdfd7aa7bb"
     },
     {
       "key": "joshua/5",
       "bookSlug": "joshua",
       "chapter": 5,
       "path": "bible/joshua/5.json",
-      "hash": "fcfa6ea083b453c76a14ac58b2e5ea20a3f382ff"
+      "hash": "8df4803f63b22c8e012dcd0cfb009c19da628da5"
     },
     {
       "key": "joshua/6",
       "bookSlug": "joshua",
       "chapter": 6,
       "path": "bible/joshua/6.json",
-      "hash": "ab165551f0bf0c9a4d1bca984d09cfa7a228b725"
+      "hash": "ce9738f7d4910e0a6b53791491ca4f17940f76be"
     },
     {
       "key": "joshua/7",
       "bookSlug": "joshua",
       "chapter": 7,
       "path": "bible/joshua/7.json",
-      "hash": "2bcd0e17bb01825090ad1ae1cc59d088ee3d648d"
+      "hash": "b5f41dc5287c01733eb314fa4d439d7787af9935"
     },
     {
       "key": "joshua/8",
       "bookSlug": "joshua",
       "chapter": 8,
       "path": "bible/joshua/8.json",
-      "hash": "1c7e893f2a5930bb816ddf8dbdf9be3597023239"
+      "hash": "d9e8164b72efe814a9837da6b60cd283f30ed7a9"
     },
     {
       "key": "joshua/9",
       "bookSlug": "joshua",
       "chapter": 9,
       "path": "bible/joshua/9.json",
-      "hash": "b13dd24721bfbf559cea9ad6cae47b29de22809b"
+      "hash": "09335e4ca0fe2a0cef04e4876b8e102667880eaa"
     },
     {
       "key": "judith/1",
