@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-02T07:57:17.666Z",
+  "generatedAt": "2026-09-02T10:34:01.136Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -910,6 +910,13 @@
       "chapter": 11,
       "path": "bible/joshua/11.json",
       "hash": "012c72d8c4affabeb111e364b0094abf805981b0"
+    },
+    {
+      "key": "joshua/12",
+      "bookSlug": "joshua",
+      "chapter": 12,
+      "path": "bible/joshua/12.json",
+      "hash": "cd1c0a8496848dcd68c7a87afdea5bda395ea50a"
     },
     {
       "key": "judith/1",
