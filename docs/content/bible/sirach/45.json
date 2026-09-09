@@ -4,12 +4,24 @@
     "bookNameEn": "Sirach",
     "chapter": 45,
     "intro": {
-        "title": "",
+ "title": "مقدمة سفر يشوع بن سيراخ",
         "youtubeId": ""
       },
-    "chapterTitle": "الآباء من أخنوخ إلى يعقوب",
+    "chapterTitle": "الآباء موسى وهارون وفينحاس",
     "sections": [
-     
+      {
+        "title":"موسى (ع1-6)",
+        "fromVerse": 1,
+        "toVerse": 6
+      }, {
+        "title":"هارون (ع7-27)",
+        "fromVerse": 7,
+        "toVerse": 27
+      }, {
+        "title":"فينحاس (ع28-31)",
+        "fromVerse": 28,
+        "toVerse": 31
+      }
     ],
     "verses": [
       {
