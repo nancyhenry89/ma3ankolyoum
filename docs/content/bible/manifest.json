@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-09T11:02:38.353Z",
+  "generatedAt": "2026-09-12T15:18:40.493Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -1974,6 +1974,13 @@
       "chapter": 45,
       "path": "bible/sirach/45.json",
       "hash": "ccf2b113180d158b5a6b0ab0aaa7a85f98d673b8"
+    },
+    {
+      "key": "titus/1",
+      "bookSlug": "titus",
+      "chapter": 1,
+      "path": "bible/titus/1.json",
+      "hash": "c4725a7f44c84b1ad9473c0831649e9b3eb38186"
     }
   ]
 }
