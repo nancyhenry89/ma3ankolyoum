@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-13T05:58:06.894Z",
+  "generatedAt": "2026-09-17T07:26:50.789Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -1981,6 +1981,13 @@
       "chapter": 1,
       "path": "bible/titus/1.json",
       "hash": "c4725a7f44c84b1ad9473c0831649e9b3eb38186"
+    },
+    {
+      "key": "titus/2",
+      "bookSlug": "titus",
+      "chapter": 2,
+      "path": "bible/titus/2.json",
+      "hash": "01c7680371a724bd9f0a680704d864b969010cb5"
     }
   ]
 }
