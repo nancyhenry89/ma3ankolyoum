@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-01T15:58:18.526Z",
+  "generatedAt": "2026-10-01T17:04:37.930Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -1070,63 +1070,63 @@
       "bookSlug": "judges",
       "chapter": 7,
       "path": "bible/judges/7.json",
-      "hash": "6444707392e44bcafae894718f619aef013420a9"
+      "hash": "18b34c8b5660c124d45a5d1fca6f14b50ef2ece6"
     },
     {
       "key": "judges/8",
       "bookSlug": "judges",
       "chapter": 8,
       "path": "bible/judges/8.json",
-      "hash": "98aaf0a0aa82a6ba2fc451513deaa0eb37a65f05"
+      "hash": "f3c2145aa9838e7dac52b24768fc5ab59ffd95ff"
     },
     {
       "key": "judges/9",
       "bookSlug": "judges",
       "chapter": 9,
       "path": "bible/judges/9.json",
-      "hash": "fc29dacdcb9afae09558f2b25fc6fc0ddb518cad"
+      "hash": "0ff53fe9c982b882796d712b4766c15f5709cd3b"
     },
     {
       "key": "judges/10",
       "bookSlug": "judges",
       "chapter": 10,
       "path": "bible/judges/10.json",
-      "hash": "444ca6b27d93e37106b0db42985331166b5d11db"
+      "hash": "0238304d7ffede59d13e0927f6068534d1e9c2ad"
     },
     {
       "key": "judges/11",
       "bookSlug": "judges",
       "chapter": 11,
       "path": "bible/judges/11.json",
-      "hash": "1c8bd9d64c94b84b53dc59db8fc71c3722c85ea7"
+      "hash": "a41b121984b7bf9e95dd6eea127514316d063cff"
     },
     {
       "key": "judges/12",
       "bookSlug": "judges",
       "chapter": 12,
       "path": "bible/judges/12.json",
-      "hash": "27bef9ecea8a1730597b0fa2daaf5810aa24daa8"
+      "hash": "c3f59bcfa8aa02479f0a7f6441cb539853ca4dd7"
     },
     {
       "key": "judges/13",
       "bookSlug": "judges",
       "chapter": 13,
       "path": "bible/judges/13.json",
-      "hash": "fc84d41e1450c4047e54b6cfc95d798b1477999f"
+      "hash": "dc4735415c8388e7ba9e8c177b72c64a14355563"
     },
     {
       "key": "judges/14",
       "bookSlug": "judges",
       "chapter": 14,
       "path": "bible/judges/14.json",
-      "hash": "084a582522298ae147bacdd9c88918a62bb0a18a"
+      "hash": "e7b72cc6b21f393ec7d6187205ef6fb4cb6c2f1e"
     },
     {
       "key": "judges/15",
       "bookSlug": "judges",
       "chapter": 15,
       "path": "bible/judges/15.json",
-      "hash": "0d199ee04a8908295c9dc9f678cb78b683cf848f"
+      "hash": "cf43baca4ac76dbe461db31087b89aeda718b785"
     },
     {
       "key": "judith/1",
