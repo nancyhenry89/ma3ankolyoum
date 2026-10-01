@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-30T05:44:56.920Z",
+  "generatedAt": "2026-10-01T15:21:05.976Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -1078,6 +1078,34 @@
       "chapter": 11,
       "path": "bible/judges/11.json",
       "hash": "1c8bd9d64c94b84b53dc59db8fc71c3722c85ea7"
+    },
+    {
+      "key": "judges/12",
+      "bookSlug": "judges",
+      "chapter": 12,
+      "path": "bible/judges/12.json",
+      "hash": "27bef9ecea8a1730597b0fa2daaf5810aa24daa8"
+    },
+    {
+      "key": "judges/13",
+      "bookSlug": "judges",
+      "chapter": 13,
+      "path": "bible/judges/13.json",
+      "hash": "fc84d41e1450c4047e54b6cfc95d798b1477999f"
+    },
+    {
+      "key": "judges/14",
+      "bookSlug": "judges",
+      "chapter": 14,
+      "path": "bible/judges/14.json",
+      "hash": "084a582522298ae147bacdd9c88918a62bb0a18a"
+    },
+    {
+      "key": "judges/15",
+      "bookSlug": "judges",
+      "chapter": 15,
+      "path": "bible/judges/15.json",
+      "hash": "0d199ee04a8908295c9dc9f678cb78b683cf848f"
     },
     {
       "key": "judith/1",
