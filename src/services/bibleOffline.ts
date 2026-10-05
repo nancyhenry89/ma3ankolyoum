@@ -1,4 +1,3 @@
-import { Capacitor } from '@capacitor/core'
 import {
   readChapterCache,
   writeChapterCache,
@@ -10,8 +9,7 @@ const CONTENT_BASE =
   import.meta.env.DEV
     ? `${import.meta.env.BASE_URL}content`.replace(/\/$/, '')
     : 'https://nancyhenry89.github.io/ma3ankolyoum/content'
-    console.log('CONTENT_BASE:', CONTENT_BASE)
-    console.log('MANIFEST:', `${CONTENT_BASE}/bible/manifest.json`)
+
 type BibleManifestItem = {
   key: string
   bookSlug: string
@@ -28,41 +26,58 @@ type BibleManifest = {
 let manifestMemory: BibleManifest | null = null
 
 function normalizeBookKey(bookKey: string) {
-  return String(bookKey || '').toLowerCase()
+  return String(bookKey || '').trim().toLowerCase()
 }
 
 function chapterUrl(item: BibleManifestItem) {
   return `${CONTENT_BASE}/${item.path}`
 }
 
+function isValidChapter(json: any) {
+  return (
+    json &&
+    Array.isArray(json.verses) &&
+    json.verses.length > 0
+  )
+}
+
 async function fetchManifest(): Promise<BibleManifest | null> {
   try {
-    const res = await fetch(`${CONTENT_BASE}/bible/manifest.json`, {
-      cache: 'no-store'
-    })
+    const res = await fetch(
+      `${CONTENT_BASE}/bible/manifest.json?t=${Date.now()}`,
+      { cache: 'no-store' }
+    )
 
-    if (!res.ok) return null
+    if (!res.ok) throw new Error(`Manifest HTTP ${res.status}`)
 
     const json = await res.json()
-    if (!json || !Array.isArray(json.chapters)) return null
+
+    if (!json || !Array.isArray(json.chapters)) {
+      throw new Error('Invalid manifest')
+    }
 
     manifestMemory = json
-    localStorage.setItem('mk_bible_manifest_v1', JSON.stringify(json))
+
+    try {
+      localStorage.setItem(
+        'mk_bible_manifest_v2',
+        JSON.stringify(json)
+      )
+    } catch {}
 
     return json
-  } catch {
+  } catch (e) {
+    console.warn('Manifest network load failed', e)
+
     try {
-      const cached = localStorage.getItem('mk_bible_manifest_v1')
+      const cached =
+        localStorage.getItem('mk_bible_manifest_v2')
+
       return cached ? JSON.parse(cached) : null
     } catch {
       return null
     }
   }
-}
-
-async function getManifest() {
-  if (manifestMemory) return manifestMemory
-  return await fetchManifest()
 }
 
 function findManifestItem(
@@ -84,71 +99,188 @@ function findManifestItem(
 }
 
 async function downloadChapter(item: BibleManifestItem) {
-  const res = await fetch(chapterUrl(item), { cache: 'no-store' })
-  if (!res.ok) throw new Error('Chapter not found')
+  const url = `${chapterUrl(item)}?h=${encodeURIComponent(item.hash)}`
+
+  const res = await fetch(url, {
+    cache: 'no-store'
+  })
+
+  if (!res.ok) {
+    throw new Error(`Chapter HTTP ${res.status}`)
+  }
 
   const json = await res.json()
 
-  if (!json || !Array.isArray(json.verses)) {
+  if (!isValidChapter(json)) {
     throw new Error('Invalid chapter JSON')
   }
 
-  writeChapterCache(item.bookSlug, item.chapter, json)
-  writeChapterHash(item.bookSlug, item.chapter, item.hash)
+  // Only save AFTER we know the JSON is valid
+  writeChapterCache(
+    item.bookSlug,
+    item.chapter,
+    json
+  )
+
+  writeChapterHash(
+    item.bookSlug,
+    item.chapter,
+    item.hash
+  )
 
   return json
 }
 
-export async function getBibleChapter(bookKey: string, chapter: number) {
-  const cached = readChapterCache(bookKey, chapter)
+/**
+ * FAST / OFFLINE FIRST
+ *
+ * If chapter exists locally, return immediately.
+ * Do NOT wait for network.
+ */
+export async function getBibleChapter(
+  bookKey: string,
+  chapter: number
+) {
+  const cached =
+    readChapterCache(bookKey, chapter)
 
-  const manifest = await fetchManifest()
-  const item = findManifestItem(manifest, bookKey, chapter)
-
-  // offline or manifest missing
-  if (!item) {
-    if (cached) return cached
-    throw new Error('Chapter not available')
-  }
-
-  const localHash = readChapterHash(bookKey, chapter)
-
-  // show cached if same version
-  if (cached && localHash === item.hash) {
+  if (cached && isValidChapter(cached)) {
     return cached
   }
 
-  // missing or outdated
+  // No local copy -> must try network
+  const manifest = await fetchManifest()
+
+  const item =
+    findManifestItem(
+      manifest,
+      bookKey,
+      chapter
+    )
+
+  if (!item) {
+    throw new Error('Chapter not available')
+  }
+
+  return await downloadChapter(item)
+}
+
+/**
+ * BACKGROUND UPDATE
+ *
+ * Checks server manifest.
+ * Downloads only if chapter changed.
+ *
+ * Returns:
+ * - updated JSON if changed
+ * - null if nothing changed / offline
+ */
+export async function updateBibleChapter(
+  bookKey: string,
+  chapter: number
+) {
   try {
+    const manifest = await fetchManifest()
+
+    if (!manifest) return null
+
+    const item =
+      findManifestItem(
+        manifest,
+        bookKey,
+        chapter
+      )
+
+    if (!item) return null
+
+    const cached =
+      readChapterCache(bookKey, chapter)
+
+    const localHash =
+      readChapterHash(bookKey, chapter)
+
+    if (
+      cached &&
+      isValidChapter(cached) &&
+      localHash === item.hash
+    ) {
+      return null
+    }
+
     return await downloadChapter(item)
   } catch (e) {
-    if (cached) return cached
-    throw e
+    // Background update failure should NEVER
+    // break reading.
+    console.warn(
+      'Bible background update failed',
+      bookKey,
+      chapter,
+      e
+    )
+
+    return null
   }
 }
 
+export async function isChapterAvailableOfflineAware(
+  bookKey: string,
+  chapter: number
+) {
+  const cached =
+    readChapterCache(bookKey, chapter)
+
+  if (cached && isValidChapter(cached)) {
+    return true
+  }
+
+  try {
+    const manifest = await fetchManifest()
+
+    return !!findManifestItem(
+      manifest,
+      bookKey,
+      chapter
+    )
+  } catch {
+    return false
+  }
+}
 export async function syncBibleOffline() {
-  const manifest = await fetchManifest()
-  if (!manifest) return
+  try {
+    const manifest = await fetchManifest()
+    if (!manifest) return
 
-  for (const item of manifest.chapters) {
-    const cached = readChapterCache(item.bookSlug, item.chapter)
-    const localHash = readChapterHash(item.bookSlug, item.chapter)
+    for (const item of manifest.chapters) {
+      const cached = readChapterCache(
+        item.bookSlug,
+        item.chapter
+      )
 
-    if (cached && localHash === item.hash) continue
+      const localHash = readChapterHash(
+        item.bookSlug,
+        item.chapter
+      )
 
-    try {
-      await downloadChapter(item)
-    } catch (e) {
-      console.warn('Failed to cache chapter', item.key, e)
+      // Already downloaded and current
+      if (
+        cached &&
+        isValidChapter(cached) &&
+        localHash === item.hash
+      ) {
+        continue
+      }
+
+      try {
+        await downloadChapter(item)
+      } catch (e) {
+        console.warn(
+          'Failed to cache chapter',
+          item.key,
+          e
+        )
+      }
     }
+  } catch (e) {
+    console.warn('Bible offline sync failed', e)
   }
-}
-
-export async function isChapterAvailableOfflineAware(bookKey: string, chapter: number) {
-  const cached = readChapterCache(bookKey, chapter)
-  if (cached) return true
-
-  const manifest = await getManifest()
-  return !!findManifestItem(manifest, bookKey, chapter)
 }
