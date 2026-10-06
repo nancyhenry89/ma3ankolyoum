@@ -403,7 +403,10 @@ import {   arrowForwardOutline,
 import { Capacitor } from "@capacitor/core"
 import { Browser } from "@capacitor/browser"
 import { onIonViewWillLeave, onIonViewDidEnter } from "@ionic/vue"
-import { getBibleChapter } from '@/services/bibleOffline'
+import {
+  getBibleChapter,
+  updateBibleChapter
+} from '@/services/bibleOffline'
 import { loadRefsIndex, getRefsFor, type RefLink } from "@/services/verseRefs"
 import { readChapterCache, writeChapterCache, readTafsirCache, writeTafsirCache } from "@/utils/chapterCache"
 import { listSavedVerses, toggleVerseSaved, type SavedVerse, upsertVerseNote } from "@/services/verseSaves"
@@ -979,7 +982,40 @@ async function loadChapter() {
   const b = bookKey.value
   const ch = chapterNum.value
 
+  // 1. CACHE FIRST
+  // Existing users see the chapter immediately,
+  // even completely offline.
   data.value = await getBibleChapter(b, ch)
+
+  // 2. BACKGROUND UPDATE
+  // Do NOT await this.
+  updateBibleChapter(b, ch)
+    .then(updated => {
+      if (!updated) return
+
+      // User may have navigated to another chapter
+      // while update was downloading.
+      if (
+        String(bookKey.value).toLowerCase() !==
+          String(b).toLowerCase() ||
+        Number(chapterNum.value) !== Number(ch)
+      ) {
+        return
+      }
+
+      data.value = updated
+
+      console.log(
+        `Bible chapter updated: ${b} ${ch}`
+      )
+    })
+    .catch(err => {
+      // Never destroy an already displayed chapter
+      console.warn(
+        'Background chapter update failed',
+        err
+      )
+    })
 }
 
 /* =========================
@@ -1017,16 +1053,19 @@ watch(
 watch(
   () => [route.params.bookKey, route.params.chapter],
   async () => {
-    const shouldScroll = shouldScrollToChapterTitle.value
+    const shouldScroll =
+      shouldScrollToChapterTitle.value
+
     try {
-      data.value = null
       tafsirRows.value = []
       openVerse.value = null
       bmCounts.value = {}
       bmMe.value = {}
 
       await loadChapter()
+
       await loadTafsirOnce()
+
       attachBmListeners()
 
       await nextTick()
@@ -1034,9 +1073,14 @@ watch(
       if (shouldScroll) {
         shouldScrollToChapterTitle.value = false
         await scrollToChapterTitle()
-}
+      }
     } catch (e) {
-      console.error(e)
+      console.error(
+        'Chapter load failed:',
+        bookKey.value,
+        chapterNum.value,
+        e
+      )
     }
   }
 )
