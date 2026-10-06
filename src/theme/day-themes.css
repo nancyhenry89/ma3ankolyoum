@@ -1,0 +1,50 @@
+/* Shared colours for the 2027 homepage and fasting page. */
+.day-themed {
+    --day-background: #f4f9f9;
+    --day-surface: #ffffff;
+    --day-text: #17394a;
+    --day-muted: #596f7a;
+    --day-primary: #087f8c;
+    --day-accent: #b58a35;
+    --day-border: #d8e8e9;
+  
+    --ion-background-color: var(--day-background);
+    --ion-text-color: var(--day-text);
+  
+    background: var(--day-background);
+    color: var(--day-text);
+  }
+  
+  .day-themed[data-day-theme='fasting'] {
+    --day-background: #f2f6f7;
+    --day-primary: #376b78;
+    --day-accent: #8c774d;
+    --day-border: #d8e2e5;
+  }
+  
+  .day-themed[data-day-theme='joyful'] {
+    --day-background: #fffaf0;
+    --day-primary: #087f8c;
+    --day-accent: #a57520;
+    --day-border: #eee0bd;
+  }
+  
+  .day-themed[data-day-theme='kiahk'] {
+    --day-background: #f2f3fa;
+    --day-primary: #4d568c;
+    --day-accent: #a58135;
+    --day-border: #dde0ef;
+  }
+  
+  .day-themed[data-day-theme='holy_week'] {
+    --day-background: #f4f1f2;
+    --day-primary: #684654;
+    --day-accent: #896c40;
+    --day-border: #e2d8dd;
+  }
+  
+  /* Ionic content has its own background variable. */
+  .day-themed ion-content {
+    --background: var(--day-background);
+    --color: var(--day-text);
+  }

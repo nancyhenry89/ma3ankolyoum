@@ -1,14 +1,24 @@
 <template>
-  <ion-page
-    :class="['home', themeClass, isArabic ? 'lang-ar' : 'lang-en']"
-    :style="{ '--mk-fontScale': String(fontScale) }"
-    :dir="pageDir"
-    :lang="lang"
-  >
+<ion-page
+  :class="[
+    'home',
+    themeClass,
+    isArabic ? 'lang-ar' : 'lang-en',
+    { 'day-themed': is2027Home },
+  ]"
+  :data-day-theme="is2027Home ? dayTheme : undefined"
+  :style="{
+    '--mk-fontScale': String(fontScale),
+    ...homeDayStyles,
+  }"
+  :dir="pageDir"
+  :lang="lang"
+> 
     <ion-content :fullscreen="true" class="content">
       <div
         class="capture home"
         :class="[themeClass, { 'mk-capturing': isCapturing }]"
+          :style="homeDayStyles"
         ref="captureRef"
       >
         <!-- Background -->
@@ -148,7 +158,14 @@
     {{ isArabic ? 'اليوم' : 'Today' }}
   </button>
 </div>
-
+<Home2027
+  v-if="is2027Home"
+  :dateISO="selectedDateISO"
+  :language="lang"
+  :calendar-day="calendarDay"
+  :calendar-loading="calendarLoading"
+  :calendar-error="calendarError"
+/>
             <!-- Occasions -->
             <OccasionsSection
               class="mkNoCapture"
@@ -782,6 +799,8 @@ import {
   IonActionSheet,
   IonIcon
 } from '@ionic/vue'
+import { useHomeCalendar } from '@/composables/useHomeCalendar'
+import '@/theme/day-themes.css'
 import HomePopup from "@/components/HomePopup.vue"
 import OccasionsSection from "@/components/OccasionsSection.vue"
 import DailyPrayerCTANew from "@/components/DailyPrayerCTANew.vue"
@@ -790,6 +809,7 @@ import { onIonViewDidEnter, onIonViewWillLeave } from '@ionic/vue'
 import { useRouter, useRoute } from 'vue-router'
 import Papa from 'papaparse'
 import html2canvas from 'html2canvas'
+import Home2027 from '@/components/home/Home2027.vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { IonMenuButton } from '@ionic/vue'
@@ -1415,6 +1435,14 @@ function onFontScale(ev: any) {
 // ====== Date picker ======
 const showDatePicker = ref(false)
 const selectedDateISO = ref(todayISO())
+const {
+  is2027Home,
+  calendarDay,
+  calendarLoading,
+  calendarError,
+  dayTheme,
+  homeDayStyles,
+} = useHomeCalendar(selectedDateISO)
 const nowTick = ref(Date.now())
 
 onMounted(() => {
@@ -1491,6 +1519,11 @@ function startReactions() {
 
 // ✅ Ionic lifecycle: الصفحة بتفضل cached، فلازم نبدأ/نقف هنا
 onIonViewDidEnter(() => {
+  if (sessionStorage.getItem('mk_home_return_today') === '1') {
+    sessionStorage.removeItem('mk_home_return_today')
+    goToday()
+  }
+
   startReactions()
 })
 
