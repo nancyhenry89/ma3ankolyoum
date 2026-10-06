@@ -54,11 +54,18 @@ export async function initPushNotifications() {
   // REGISTRATION ERROR
   // =========================
   await PushNotifications.addListener(
-    'registrationError',
-    error => {
-      console.error(
-        '[PUSH] Registration error:',
-        error
+    'pushNotificationReceived',
+    notification => {
+      console.log('[PUSH] Notification received:', notification)
+  
+      window.dispatchEvent(
+        new CustomEvent('push-announcement', {
+          detail: {
+            title: notification.title || 'معًا كل يوم',
+            message: notification.body || '',
+            data: notification.data || {}
+          }
+        })
       )
     }
   )

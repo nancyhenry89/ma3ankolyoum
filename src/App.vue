@@ -6,14 +6,43 @@
 </template>
 
 <script setup lang="ts">
-  import { IonApp, IonRouterOutlet } from '@ionic/vue'
-  import AppSideMenu from '@/components/AppSideMenu.vue'
-  import { onBeforeMount } from "vue"
-  import { ensureAnonAuth, initAppCheckWeb } from '@/lib/firebase'
-  
-  onBeforeMount(async () => {
-    initAppCheckWeb()
-    await ensureAnonAuth()
+import { IonApp, IonRouterOutlet, alertController } from '@ionic/vue'
+import AppSideMenu from '@/components/AppSideMenu.vue'
+import { onBeforeMount, onMounted, onBeforeUnmount } from 'vue'
+import { ensureAnonAuth, initAppCheckWeb } from '@/lib/firebase'
+
+onBeforeMount(async () => {
+  initAppCheckWeb()
+  await ensureAnonAuth()
+})
+
+const handlePushAnnouncement = async (event: Event) => {
+  const customEvent = event as CustomEvent
+
+  const title = customEvent.detail?.title || 'معًا كل يوم'
+  const message = customEvent.detail?.message || ''
+
+  const alert = await alertController.create({
+    header: title,
+    message: message,
+    buttons: ['تمام']
   })
-  </script>
+
+  await alert.present()
+}
+
+onMounted(() => {
+  window.addEventListener(
+    'push-announcement',
+    handlePushAnnouncement
+  )
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener(
+    'push-announcement',
+    handlePushAnnouncement
+  )
+})
+</script>
   
