@@ -1,5 +1,5 @@
 {
-    "bookKey": "Ruth",
+    "bookKey": "Psalms",
     "bookName": "سفر المزامير",
     "bookNameEn": "Psalms",
     "chapter": 1,
@@ -10,7 +10,7 @@
     "chapterTitle":"الرجل المطوب",
     "sections": [
       {
-        "title":"مقدمة",
+        "title":"⬇️مقدمة",
         "fromVerse": 0,
         "toVerse": 0
       },

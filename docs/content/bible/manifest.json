@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-07T10:06:37.464Z",
+  "generatedAt": "2026-10-07T10:40:11.221Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -679,6 +679,13 @@
       "chapter": 24,
       "path": "bible/exodus/24.json",
       "hash": "da52e43fc7642834f9f84812db9bf50419c9e9b6"
+    },
+    {
+      "key": "hebrews/1",
+      "bookSlug": "hebrews",
+      "chapter": 1,
+      "path": "bible/hebrews/1.json",
+      "hash": "86125868bad6a7cd172e664eb4600241cdd60444"
     },
     {
       "key": "john/1",
@@ -1959,7 +1966,7 @@
       "bookSlug": "psalms",
       "chapter": 1,
       "path": "bible/psalms/1.json",
-      "hash": "2e9ab68cb3e9cbce0a3b23c42e7d086393a172e1"
+      "hash": "be5e7772fc27ba8d4c0439a6033016d1bfe397d2"
     },
     {
       "key": "revelation/1",
