@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-06T13:19:12.684Z",
+  "generatedAt": "2026-10-07T09:56:34.398Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -1162,6 +1162,13 @@
       "chapter": 20,
       "path": "bible/judges/20.json",
       "hash": "68ddd6860bff9a981708d2a34667d6f9f4d1f3ca"
+    },
+    {
+      "key": "judges/21",
+      "bookSlug": "judges",
+      "chapter": 21,
+      "path": "bible/judges/21.json",
+      "hash": "83d42ba0109abc07cca0fd8899796f8f9269e659"
     },
     {
       "key": "judith/1",
