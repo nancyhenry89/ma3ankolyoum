@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-11T04:12:45.622Z",
+  "generatedAt": "2026-10-11T08:03:54.016Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -685,7 +685,28 @@
       "bookSlug": "hebrews",
       "chapter": 1,
       "path": "bible/hebrews/1.json",
-      "hash": "86125868bad6a7cd172e664eb4600241cdd60444"
+      "hash": "6842a9c312f18056a05b58b183e3a57bec5c822d"
+    },
+    {
+      "key": "hebrews/2",
+      "bookSlug": "hebrews",
+      "chapter": 2,
+      "path": "bible/hebrews/2.json",
+      "hash": "992e4aaeca15c8f30d33ae17a1df3c3c7bd20b07"
+    },
+    {
+      "key": "hebrews/3",
+      "bookSlug": "hebrews",
+      "chapter": 3,
+      "path": "bible/hebrews/3.json",
+      "hash": "ac956a9a4d28fa370f98774dfe447655a5bb3e22"
+    },
+    {
+      "key": "hebrews/4",
+      "bookSlug": "hebrews",
+      "chapter": 4,
+      "path": "bible/hebrews/4.json",
+      "hash": "abd417e465789c3173a76c73b7ce453063b6819f"
     },
     {
       "key": "john/1",
