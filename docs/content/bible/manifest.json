@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-17T09:52:47.710Z",
+  "generatedAt": "2026-10-17T10:06:32.065Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -735,6 +735,20 @@
       "chapter": 8,
       "path": "bible/hebrews/8.json",
       "hash": "ec9ab8805a7f9999b5e84282b3fdd20de4893354"
+    },
+    {
+      "key": "hebrews/9",
+      "bookSlug": "hebrews",
+      "chapter": 9,
+      "path": "bible/hebrews/9.json",
+      "hash": "77431a89a0699423f1b03fcad636e372105be5e0"
+    },
+    {
+      "key": "hebrews/10",
+      "bookSlug": "hebrews",
+      "chapter": 10,
+      "path": "bible/hebrews/10.json",
+      "hash": "5ff5f86a6ec0fdd136f29475a94dca6ce40d804a"
     },
     {
       "key": "john/1",
