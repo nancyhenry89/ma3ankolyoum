@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-30T04:19:01.187Z",
+  "generatedAt": "2026-10-30T10:09:07.442Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -707,6 +707,20 @@
       "chapter": 24,
       "path": "bible/exodus/24.json",
       "hash": "da52e43fc7642834f9f84812db9bf50419c9e9b6"
+    },
+    {
+      "key": "haggai/1",
+      "bookSlug": "haggai",
+      "chapter": 1,
+      "path": "bible/haggai/1.json",
+      "hash": "7ddb6448a00b59a649a9fe67b596e921a35d21c5"
+    },
+    {
+      "key": "haggai/2",
+      "bookSlug": "haggai",
+      "chapter": 2,
+      "path": "bible/haggai/2.json",
+      "hash": "dab4e6c89112e76516647394aff69362eff5c22b"
     },
     {
       "key": "hebrews/1",
