@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-05T16:48:46.098Z",
+  "generatedAt": "2026-11-06T20:01:14.007Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -126,6 +126,13 @@
       "chapter": 13,
       "path": "bible/1samuel/13.json",
       "hash": "2e953c4497cb0b26ba7827b2be5ac5ff2f42b95a"
+    },
+    {
+      "key": "1samuel/14",
+      "bookSlug": "1samuel",
+      "chapter": 14,
+      "path": "bible/1samuel/14.json",
+      "hash": "2b5b77264c42e646aa4f46f1c02daed214e1e1a1"
     },
     {
       "key": "1thessalonians/1",
