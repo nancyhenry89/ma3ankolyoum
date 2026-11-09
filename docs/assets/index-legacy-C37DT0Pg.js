@@ -1,1 +1,0 @@
-System.register(["./index-legacy-CaREu_jU.js"],function(e,r){"use strict";var t,s;return{setters:[e=>{t=e.m,s=e._}],execute:function(){e("B",t("Browser",{web:()=>s(()=>r.import("./web-legacy-D7uPeSG8.js"),void 0).then(e=>new e.BrowserWeb)}))}}});
