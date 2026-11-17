@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-16T09:07:35.124Z",
+  "generatedAt": "2026-11-17T15:35:20.529Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -203,6 +203,13 @@
       "chapter": 24,
       "path": "bible/1samuel/24.json",
       "hash": "bd17476198e8e13adf0bfe7c81b957b344bef6f0"
+    },
+    {
+      "key": "1samuel/25",
+      "bookSlug": "1samuel",
+      "chapter": 25,
+      "path": "bible/1samuel/25.json",
+      "hash": "db168e9a2ac2d994ac08c1a9f4fee24505793bdd"
     },
     {
       "key": "1thessalonians/1",
@@ -1274,6 +1281,13 @@
       "chapter": 24,
       "path": "bible/joshua/24.json",
       "hash": "88a0ad92f89b10d13c7b95d0131d0d7e3696d870"
+    },
+    {
+      "key": "jude/1",
+      "bookSlug": "jude",
+      "chapter": 1,
+      "path": "bible/jude/1.json",
+      "hash": "550d9299bc609a498b04ad6f4133975b9327098a"
     },
     {
       "key": "judges/1",
