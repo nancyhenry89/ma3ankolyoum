@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-10T16:34:37.678Z",
+  "generatedAt": "2026-11-18T06:55:48.669Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -41,21 +41,182 @@
       "bookSlug": "1samuel",
       "chapter": 1,
       "path": "bible/1samuel/1.json",
-      "hash": "acacd880081e066508d325cb2a0768ddfad9f60e"
+      "hash": "f5e794171070114dcd64180861584a75b25d9f8c"
     },
     {
       "key": "1samuel/2",
       "bookSlug": "1samuel",
       "chapter": 2,
       "path": "bible/1samuel/2.json",
-      "hash": "49e495aca90661af3c52d07ee04010784b3735cd"
+      "hash": "6af2348f8989b7e7446fe25ad91ebe21a047f9fe"
     },
     {
       "key": "1samuel/3",
       "bookSlug": "1samuel",
       "chapter": 3,
       "path": "bible/1samuel/3.json",
-      "hash": "253c8c8895bf0bcadb69dea7f4bf087b22b23117"
+      "hash": "33153b48325f95de3fc74b344dc6626de8f95a8d"
+    },
+    {
+      "key": "1samuel/4",
+      "bookSlug": "1samuel",
+      "chapter": 4,
+      "path": "bible/1samuel/4.json",
+      "hash": "d614e33176fa3b01271814a40aae888f83c9e7f7"
+    },
+    {
+      "key": "1samuel/5",
+      "bookSlug": "1samuel",
+      "chapter": 5,
+      "path": "bible/1samuel/5.json",
+      "hash": "24b21876896b7ffa37ea8187c302d9347492a00a"
+    },
+    {
+      "key": "1samuel/6",
+      "bookSlug": "1samuel",
+      "chapter": 6,
+      "path": "bible/1samuel/6.json",
+      "hash": "49df40b22b6ef8ca95c96b2f0474bc380efe3dec"
+    },
+    {
+      "key": "1samuel/7",
+      "bookSlug": "1samuel",
+      "chapter": 7,
+      "path": "bible/1samuel/7.json",
+      "hash": "b0c99548bad56c30a922612afc776417bb62bb02"
+    },
+    {
+      "key": "1samuel/8",
+      "bookSlug": "1samuel",
+      "chapter": 8,
+      "path": "bible/1samuel/8.json",
+      "hash": "de52f642fada94da0709db0505003b18495f79b3"
+    },
+    {
+      "key": "1samuel/9",
+      "bookSlug": "1samuel",
+      "chapter": 9,
+      "path": "bible/1samuel/9.json",
+      "hash": "5bd3e542228589c2d5a874701e0814f3f9738004"
+    },
+    {
+      "key": "1samuel/10",
+      "bookSlug": "1samuel",
+      "chapter": 10,
+      "path": "bible/1samuel/10.json",
+      "hash": "46ddf2c9543d373dfc5d029d8ff69484aee7e988"
+    },
+    {
+      "key": "1samuel/11",
+      "bookSlug": "1samuel",
+      "chapter": 11,
+      "path": "bible/1samuel/11.json",
+      "hash": "26445bd554339b188b9a0154991307b32db46e82"
+    },
+    {
+      "key": "1samuel/12",
+      "bookSlug": "1samuel",
+      "chapter": 12,
+      "path": "bible/1samuel/12.json",
+      "hash": "27d2c661f337d8e059b26b375c76bf02eb5205cf"
+    },
+    {
+      "key": "1samuel/13",
+      "bookSlug": "1samuel",
+      "chapter": 13,
+      "path": "bible/1samuel/13.json",
+      "hash": "2e953c4497cb0b26ba7827b2be5ac5ff2f42b95a"
+    },
+    {
+      "key": "1samuel/14",
+      "bookSlug": "1samuel",
+      "chapter": 14,
+      "path": "bible/1samuel/14.json",
+      "hash": "2b5b77264c42e646aa4f46f1c02daed214e1e1a1"
+    },
+    {
+      "key": "1samuel/15",
+      "bookSlug": "1samuel",
+      "chapter": 15,
+      "path": "bible/1samuel/15.json",
+      "hash": "cfac306aa08dec3e75b5f3245c508d76f7198f39"
+    },
+    {
+      "key": "1samuel/16",
+      "bookSlug": "1samuel",
+      "chapter": 16,
+      "path": "bible/1samuel/16.json",
+      "hash": "eff8d3701834540e0202108502464241b82868f6"
+    },
+    {
+      "key": "1samuel/17",
+      "bookSlug": "1samuel",
+      "chapter": 17,
+      "path": "bible/1samuel/17.json",
+      "hash": "031955ca53f574c914576e46b37303adbecd3a23"
+    },
+    {
+      "key": "1samuel/18",
+      "bookSlug": "1samuel",
+      "chapter": 18,
+      "path": "bible/1samuel/18.json",
+      "hash": "96e0fe0671d75e6a2454400882f461f943bc7d80"
+    },
+    {
+      "key": "1samuel/19",
+      "bookSlug": "1samuel",
+      "chapter": 19,
+      "path": "bible/1samuel/19.json",
+      "hash": "b06ffbf9d8f2c462d7b21b348b56ded8317853f3"
+    },
+    {
+      "key": "1samuel/20",
+      "bookSlug": "1samuel",
+      "chapter": 20,
+      "path": "bible/1samuel/20.json",
+      "hash": "115877993c33a2acbf925f5497fc33c87e564ad3"
+    },
+    {
+      "key": "1samuel/21",
+      "bookSlug": "1samuel",
+      "chapter": 21,
+      "path": "bible/1samuel/21.json",
+      "hash": "6bce9a688d7f5b7acd8a38e4b05be2ea52ca3d03"
+    },
+    {
+      "key": "1samuel/22",
+      "bookSlug": "1samuel",
+      "chapter": 22,
+      "path": "bible/1samuel/22.json",
+      "hash": "5dadc784786ca2fae70ff37a84843e0a98013af3"
+    },
+    {
+      "key": "1samuel/23",
+      "bookSlug": "1samuel",
+      "chapter": 23,
+      "path": "bible/1samuel/23.json",
+      "hash": "4f257b3124d94892a9ead09615dbb687b1ae2523"
+    },
+    {
+      "key": "1samuel/24",
+      "bookSlug": "1samuel",
+      "chapter": 24,
+      "path": "bible/1samuel/24.json",
+      "hash": "bd17476198e8e13adf0bfe7c81b957b344bef6f0"
+    },
+    {
+      "key": "1samuel/25",
+      "bookSlug": "1samuel",
+      "chapter": 25,
+      "path": "bible/1samuel/25.json",
+      "hash": "db168e9a2ac2d994ac08c1a9f4fee24505793bdd"
+    },
+    {
+      "key": "1samuel/26",
+      "bookSlug": "1samuel",
+      "chapter": 26,
+      "path": "bible/1samuel/26.json",
+      "hash": "98cce26a51f31caf0067afc35108255b5947fd46"
     },
     {
       "key": "1thessalonians/1",
@@ -146,21 +307,21 @@
       "bookSlug": "2peter",
       "chapter": 1,
       "path": "bible/2peter/1.json",
-      "hash": "8a637fcfd2bc5343b16fe9d4cd49cc8bef3219f0"
+      "hash": "186a99b966001f505c081d044d56501b54bf02bf"
     },
     {
       "key": "2peter/2",
       "bookSlug": "2peter",
       "chapter": 2,
       "path": "bible/2peter/2.json",
-      "hash": "dccbfd84ce3c2ac515c00185a55b35afb8f42367"
+      "hash": "3789c54c925ffd9f4a0d663154851b06bad605ad"
     },
     {
       "key": "2peter/3",
       "bookSlug": "2peter",
       "chapter": 3,
       "path": "bible/2peter/3.json",
-      "hash": "8424eb4760895aadb64cbf43dee10da661b61e79"
+      "hash": "e01f5675dd04038a505123ab1a5ebad08da1839f"
     },
     {
       "key": "2thessalonians/1",
@@ -681,6 +842,111 @@
       "hash": "da52e43fc7642834f9f84812db9bf50419c9e9b6"
     },
     {
+      "key": "haggai/1",
+      "bookSlug": "haggai",
+      "chapter": 1,
+      "path": "bible/haggai/1.json",
+      "hash": "7ddb6448a00b59a649a9fe67b596e921a35d21c5"
+    },
+    {
+      "key": "haggai/2",
+      "bookSlug": "haggai",
+      "chapter": 2,
+      "path": "bible/haggai/2.json",
+      "hash": "dab4e6c89112e76516647394aff69362eff5c22b"
+    },
+    {
+      "key": "hebrews/1",
+      "bookSlug": "hebrews",
+      "chapter": 1,
+      "path": "bible/hebrews/1.json",
+      "hash": "6842a9c312f18056a05b58b183e3a57bec5c822d"
+    },
+    {
+      "key": "hebrews/2",
+      "bookSlug": "hebrews",
+      "chapter": 2,
+      "path": "bible/hebrews/2.json",
+      "hash": "992e4aaeca15c8f30d33ae17a1df3c3c7bd20b07"
+    },
+    {
+      "key": "hebrews/3",
+      "bookSlug": "hebrews",
+      "chapter": 3,
+      "path": "bible/hebrews/3.json",
+      "hash": "ac956a9a4d28fa370f98774dfe447655a5bb3e22"
+    },
+    {
+      "key": "hebrews/4",
+      "bookSlug": "hebrews",
+      "chapter": 4,
+      "path": "bible/hebrews/4.json",
+      "hash": "abd417e465789c3173a76c73b7ce453063b6819f"
+    },
+    {
+      "key": "hebrews/5",
+      "bookSlug": "hebrews",
+      "chapter": 5,
+      "path": "bible/hebrews/5.json",
+      "hash": "7be072bc02cd0d72b6c74808ef4d2e62bf2ea2d6"
+    },
+    {
+      "key": "hebrews/6",
+      "bookSlug": "hebrews",
+      "chapter": 6,
+      "path": "bible/hebrews/6.json",
+      "hash": "bf1df10fe1f03b98ea8e5329d8d03ddcf7f2e7e7"
+    },
+    {
+      "key": "hebrews/7",
+      "bookSlug": "hebrews",
+      "chapter": 7,
+      "path": "bible/hebrews/7.json",
+      "hash": "961330f492142b1b770f58b36c944d71061b1e4d"
+    },
+    {
+      "key": "hebrews/8",
+      "bookSlug": "hebrews",
+      "chapter": 8,
+      "path": "bible/hebrews/8.json",
+      "hash": "ec9ab8805a7f9999b5e84282b3fdd20de4893354"
+    },
+    {
+      "key": "hebrews/9",
+      "bookSlug": "hebrews",
+      "chapter": 9,
+      "path": "bible/hebrews/9.json",
+      "hash": "77431a89a0699423f1b03fcad636e372105be5e0"
+    },
+    {
+      "key": "hebrews/10",
+      "bookSlug": "hebrews",
+      "chapter": 10,
+      "path": "bible/hebrews/10.json",
+      "hash": "5ff5f86a6ec0fdd136f29475a94dca6ce40d804a"
+    },
+    {
+      "key": "hebrews/11",
+      "bookSlug": "hebrews",
+      "chapter": 11,
+      "path": "bible/hebrews/11.json",
+      "hash": "d58a2990a7b0fe5c9c903a8287ead145efc5d40c"
+    },
+    {
+      "key": "hebrews/12",
+      "bookSlug": "hebrews",
+      "chapter": 12,
+      "path": "bible/hebrews/12.json",
+      "hash": "a41b5fb40f82b1c37f6c4ecc3489f7a8957aed4e"
+    },
+    {
+      "key": "hebrews/13",
+      "bookSlug": "hebrews",
+      "chapter": 13,
+      "path": "bible/hebrews/13.json",
+      "hash": "2cc3c9d7c992ee2d10364778d24579a96ef5a5ce"
+    },
+    {
       "key": "john/1",
       "bookSlug": "john",
       "chapter": 1,
@@ -1024,6 +1290,13 @@
       "hash": "88a0ad92f89b10d13c7b95d0131d0d7e3696d870"
     },
     {
+      "key": "jude/1",
+      "bookSlug": "jude",
+      "chapter": 1,
+      "path": "bible/jude/1.json",
+      "hash": "550d9299bc609a498b04ad6f4133975b9327098a"
+    },
+    {
       "key": "judges/1",
       "bookSlug": "judges",
       "chapter": 1,
@@ -1162,6 +1435,13 @@
       "chapter": 20,
       "path": "bible/judges/20.json",
       "hash": "68ddd6860bff9a981708d2a34667d6f9f4d1f3ca"
+    },
+    {
+      "key": "judges/21",
+      "bookSlug": "judges",
+      "chapter": 21,
+      "path": "bible/judges/21.json",
+      "hash": "83d42ba0109abc07cca0fd8899796f8f9269e659"
     },
     {
       "key": "judith/1",
@@ -1946,6 +2226,27 @@
       "chapter": 1,
       "path": "bible/philemon/1.json",
       "hash": "dabd5f70fd0ad49740798848d190e0491f5f305c"
+    },
+    {
+      "key": "psalms/1",
+      "bookSlug": "psalms",
+      "chapter": 1,
+      "path": "bible/psalms/1.json",
+      "hash": "be5e7772fc27ba8d4c0439a6033016d1bfe397d2"
+    },
+    {
+      "key": "psalms/2",
+      "bookSlug": "psalms",
+      "chapter": 2,
+      "path": "bible/psalms/2.json",
+      "hash": "0baf7a0104aa57154bc23b256724cbbb674cc7e2"
+    },
+    {
+      "key": "psalms/3",
+      "bookSlug": "psalms",
+      "chapter": 3,
+      "path": "bible/psalms/3.json",
+      "hash": "03baf636c55ae2dcb5491064764d682945d395e4"
     },
     {
       "key": "revelation/1",
