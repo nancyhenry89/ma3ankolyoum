@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-18T06:36:35.290Z",
+  "generatedAt": "2026-11-18T06:55:48.669Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -2240,6 +2240,13 @@
       "chapter": 2,
       "path": "bible/psalms/2.json",
       "hash": "0baf7a0104aa57154bc23b256724cbbb674cc7e2"
+    },
+    {
+      "key": "psalms/3",
+      "bookSlug": "psalms",
+      "chapter": 3,
+      "path": "bible/psalms/3.json",
+      "hash": "03baf636c55ae2dcb5491064764d682945d395e4"
     },
     {
       "key": "revelation/1",
