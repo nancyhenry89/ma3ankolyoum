@@ -165,6 +165,23 @@
   :calendar-day="calendarDay"
   :calendar-loading="calendarLoading"
   :calendar-error="calendarError"
+>
+  <template #liturgy>
+    <LiturgyReadingCta
+      class="mkNoCapture"
+      :date-iso="selectedDateISO"
+      :home-coptic-date="isArabic ? copticDate : undefined"
+      :english="!isArabic"
+    />
+  </template>
+</Home2027>
+
+<LiturgyReadingCta
+  v-else
+  class="mkNoCapture"
+  :date-iso="selectedDateISO"
+  :home-coptic-date="isArabic ? copticDate : undefined"
+  :english="!isArabic"
 />
             <!-- Occasions -->
             <OccasionsSection
@@ -833,7 +850,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem'
 import { hasReminderPermission, resyncReminderIfNeeded,requestReminderPermission  } from '@/services/reminder'
 
 import { nextTick } from "vue"
-
+import LiturgyReadingCta from '@/components/LiturgyReadingCta.vue'
 function getShareFooter(lang: 'ar' | 'en') {
   const android = 'https://play.google.com/store/apps/details?id=com.nancyhenry.ma3ankolyoum'
   const ios = 'https://apps.apple.com/app/%D9%85%D8%B9%D8%A7-%D9%83%D9%84-%D9%8A%D9%88%D9%85/id6756967997'
