@@ -14,7 +14,7 @@
       <section class="details-card">
         <template v-if="day.fastingStatus === 'fasting'">
           <div class="detail-row">
-            <span>{{ arabic ? 'الانقطاع' : 'Abstinence' }}</span>
+            <span>{{ arabic ? 'الانقطاع' : 'Abstinence' }} 🚫</span>
             <strong>
               {{
                 yesNo(
@@ -27,7 +27,7 @@
           </div>
   
           <div class="detail-row">
-            <span>{{ arabic ? 'السمك' : 'Fish' }}</span>
+            <span>{{ arabic ? 'السمك' : 'Fish' }} 🐟</span>
             <strong>
               {{
                 yesNo(
@@ -41,7 +41,7 @@
         </template>
   
         <div class="detail-row">
-          <span>{{ arabic ? 'نغمة الصلاة' : 'Prayer tune' }}</span>
+          <span>{{ arabic ? 'نغمة الصلاة' : 'Prayer tune' }} 🎶</span>
           <strong>{{ day.prayerTune[language] || unavailable }}</strong>
         </div>
       </section>
