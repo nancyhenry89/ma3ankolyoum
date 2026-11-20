@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-19T17:50:38.114Z",
+  "generatedAt": "2026-11-20T15:30:05.394Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -224,6 +224,13 @@
       "chapter": 27,
       "path": "bible/1samuel/27.json",
       "hash": "5e5aec98063d524d9e2b93a53dd692a7c124630c"
+    },
+    {
+      "key": "1samuel/28",
+      "bookSlug": "1samuel",
+      "chapter": 28,
+      "path": "bible/1samuel/28.json",
+      "hash": "bb4c02779aeb85b5e5242c31d7fc41b9eb27c272"
     },
     {
       "key": "1thessalonians/1",
@@ -2254,6 +2261,13 @@
       "chapter": 3,
       "path": "bible/psalms/3.json",
       "hash": "03baf636c55ae2dcb5491064764d682945d395e4"
+    },
+    {
+      "key": "psalms/4",
+      "bookSlug": "psalms",
+      "chapter": 4,
+      "path": "bible/psalms/4.json",
+      "hash": "813903dd822c8158cba1ea0c8979b8702cb8277b"
     },
     {
       "key": "revelation/1",
