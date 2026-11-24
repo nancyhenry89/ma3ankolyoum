@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>اختبار الكتاب المقدس</title>
+
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --txt:#0f172a;
+      --muted:#51607a;
+      --border: rgba(15, 23, 42, .10);
+      --shadow: 0 18px 55px rgba(16,24,40,.12);
+
+      --accent:#19b7ae;
+      --accent2:#3b82f6;
+
+      --gold1:#ffe7a3;
+      --gold2:#e2b34a;
+      --gold3:#b8860b;
+
+      --radius:22px;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      color:var(--txt);
+      background:
+        radial-gradient(1100px 700px at 15% -10%, rgba(59,130,246,.18), transparent 55%),
+        radial-gradient(900px 650px at 90% 0%, rgba(25,183,174,.18), transparent 55%),
+        radial-gradient(700px 500px at 55% 110%, rgba(226,179,74,.14), transparent 60%),
+        var(--bg);
+    }
+
+    .wrap{
+      max-width: 840px;
+      margin: 0 auto;
+      padding: 22px 16px 54px;
+    }
+
+    /* Header */
+    .header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 14px;
+    }
+
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      font-weight:900;
+      letter-spacing:.2px;
+      line-height:1.1;
+      font-size: 18px;
+    }
+
+    .brand .subtitle{
+      font-weight:700;
+      color:var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 46ch;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.65);
+      box-shadow: 0 10px 28px rgba(16,24,40,.08);
+      font-size: 12px;
+      color: rgba(15,23,42,.75);
+      backdrop-filter: blur(8px);
+      white-space: nowrap;
+    }
+    .badge i{
+      width: 10px; height: 10px; border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      display:inline-block;
+    }
+
+    /* Card */
+    .card{
+      position: relative;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.86));
+      border: 1px solid rgba(15,23,42,.10);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card:before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        radial-gradient(700px 240px at 20% 0%, rgba(59,130,246,.20), transparent 60%),
+        radial-gradient(700px 240px at 80% 0%, rgba(25,183,174,.20), transparent 60%),
+        radial-gradient(800px 300px at 50% 115%, rgba(226,179,74,.12), transparent 60%);
+      opacity:.55;
+      pointer-events:none;
+      filter: blur(0px);
+    }
+
+    .cardInner{
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Progress */
+    .progressWrap{
+      display:grid;
+      gap:10px;
+      margin-bottom: 14px;
+      padding: 12px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.72);
+      backdrop-filter: blur(10px);
+    }
+
+    .progressTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .progressTop b{ color: var(--txt); }
+
+    .bar{
+      height: 11px;
+      border-radius: 999px;
+      background: rgba(15,23,42,.08);
+      overflow: hidden;
+      border: 1px solid rgba(15,23,42,.08);
+    }
+
+    .bar > i{
+      display:block;
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 999px;
+      position: relative;
+      transition: width .42s cubic-bezier(.2,.9,.2,1);
+    }
+    .bar > i:after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(90deg, rgba(255,255,255,.0), rgba(255,255,255,.55), rgba(255,255,255,.0));
+      transform: translateX(-60%);
+      animation: sheen 1.6s ease-in-out infinite;
+      opacity: .55;
+    }
+
+    @keyframes sheen{
+      0%{ transform: translateX(-60%); }
+      70%{ transform: translateX(110%); }
+      100%{ transform: translateX(110%); }
+    }
+
+    /* Question */
+    .q{
+      margin-top: 2px;
+      font-size: 19px;
+      font-weight: 900;
+      color: var(--txt);
+      letter-spacing: .1px;
+    }
+
+    .hint{
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .opts{
+      display:grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button.opt{
+      all: unset;
+      cursor:pointer;
+      border-radius: 16px;
+      padding: 13px 13px;
+      border: 1px solid rgba(15,23,42,.12);
+      background: rgba(255,255,255,.88);
+      box-shadow: 0 10px 26px rgba(16,24,40,.08);
+      transition: transform .08s ease, box-shadow .22s ease, border-color .22s ease;
+      position: relative;
+      overflow:hidden;
+    }
+
+    button.opt:before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: radial-gradient(520px 120px at 25% 0%, rgba(25,183,174,.22), transparent 65%);
+      opacity: .55;
+      pointer-events:none;
+    }
+
+    button.opt:hover{
+      border-color: rgba(25,183,174,.45);
+      box-shadow: 0 16px 34px rgba(16,24,40,.12);
+      transform: translateY(-1px);
+    }
+    button.opt:active{
+      transform: translateY(0px) scale(.992);
+      box-shadow: 0 10px 24px rgba(16,24,40,.10);
+    }
+
+    .optLine{
+      position: relative;
+      z-index: 1;
+      line-height: 1.6;
+      font-weight: 800;
+      font-size: 15px;
+      color: rgba(15,23,42,.92);
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 14px;
+      align-items:center;
+    }
+
+    .btn{
+      all: unset;
+      cursor:pointer;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(15,23,42,.14);
+      background: rgba(255,255,255,.75);
+      color: var(--txt);
+      transition: transform .08s ease, border-color .2s ease, box-shadow .2s ease;
+      box-shadow: 0 10px 22px rgba(16,24,40,.08);
+      font-weight: 750;
+      font-size: 13px;
+    }
+    .btn:hover{
+      border-color: rgba(25,183,174,.35);
+      box-shadow: 0 14px 28px rgba(16,24,40,.10);
+      transform: translateY(-1px);
+    }
+    .btn:active{ transform: translateY(0) scale(.99); }
+
+    .btn.primary{
+      border-color: rgba(25,183,174,.45);
+      background: linear-gradient(90deg, rgba(25,183,174,.18), rgba(59,130,246,.14));
+    }
+
+    .fine{ font-size: 12px; opacity: .92; margin-top: 10px; color: var(--muted); }
+    .ok{ color: #0f766e; font-weight: 750; }
+    .err{ color: #b42318; font-weight: 750; }
+
+    /* Result */
+    .result{
+      margin-top: 16px;
+      border-top: 1px dashed rgba(15,23,42,.18);
+      padding-top: 14px;
+    }
+
+    .resultHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+
+    .big{
+      font-size: 18px;
+      margin: 0;
+      font-weight: 950;
+      letter-spacing: .1px;
+    }
+
+    .personalNote{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size: 12px;
+      color: rgba(15,23,42,.72);
+      border: 1px solid rgba(15,23,42,.12);
+      background: rgba(255,255,255,.85);
+      padding: 7px 10px;
+      border-radius: 999px;
+      box-shadow: 0 10px 22px rgba(16,24,40,.06);
+      white-space: nowrap;
+    }
+    .personalNote .dot{
+      width:9px; height:9px; border-radius:999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      display:inline-block;
+    }
+
+    /* Golden advice box */
+    .adviceBox{
+      margin-top: 10px;
+      border-radius: 18px;
+      border: 1px solid rgba(226,179,74,.55);
+      background:
+        radial-gradient(900px 320px at 15% 0%, rgba(255,231,163,.85), transparent 62%),
+        radial-gradient(900px 320px at 85% 10%, rgba(226,179,74,.28), transparent 60%),
+        linear-gradient(180deg, rgba(255,252,244,.95), rgba(255,255,255,.96));
+      box-shadow: 0 18px 46px rgba(226,179,74,.20);
+      padding: 14px 14px;
+      position: relative;
+      overflow: hidden;
+      animation: popIn .50s cubic-bezier(.2,.9,.2,1) both;
+    }
+
+    .adviceBox:before{
+      content:"";
+      position:absolute;
+      inset:-60px;
+      background:
+        conic-gradient(from 200deg,
+          rgba(255,231,163,.0),
+          rgba(255,231,163,.60),
+          rgba(255,231,163,.0),
+          rgba(226,179,74,.38),
+          rgba(255,231,163,.0)
+        );
+      opacity: .30;
+      filter: blur(12px);
+      animation: shimmer 2.6s linear infinite;
+      pointer-events:none;
+    }
+
+    .adviceTitle{
+      position: relative;
+      z-index: 1;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+
+    .goldIcon{
+      width: 30px; height: 30px;
+      border-radius: 12px;
+      display:grid; place-items:center;
+      background: linear-gradient(180deg, var(--gold1), var(--gold2));
+      box-shadow: 0 14px 26px rgba(226,179,74,.22);
+      border: 1px solid rgba(226,179,74,.58);
+      font-size: 16px;
+    }
+
+    .adviceTitle b{
+      font-size: 16px;
+      color: #3a2a12;
+      letter-spacing: .1px;
+      font-weight: 950;
+    }
+
+    .adviceText{
+      position: relative;
+      z-index: 1;
+      color: #2b2110;
+      white-space: pre-line;
+      line-height: 1.95;
+      font-size: 15.6px;
+      font-weight: 750;
+    }
+
+    @keyframes popIn{
+      from{ transform: translateY(10px); opacity:0; }
+      to{ transform: translateY(0); opacity:1; }
+    }
+    @keyframes shimmer{
+      0%{ transform: rotate(0deg); }
+      100%{ transform: rotate(360deg); }
+    }
+
+    /* Smooth fade between questions */
+    .fadeIn{
+      animation: fade .22s ease both;
+    }
+    @keyframes fade{
+      from{ opacity:0; transform: translateY(4px); }
+      to{ opacity:1; transform: translateY(0); }
+    }
+
+    /* Small screens */
+    @media (max-width: 520px){
+      .wrap{ padding: 18px 12px 40px; }
+      .brand{ font-size: 17px; }
+      .brand .subtitle{ max-width: 38ch; }
+      .q{ font-size: 18px; }
+      .btn{ width: 100%; text-align:center; }
+      .personalNote{ width: 100%; justify-content:center; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="brand">
+        كيف ترى الله؟
+        <div class="subtitle">اختبار سريع (سؤالين) — مش هنطلب اسمك ولا أي بيانات شخصية. النتيجة بتختلف حسب إجاباتك.</div>
+      </div>
+
+      <div class="badge" id="stepPill"><i></i> دقيقة واحدة</div>
+    </div>
+
+    <div class="card">
+      <div class="cardInner">
+
+        <div class="progressWrap">
+          <div class="progressTop">
+            <span>أنت في <b id="progressLabel">سؤال 1 من 2</b></span>
+            <span>المتبقي: <b id="remainingLabel">1</b></span>
+          </div>
+          <div class="bar"><i id="progressBar"></i></div>
+        </div>
+
+        <div id="app"></div>
+        <div class="fine" id="status"></div>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+const COLLECT_ENDPOINT = "https://script.google.com/macros/s/AKfycbwdHKChCPOpQ1xcPfM3Bj99f0P0edg8cMfWFml6BxkEaLKiOUFx-p0xz8_lpcbm3U0qUA/exec";
+const MEETING_URL = "https://ma3ankolyoum.org/";
+const SHARE_URL = "https://ma3ankolyoum.org/bible-test";
+
+const TREE = {
+  start: {
+    id: "q1_commitment",
+    q: "ما مدى التزامك بالكتاب المقدس؟",
+    options: [
+      { key: "daily", label: "١- قراءة يومية", next: "q_daily_how" },
+      { key: "miss_few", label: "٢- بفوت أيام قليلة", next: "q_missfew_why" },
+      { key: "rare", label: "٣- أقرأ أيامًا قليلة", next: "q_rare_why" },
+    ],
+  },
+
+  q_daily_how: {
+    id: "q_daily_how",
+    q: "كيف تقرأ الكتاب المقدس؟",
+    options: [
+      { key: "meditate", label: "١- أتأمل في الإصحاح", next: "r_daily" },
+      { key: "understand", label: "٢- أحاول أفهم معنى ما أقرأه", next: "r_daily" },
+      { key: "fast", label: "٣- أقرأه قراءة سريعة", next: "r_daily" },
+    ],
+  },
+
+  q_missfew_why: {
+    id: "q_missfew_why",
+    q: "لماذا لا تقرأ الكتاب المقدس يوميًا ويصبح عادة لها ميعاد ثابت؟",
+    options: [
+      { key: "busy", label: "١- لأني مشغول", next: "r_missfew" },
+      { key: "dont_understand", label: "٢- لا أفهم ما أقرأه", next: "r_missfew" },
+      { key: "bored_lazy", label: "٣- أشعر بملل وكسل", next: "r_missfew" },
+    ],
+  },
+
+  q_rare_why: {
+    id: "q_rare_why",
+    q: "لماذا تهمل قراءة الكتاب المقدس؟",
+    options: [
+      { key: "tried_failed", label: "١- حاولت كثيرًا وفشلت", next: "r_rare" },
+      { key: "no_benefit", label: "٢- لا أستفيد مما أقرأه", next: "r_rare" },
+      { key: "dont_understand", label: "٣- لأني لا أفهم ما أقرأه", next: "r_rare" },
+    ],
+  },
+
+  r_daily: {
+    id: "r_daily",
+    resultTitle: "نصيحة لك",
+    resultBody: [
+      "ليتك تختار آية كل يوم وتتأمل فيها قليلًا، وإن استطعت اكتب تأملاتك.",
+      "هذه الخطوات تساعدك أن ترى الله في يومك.",
+      "",
+      "وتعالي لتسمع كيف ترى الله في اجتماع الخدمة العام يوم الجمعة ٦ مارس ٢٠٢٦"
+    ],
+  },
+
+  r_missfew: {
+    id: "r_missfew",
+    resultTitle: "نصيحة لك",
+    resultBody: [
+      "حاول أن تثبّت وقتًا محددًا وتقرأ الإصحاح أو جزءًا منه.",
+      "واختر آية تعجبك لتنفذها… هذا يساعدك أن تقترب من الله وتشعر به في حياتك.",
+      "",
+      "وتعالي لتسمع كيف ترى الله في اجتماع الخدمة العام يوم الجمعة ٦ مارس ٢٠٢٦"
+    ],
+  },
+
+  r_rare: {
+    id: "r_rare",
+    resultTitle: "نصيحة لك",
+    resultBody: [
+      "حاول أن تسمع الكتاب المقدس في وقت معيّن كل يوم، أو اقرأ عددًا قليلًا جدًا من الآيات في ميعاد ثابت.",
+      "حتى تشعر ببداية جديدة وتكوين علاقة مع الله.",
+      "",
+      "تعالي اجتماع الخدمة العام يوم الجمعة ٦ مارس ٢٠٢٦ ليشجعك على بداية جديدة مع الله"
+    ],
+  },
+};
+
+const appEl = document.getElementById("app");
+const statusEl = document.getElementById("status");
+const stepPill = document.getElementById("stepPill");
+const progressLabel = document.getElementById("progressLabel");
+const remainingLabel = document.getElementById("remainingLabel");
+const progressBar = document.getElementById("progressBar");
+
+const state = { path: [], current: "start", submitted: false };
+
+// Always 2 questions before result
+const TOTAL_STEPS = 2;
+
+function updateProgress(isResult=false) {
+  const step = Math.min(state.path.length + 1, TOTAL_STEPS); // 1..2
+  const done = Math.min(state.path.length, TOTAL_STEPS);     // 0..2
+  const remaining = Math.max(TOTAL_STEPS - done, 0);
+
+  if (progressLabel) {
+    progressLabel.textContent = isResult ? "اكتملت النتيجة" : `سؤال ${step} من ${TOTAL_STEPS}`;
+  }
+  if (remainingLabel) remainingLabel.textContent = String(isResult ? 0 : remaining);
+
+  if (progressBar) {
+    const pct = isResult ? 100 : Math.round((done / TOTAL_STEPS) * 100);
+    progressBar.style.width = pct + "%";
+  }
+
+  if (stepPill) {
+    stepPill.innerHTML = isResult ? `<i></i> النتيجة` : `<i></i> دقيقة واحدة`;
+  }
+}
+
+function render() {
+  const node = TREE[state.current];
+  statusEl.textContent = "";
+
+  if (!node) {
+    appEl.innerHTML = `<p class="err">حدث خطأ في تحميل الأسئلة.</p>`;
+    return;
+  }
+
+  // Question node
+  if (node.q && node.options) {
+    updateProgress(false);
+
+    appEl.innerHTML = `
+      <div class="fadeIn">
+        <div class="q">${escapeHtml(node.q)}</div>
+        <div class="hint">اختار الإجابة الأقرب لك. النتيجة بتختلف حسب إجاباتك.</div>
+
+        <div class="opts">
+          ${node.options.map((o, idx) => `
+            <button class="opt" data-idx="${idx}">
+              <div class="optLine">${escapeHtml(o.label)}</div>
+            </button>
+          `).join("")}
+        </div>
+
+        <div class="row">
+          ${state.path.length ? `<button class="btn" id="backBtn">رجوع</button>` : ``}
+          <button class="btn" id="restartBtn">إعادة</button>
+        </div>
+      </div>
+    `;
+
+    [...appEl.querySelectorAll("button.opt")].forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.getAttribute("data-idx"));
+        const opt = node.options[idx];
+        state.path.push({ qid: node.id, answerKey: opt.key });
+        state.current = opt.next;
+        render();
+      });
+    });
+
+    const backBtn = document.getElementById("backBtn");
+    if (backBtn) backBtn.addEventListener("click", () => {
+      state.path.pop();
+      state.current = "start";
+
+      const replay = [...state.path];
+      state.path = [];
+      for (const step of replay) {
+        const n = TREE[state.current];
+        const nextOpt = (n.options || []).find(o => o.key === step.answerKey);
+        if (!nextOpt) break;
+        state.path.push(step);
+        state.current = nextOpt.next;
+      }
+      render();
+    });
+
+    document.getElementById("restartBtn").addEventListener("click", reset);
+    return;
+  }
+
+  // Result node
+  if (node.resultTitle) {
+    updateProgress(true);
+
+    const text = (node.resultBody || []).join("\n");
+
+    appEl.innerHTML = `
+      <div class="fadeIn result">
+        <div class="resultHead">
+          <div>
+            <div class="big">${escapeHtml(node.resultTitle)}</div>
+          </div>
+          <div class="personalNote"><span class="dot"></span><span>النتيجة تختلف حسب إجاباتك</span></div>
+        </div>
+
+        <div class="adviceBox">
+          <div class="adviceTitle">
+            <div class="goldIcon">✨</div>
+            <bتدريب/b>
+          </div>
+          <div class="adviceText">${escapeHtml(text)}</div>
+        </div>
+
+        <div class="row">
+          <button class="btn" id="shareBtn">مشاركة الرابط</button>
+          <button class="btn" id="restartBtn">إعادة الاختبار</button>
+        </div>
+
+        <div class="fine">سيتم تسجيل اختياراتك كأرقام فقط (بدون أي بيانات شخصية).</div>
+      </div>
+    `;
+
+    document.getElementById("restartBtn").addEventListener("click", reset);
+    document.getElementById("shareBtn").addEventListener("click", shareLink);
+
+    if (!state.submitted) {
+      state.submitted = true;
+      submitAnswers().catch(() => {});
+    }
+  }
+}
+
+function reset() {
+  state.path = [];
+  state.current = "start";
+  state.submitted = false;
+  render();
+}
+
+async function shareLink() {
+  const text = "اختبار سريع: ما مدى التزامك بالكتاب المقدس؟";
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: text, text, url: SHARE_URL });
+    } else {
+      await navigator.clipboard.writeText(SHARE_URL);
+      statusEl.innerHTML = `<span class="ok">تم نسخ الرابط.</span>`;
+    }
+  } catch (e) {}
+}
+
+async function submitAnswers() {
+  const payload = {
+    ts: new Date().toISOString(),
+    path: state.path,
+    result: state.current,
+    v: 1
+  };
+
+  if (!COLLECT_ENDPOINT) {
+    statusEl.innerHTML = `<span class="fine">ملاحظة: لم يتم ضبط COLLECT_ENDPOINT بعد.</span>`;
+    return;
+  }
+
+  statusEl.textContent = "جاري تسجيل النتيجة…";
+  const res = await fetch(COLLECT_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type":"text/plain;charset=utf-8" },
+    body: JSON.stringify(payload),
+    mode: "cors",
+  });
+
+  const txt = await res.text();
+  if (!res.ok) {
+    statusEl.innerHTML = `<span class="err">تعذر تسجيل النتيجة.</span>`;
+    throw new Error(txt || "submit failed");
+  }
+  statusEl.innerHTML = `<span class="ok">تم تسجيل النتيجة.</span>`;
+}
+
+// Utils
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s){ return escapeHtml(s).replace(/"/g, "&quot;"); }
+
+render();
+</script>
+</body>
+</html>
