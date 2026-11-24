@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-23T20:14:18.397Z",
+  "generatedAt": "2026-11-24T17:58:18.824Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -2254,6 +2254,13 @@
       "chapter": 36,
       "path": "bible/numbers/36.json",
       "hash": "e909b1b1cb915abddf33320ac8724eb26c7df545"
+    },
+    {
+      "key": "obadiah/1",
+      "bookSlug": "obadiah",
+      "chapter": 1,
+      "path": "bible/obadiah/1.json",
+      "hash": "078dbe15a4c7fa6e6a13de5515c08f7f0a3703e2"
     },
     {
       "key": "philemon/1",
