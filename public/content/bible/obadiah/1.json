@@ -7,13 +7,21 @@
         "title": "مقدمة سفر عوبيديا",
         "youtubeId": ""
       },
-    "chapterTitle":"",
+    "chapterTitle":"عقاب أدوم الظالم",
     "sections": [
      
       {
-        "title":" (ع1-9)",
+        "title":"كبرياء أدوم وعقابه (ع1-9)",
         "fromVerse": 1,
         "toVerse": 9
+      },{
+        "title":"خطايا أدوم (ع 10-16)",
+        "fromVerse": 10,
+        "toVerse": 16
+      },{
+        "title":"مكافأة صهيون (ع 17-21)",
+        "fromVerse": 17,
+        "toVerse": 21
       }
     ],
     "verses":[
