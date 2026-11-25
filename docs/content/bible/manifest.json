@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-24T20:50:20.201Z",
+  "generatedAt": "2026-11-25T10:42:53.173Z",
   "chapters": [
     {
       "key": "1john/1",
@@ -987,6 +987,13 @@
       "chapter": 1,
       "path": "bible/james/1.json",
       "hash": "55894bf85f793af5d3bfd15d18c9c15f4eb6e459"
+    },
+    {
+      "key": "james/2",
+      "bookSlug": "james",
+      "chapter": 2,
+      "path": "bible/james/2.json",
+      "hash": "803b07af2b7cff09cac69003546a147fcf51b88d"
     },
     {
       "key": "john/1",
